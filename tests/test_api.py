@@ -258,3 +258,42 @@ def test_voice_biomarkers_learn_then_flag_fatigue():
     assert r["status"] == "amber" and len(r["signs"]) >= 2 and r["baseline"] == "personal"
     r = c.post("/api/voice/biomarkers", data={"who": "C"}, files={"audio": ("v.wav", io.BytesIO(b"junk"), "audio/wav")}).json()
     assert r["ok"] is False and r["message"]
+
+
+def test_routine_capture_and_insight_loop():
+    t = c.get("/api/today/B").json()
+    assert {s["id"] for s in t["routine"]["sessions"]} == {"morning", "evening", "weekly"} and "strain" in t
+    info = c.get("/api/capture/B/glucose").json()
+    assert len(info["howto"]) == 3 and info["why"] and info["in_six"]
+    r = c.post("/api/capture", json={"who": "B", "indicator": "glucose", "value": 94}).json()
+    assert r["meaning"]["word"] == "GO" and "94" in r["meaning"]["text"] and r["insight"]["line"]
+    assert r["ring"]["done"] == r["ring_before"]["done"] + 1 and r["readiness"] >= r["readiness_before"]
+    assert "Safety" in r["agents"] and r["next"]["id"] != "glucose"
+    r = c.post("/api/capture", json={"who": "B", "indicator": "bp", "sys": 150, "dia": 95}).json()
+    assert r["meaning"]["word"] == "WATCH"
+    assert c.post("/api/capture", json={"who": "B", "indicator": "hr", "value": 900}).status_code == 400
+    assert c.post("/api/capture", json={"who": "B", "indicator": "hr", "value": ""}).status_code == 400
+    for ind, v in [("reaction", 310), ("exercise", 95), ("mass", 72.4), ("back_pain", 2), ("mood", 4), ("sleep", 7)]:
+        assert c.post("/api/capture", json={"who": "B", "indicator": ind, "value": v}).status_code == 200, ind
+    assert c.post("/api/capture", json={"who": "B", "indicator": "reaction", "value": 600}).json()["meaning"]["word"] == "NO-GO"
+
+
+def test_overview_strain_trend():
+    o = c.get("/api/overview/C").json()
+    assert len(o["days"]) == 30 == len(o["strain"]) and o["now"]["status"] in ("green", "amber", "red")
+    assert any(v is not None for v in o["alertness"])
+
+
+@pytest.mark.parametrize("text,kind", [
+    ("my chest feels tight", "emergency"), ("heart rate 72 and oxygen 98", "log"), ("I drank 500 ml of water", "log"),
+    ("start my check-in", "navigate"), ("why is my sleep amber?", "status"), ("how am I doing?", "summary"),
+    ("I have a headache", "symptom"), ("How much water should I drink per day?", "ask"), ("", "empty")])
+def test_assistant_routes_to_the_right_place(text, kind):
+    r = c.post("/api/assistant", json={"who": "C", "text": text}).json()
+    assert r["kind"] == kind and r["say"]
+    if kind == "emergency":
+        assert r["go"].startswith("#/emergency/") and "Emergency team" in r["route"]
+    if kind == "log":
+        assert r["readings"] and "Logged" in r["say"]
+    if kind == "ask":
+        assert r["sources"]

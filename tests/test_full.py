@@ -355,7 +355,8 @@ def test_special_indicator_limits(ind, value, status):
 def test_every_indicator_is_checked_in_a_checkin():
     readings = {"hr": 70, "hrv": 40, "spo2": 98, "temp": 36.6, "glucose": 95, "sleep": 7, "mood": 4, "fatigue": 5,
                 "sys": 115, "dia": 75, "vision": "new blur", "bone": 88, "fluid": 1500, "calcium": 600, "co2": 3.5,
-                "rad_daily": "SEP alert", "rad_career": 500, "skin": "cold sore", "orthostatic": {"hr_rise": 35}}
+                "rad_daily": "SEP alert", "rad_career": 500, "skin": "cold sore", "orthostatic": {"hr_rise": 35},
+                "reaction": 420, "exercise": 30, "mass": 71.5, "back_pain": 5}
     o = orchestrator.run({"event": "checkin", "who": "B", "readings": readings, "location": "mars"})
     checked = {a["indicator"] for a in o["assessments"]}
     assert checked == set(kb.indicators()), set(kb.indicators()) - checked

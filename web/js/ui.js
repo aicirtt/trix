@@ -60,6 +60,7 @@ export function toast(msg, ms = 4200) {
 // Agent results in plain words: {"urgency":"emergency","route":"cardiac"} -> "urgency: emergency · route: cardiac"
 export function plain(r) {
   if (r == null) return '';
+  if (Array.isArray(r)) return r.map(plain).join(', ');
   if (typeof r !== 'object') return String(r);
   return Object.entries(r).filter(([, v]) => v !== null && v !== '' && !(Array.isArray(v) && !v.length))
     .map(([k, v]) => `${k.replace(/_/g, ' ')}: ${Array.isArray(v) ? v.join(', ') : typeof v === 'object' ? JSON.stringify(v) : String(v).replace(/_/g, ' ')}`).join(' · ');
@@ -143,4 +144,71 @@ export function speak(text) {
     u.rate = 0.95;
     speechSynthesis.speak(u);
   } catch (e) { /* no speech on this device */ }
+}
+
+// ---------- hologram body for the mission deck ----------
+const HOLO = { brain: [320, 75, 'R', 66, 'SLEEP · MOOD · ALERTNESS'], eyes: [320, 118, 'L', 112, 'VISION'], rad: [412, 131, 'R', 140, 'RADIATION'],
+  lungs: [295, 201, 'L', 196, 'LUNGS · CABIN AIR'], heart: [338, 208, 'R', 214, 'HEART'], gut: [320, 284, 'R', 292, 'FOOD · WATER · BLOOD SUGAR'],
+  immune: [235, 291, 'L', 286, 'IMMUNE · SKIN'], bones: [293, 449, 'L', 444, 'BONES · MUSCLE'] };
+const HC = { green: '#2DD4BF', amber: '#FBBF24', red: '#FC3D21', none: '#5B6F96' };
+export function hologram(bodyMap, notes = {}, ring = null) {
+  const limb = '<path d="M92 132 Q66 150 62 212 L56 330"/><path d="M208 132 Q234 150 238 212 L244 330"/><path d="M126 336 L120 450 L116 536"/><path d="M174 336 L180 450 L184 536"/>';
+  const calls = Object.entries(HOLO).map(([id, [x, y, side, ly, title]]) => {
+    const st = (bodyMap[id] || {}).status || 'none', c = HC[st];
+    const line = side === 'R' ? `M${x} ${y} L452 ${ly} L468 ${ly}` : `M${x} ${y} L188 ${ly} L172 ${ly}`;
+    const tx = side === 'R' ? 474 : 166, an = side === 'R' ? 'start' : 'end';
+    const pulse = st === 'amber' || st === 'red' ? `<circle cx="${x}" cy="${y}" r="9" fill="none" stroke="${c}"><animate attributeName="r" values="9;20" dur="2.2s" repeatCount="indefinite"/><animate attributeName="stroke-opacity" values=".8;0" dur="2.2s" repeatCount="indefinite"/></circle>` : '';
+    return `<g class="mk" data-part="${id}" tabindex="0" role="button" aria-label="${esc(title)}: ${STATUS_WORD[st]}"><path d="${line}" fill="none" stroke="${c}" stroke-width="1.2" stroke-opacity=".8"/>
+      <circle cx="${x}" cy="${y}" r="14" fill="transparent"/><circle cx="${x}" cy="${y}" r="7" fill="#050B18" stroke="${c}" stroke-width="2.5"/><circle cx="${x}" cy="${y}" r="2.5" fill="${c}"/>${pulse}
+      <text x="${tx}" y="${ly - 3}" font-size="12.5" font-weight="700" fill="#CFE0FF" text-anchor="${an}" font-family="'IBM Plex Sans Condensed',sans-serif" letter-spacing=".08em">${esc(title)}</text>
+      <text x="${tx}" y="${ly + 14}" font-size="12" fill="${c}" text-anchor="${an}" font-family="'IBM Plex Mono',monospace">${esc(STATUS_WORD[st])}${notes[id] ? ' · ' + esc(notes[id]) : ''}</text></g>`;
+  }).join('');
+  let arc = '';
+  if (ring && ring.of) {
+    const f = Math.min(0.9999, ring.done / ring.of), a = f * 2 * Math.PI - Math.PI / 2;
+    arc = ring.done ? `<path d="M320 14 A286 286 0 ${f > 0.5 ? 1 : 0} 1 ${320 + 286 * Math.cos(a)} ${300 + 286 * Math.sin(a)}" fill="none" stroke="#2DD4BF" stroke-width="5" stroke-linecap="round"><title>Day ring ${ring.done} of ${ring.of}</title></path>` : '';
+  }
+  return `<svg viewBox="0 0 640 600" role="group" aria-label="Your body status. Day ring ${ring ? ring.done : 0} of ${ring ? ring.of : 6}">
+  <defs><linearGradient id="bodyg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1F5BD6" stop-opacity=".55"/><stop offset="1" stop-color="#0B3D91" stop-opacity=".25"/></linearGradient>
+  <linearGradient id="hscan" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7FB2FF" stop-opacity="0"/><stop offset="1" stop-color="#CFE0FF" stop-opacity=".75"/></linearGradient>
+  <radialGradient id="hbase" cx=".5" cy=".5"><stop offset="0" stop-color="#4C7DD9" stop-opacity=".5"/><stop offset="1" stop-color="#4C7DD9" stop-opacity="0"/></radialGradient><filter id="hblur"><feGaussianBlur stdDeviation="9"/></filter></defs>
+  <circle cx="320" cy="300" r="286" fill="none" stroke="#1C3263" stroke-width="5"/>${arc}
+  <g class="spin"><circle cx="320" cy="300" r="266" fill="none" stroke="#2A4682" stroke-width="2" stroke-dasharray="2 14"/><path d="M320 34 A266 266 0 0 1 586 300" fill="none" stroke="#4C7DD9" stroke-width="2.5"/></g>
+  <g class="spin2"><circle cx="320" cy="300" r="228" fill="none" stroke="#1C3263" stroke-dasharray="40 10"/><circle cx="320" cy="72" r="4" fill="#FC3D21"/></g>
+  <ellipse cx="320" cy="552" rx="150" ry="26" fill="url(#hbase)"/><ellipse cx="320" cy="552" rx="120" ry="18" fill="none" stroke="#4C7DD9" stroke-opacity=".7"/><ellipse cx="320" cy="552" rx="80" ry="11" fill="none" stroke="#7FB2FF" stroke-opacity=".6"/>
+  <g transform="translate(185,48) scale(0.9)" class="holofig"><g stroke="#4C7DD9" stroke-width="36" stroke-linecap="round" fill="none" opacity=".35" filter="url(#hblur)">${limb}</g>
+  <g stroke="#7FB2FF" stroke-width="32" stroke-linecap="round" fill="none">${limb}</g><g stroke="#0B1C3E" stroke-width="28" stroke-linecap="round" fill="none">${limb}</g>
+  <path d="M96 118 Q150 102 204 118 Q224 126 226 160 L218 300 Q214 334 194 344 L106 344 Q86 334 82 300 L74 160 Q76 126 96 118 Z" fill="url(#bodyg)" stroke="#7FB2FF" stroke-width="2"/>
+  <rect x="136" y="88" width="28" height="26" fill="#0B1C3E"/><ellipse cx="150" cy="54" rx="34" ry="40" fill="url(#bodyg)" stroke="#7FB2FF" stroke-width="2"/>
+  <g stroke="#4C7DD9" stroke-width="1.5" fill="none" opacity=".8"><path d="M150 140 V300"/><path d="M112 200 Q150 214 188 200"/><path d="M114 226 Q150 240 186 226"/><path d="M100 170 Q150 150 200 170"/><path d="M108 270 Q150 284 192 270"/></g>
+  <rect x="30" y="0" width="240" height="46" fill="url(#hscan)"><animate attributeName="y" values="-40;540;-40" dur="7s" repeatCount="indefinite"/></rect></g>${calls}</svg>`;
+}
+
+export function spark(vals, color, w = 70, h = 26) {
+  vals = (vals || []).filter((v) => v != null);
+  if (vals.length < 2) return `<svg width="${w}" height="${h}" aria-hidden="true"></svg>`;
+  const lo = Math.min(...vals), hi = Math.max(...vals), rng = hi - lo || 1;
+  const pts = vals.map((v, i) => [i * w / (vals.length - 1), h - 4 - (v - lo) / rng * (h - 8)]);
+  const [lx, ly] = pts[pts.length - 1];
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><polyline class="draw" points="${pts.map((p) => p.join(',')).join(' ')}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round"/><circle cx="${lx}" cy="${ly}" r="3" fill="${color}"/></svg>`;
+}
+
+// colour bar for a measurement's limits, with the reading marked
+export function limitBar(limits, value) {
+  const n = (x) => (typeof x === 'number' ? x : (x && typeof x.sys === 'number' ? x.sys : null));
+  const L = { rl: n(limits.red_low), al: n(limits.amber_low), ah: n(limits.amber_high), rh: n(limits.red_high) };
+  const th = Object.values(L).filter((x) => x != null);
+  if (!th.length) return '';
+  const v = typeof value === 'number' ? value : null;
+  let lo = Math.min(...th, v ?? Infinity), hi = Math.max(...th, v ?? -Infinity);
+  const pad = (hi - lo) * 0.35 || Math.abs(hi) * 0.2 || 1; lo -= pad; hi += pad;
+  const C = { r: 'var(--alert)', a: 'var(--watch)', g: 'var(--ok)' };
+  const cuts = [[L.rl, L.al != null ? 'a' : 'g'], [L.al, 'g'], [L.ah, 'a'], [L.rh, 'r']].filter(([x]) => x != null).sort((p, q) => p[0] - q[0]);
+  let cur = L.rl != null ? 'r' : L.al != null ? 'a' : 'g', at = lo;
+  const segs = [];
+  cuts.forEach(([x, next]) => { segs.push([x - at, cur]); cur = next; at = x; });
+  segs.push([hi - at, cur]);
+  const labels = cuts.map(([x]) => `<span style="position:absolute;left:${(x - lo) / (hi - lo) * 100}%;transform:translateX(-50%)">${x}</span>`).join('');
+  return `<div class="lbarwrap">${v != null ? `<div class="lmark" style="left:${(v - lo) / (hi - lo) * 100}%">${v}<i></i></div>` : ''}<div class="lbar">${segs.map(([w, c]) => `<span style="flex:${Math.max(w, 0.0001)};background:${C[c]}"></span>`).join('')}</div>
+    <div class="mono small dim" style="position:relative;height:18px;margin-top:4px">${labels}</div></div>`;
 }

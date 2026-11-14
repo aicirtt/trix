@@ -16,7 +16,9 @@ Without `setup_vendor.py` the face and body models load from the jsDelivr CDN wh
 
 | Screen | What it does |
 |---|---|
-| **Health** | Built around the NASA brief: the 6 measurements it names (blood pressure, heart rate, blood sugar, temperature, sleep, mood) as colour-coded GO / WATCH / NO-GO tiles with mini charts, plain explanations and “Measure now” prompts; clickable body map; level and streak; crew timeline; check-in reminder at the learned time |
+| **Mission deck** | One screen for the whole loop, Sense → Understand → Act → Report: the 6 measurements the NASA brief names with GO / WATCH / NO-GO colours, a hologram body with status labels and a day ring, the agents' latest decisions, one next step, the Earth link, and the day's timeline as the menu |
+| **Guided capture** | TRIX prompts at the learned morning time and at 21:00. Each measurement shows how to measure, what the number means and why it matters in space; then one personal insight, ring, readiness, streak and the next item. Includes a reaction (alertness) test |
+| **Talk to TRIX** | On every screen: say or type a reading, a question, a symptom or a command; it is routed to the right agents |
 | **Check-in** | 4 steps: vitals (type, **speak**, **Bluetooth heart-rate strap**, or **CSV import**) → **face fatigue** (MediaPipe Face Mesh, PERCLOS) and **voice check** (pace, pauses, pitch vs your normal) → **vision grid** + **skin photo** → symptoms + **food pouch QR scan** and water/calcium rings. The agents check it and show what they found |
 | **Body** | Trend chart per indicator with your personal normal band, limits, logged points and the bone-loss forecast; learn cards with NASA sources; Ask TRIX |
 | **Care** | Every procedure, live or **practice with a score**; cited Q&A; **landing readiness** (Meteomatics go / no-go windows); medicine stock |
@@ -25,7 +27,7 @@ Without `setup_vendor.py` the face and body models load from the jsDelivr CDN wh
 | **Emergency** | Pick the patient and what is happening (or speak it) → the Emergency team answers on board, first step first, then start the guided procedure |
 | **Crew** | Streaks, badges, team goal, rotating **buddy check**, personal privacy switches that apply to every Earth report |
 | **Earth link** | ISS / Moon / Mars delay, report queue with priorities and send animation, **NASA DONKI space weather** (alert the crew), devices, onboard AI |
-| **Agent office** | Every case: which agent ran, why, which tools, what it returned, as a timeline and a live constellation |
+| **Agent tree** | Every case as a tree: who gave what work to whom, the hand-off between teams, tools used, and a step-by-step replay |
 
 Live feeds: set `NASA_API_KEY` (or use `DEMO_KEY`) for DONKI and `METEOMATICS_USER` / `METEOMATICS_PASSWORD` for landing weather. With no network TRIX uses the last saved reply, then a bundled sample, and the screen says which.
 
@@ -35,7 +37,7 @@ Live feeds: set `NASA_API_KEY` (or use `DEMO_KEY`) for DONKI and `METEOMATICS_US
 python demo.py                  # 3 events in parallel: hand-off to Emergency, morning check-in, pharmacy
 python agent_office.py --last   # agent office in the terminal
 python eval/run_all.py          # all evaluations -> eval/RESULTS.md
-python -m pytest -q tests       # 320 tests
+python -m pytest -q tests       # 347 tests
 ```
 Optional: run a local model with [Ollama](https://ollama.com) (`ollama pull llama3.2:3b`) and TRIX will use it for wording; otherwise a built-in extractive fallback answers from the cited sources.
 
@@ -154,7 +156,7 @@ time     team        agent                     triggered by              returne
 
 ## Testing: every flow, not just one
 
-`python -m pytest -q tests` runs **320 tests** (about 45 s), including `tests/test_api.py`, which drives every endpoint the web app uses. They cover:
+`python -m pytest -q tests` runs **347 tests** (about 45 s), including `tests/test_api.py`, which drives every endpoint the web app uses. They cover:
 
 | Area | What is checked |
 |---|---|

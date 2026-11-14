@@ -1,242 +1,856 @@
 {
-  "version": "1.0",
-  "notes": "One row per health indicator. Drives body map colours, Learn cards, reminders, alert thresholds and agent retrieval. 'personal' rules compare with the astronaut's own baseline; 'absolute' rules use fixed clinical or NASA limits. Clinical cut-offs marked 'general clinical reference' should be confirmed with a medical mentor before any real use.",
-  "sources": {
-    "STD3001_CO2": {"title": "NASA OCHMO Technical Brief OCHMO-TB-004: Carbon Dioxide (NASA-STD-3001 V2 6004)", "url": "https://www.nasa.gov/ochmo-tb-004-carbon-dioxide-2/"},
-    "STD3001_RAD": {"title": "NASA OCHMO-TB-020: Design for Ionizing Radiation Protection (NASA-STD-3001 V1 4030/4031)", "url": "https://www.nasa.gov/sites/default/files/atoms/files/radiation_protection_technical_brief_ochmo.pdf"},
-    "STD3001_ECLSS": {"title": "NASA OCHMO-TB-002: ECLSS Human-Centered Approach", "url": "https://www.nasa.gov/wp-content/uploads/2023/12/ochmo-tb-002-eclss.pdf"},
-    "HRP_BONE": {"title": "NASA HRP: Risk of Spaceflight-Induced Bone Changes", "url": "https://www.nasa.gov/reference/risk-of-spaceflight-induced-bone-changes/"},
-    "LANG_2004": {"title": "Lang et al. 2004, Cortical and trabecular bone loss in long-duration spaceflight (J Bone Miner Res)", "url": "https://pubmed.ncbi.nlm.nih.gov/15125798/"},
-    "BARGER_2014": {"title": "Barger et al. 2014, Sleep deficiency and hypnotic use in astronauts (Lancet Neurology)", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4188436"},
-    "SANS_EVIDENCE": {"title": "NASA Evidence Report: Risk of Spaceflight Associated Neuro-ocular Syndrome (SANS)", "url": "https://ntrs.nasa.gov/citations/20180000936"},
-    "SANS_PREV": {"title": "SANS: A Brief for Astronaut Candidates (NASA NTRS)", "url": "https://ntrs.nasa.gov/citations/20220016048"},
-    "HRP_RISKS": {"title": "NASA HRP: Human health risks list", "url": "https://www.nasa.gov/hrp/risks/"},
-    "HRP_HAZARDS": {"title": "NASA HRP: Five hazards of human spaceflight", "url": "https://www.nasa.gov/hrp/hazards/"},
-    "NUTR_REQ": {"title": "NASA JSC-67378: Nutritional Requirements for Exploration Missions (2020)", "url": "https://ntrs.nasa.gov/api/citations/20205008306/downloads/JSC67378%20Expl%20Nutr%20Reqs%20042020.pdf"},
-    "VIRUS_2017": {"title": "Mehta et al. 2017, Latent virus reactivation in long-duration spaceflight (npj Microgravity)", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC5445581"},
-    "VIRUS_2019": {"title": "Rooney et al. 2019, Herpes virus reactivation in astronauts (Front. Microbiol.)", "url": "https://www.frontiersin.org/articles/10.3389/fmicb.2019.00016/pdf"},
-    "ORTHO_CVL": {"title": "NASA Cardiovascular and Vision Laboratory: orthostatic intolerance", "url": "https://www.nasa.gov/?p=207552"},
-    "ORTHO_GCG": {"title": "Lee et al. 2020, Stand test after long-duration spaceflight (Front. Physiol.)", "url": "https://www.frontiersin.org/articles/10.3389/fphys.2020.00784/pdf"},
-    "ISS_MED": {"title": "NASA ISS Medical Project on-orbit hardware", "url": "https://www.nasa.gov/sites/default/files/atoms/files/issmp_on-orbit_hardware.pdf"},
-    "CLINICAL": {"title": "General clinical reference (confirm with a medical mentor)", "url": ""}
+ "version": "1.0",
+ "notes": "One row per health indicator. Drives body map colours, Learn cards, reminders, alert thresholds and agent retrieval. 'personal' rules compare with the astronaut's own baseline; 'absolute' rules use fixed clinical or NASA limits. Clinical cut-offs marked 'general clinical reference' should be confirmed with a medical mentor before any real use.",
+ "sources": {
+  "STD3001_CO2": {
+   "title": "NASA OCHMO Technical Brief OCHMO-TB-004: Carbon Dioxide (NASA-STD-3001 V2 6004)",
+   "url": "https://www.nasa.gov/ochmo-tb-004-carbon-dioxide-2/"
   },
-  "hazards": ["Space radiation", "Isolation and confinement", "Distance from Earth", "Gravity fields", "Hostile/closed environments"],
-  "indicators": [
-    {
-      "id": "bp", "name": "Blood pressure", "unit": "mmHg", "fields": ["sys", "dia"], "body_part": "heart",
-      "devices": ["BP cuff", "Tempus ALS (integrated monitor)"], "frequency": "daily, morning",
-      "hazard": "Gravity fields", "risk": "Risk of Cardiovascular Adaptations",
-      "space_effect": "Fluid shifts toward the head and blood volume falls; pressure patterns change in flight and many crew struggle to keep pressure up when standing after landing.",
-      "why_measure": "Shows how the heart and vessels are adapting, and is the baseline for landing-day readiness.",
-      "personal": {"metric": "robust_z", "amber_abs_z": 2.5, "min_days": 3},
-      "absolute": {"red_high": {"sys": 160, "dia": 100}, "amber_high": {"sys": 140, "dia": 90}, "red_low": {"sys": 85}},
-      "escalation": {"amber": "self_care", "amber_persistent_3d": "crew_medical_officer", "red": "flight_surgeon"},
-      "actions": ["Re-measure after 5 min rest, arm at heart level", "Check fluid intake", "Report headache or vision change with it"],
-      "sources": ["ORTHO_CVL", "CLINICAL"]
+  "STD3001_RAD": {
+   "title": "NASA OCHMO-TB-020: Design for Ionizing Radiation Protection (NASA-STD-3001 V1 4030/4031)",
+   "url": "https://www.nasa.gov/sites/default/files/atoms/files/radiation_protection_technical_brief_ochmo.pdf"
+  },
+  "STD3001_ECLSS": {
+   "title": "NASA OCHMO-TB-002: ECLSS Human-Centered Approach",
+   "url": "https://www.nasa.gov/wp-content/uploads/2023/12/ochmo-tb-002-eclss.pdf"
+  },
+  "HRP_BONE": {
+   "title": "NASA HRP: Risk of Spaceflight-Induced Bone Changes",
+   "url": "https://www.nasa.gov/reference/risk-of-spaceflight-induced-bone-changes/"
+  },
+  "LANG_2004": {
+   "title": "Lang et al. 2004, Cortical and trabecular bone loss in long-duration spaceflight (J Bone Miner Res)",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/15125798/"
+  },
+  "BARGER_2014": {
+   "title": "Barger et al. 2014, Sleep deficiency and hypnotic use in astronauts (Lancet Neurology)",
+   "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4188436"
+  },
+  "SANS_EVIDENCE": {
+   "title": "NASA Evidence Report: Risk of Spaceflight Associated Neuro-ocular Syndrome (SANS)",
+   "url": "https://ntrs.nasa.gov/citations/20180000936"
+  },
+  "SANS_PREV": {
+   "title": "SANS: A Brief for Astronaut Candidates (NASA NTRS)",
+   "url": "https://ntrs.nasa.gov/citations/20220016048"
+  },
+  "HRP_RISKS": {
+   "title": "NASA HRP: Human health risks list",
+   "url": "https://www.nasa.gov/hrp/risks/"
+  },
+  "HRP_HAZARDS": {
+   "title": "NASA HRP: Five hazards of human spaceflight",
+   "url": "https://www.nasa.gov/hrp/hazards/"
+  },
+  "NUTR_REQ": {
+   "title": "NASA JSC-67378: Nutritional Requirements for Exploration Missions (2020)",
+   "url": "https://ntrs.nasa.gov/api/citations/20205008306/downloads/JSC67378%20Expl%20Nutr%20Reqs%20042020.pdf"
+  },
+  "VIRUS_2017": {
+   "title": "Mehta et al. 2017, Latent virus reactivation in long-duration spaceflight (npj Microgravity)",
+   "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC5445581"
+  },
+  "VIRUS_2019": {
+   "title": "Rooney et al. 2019, Herpes virus reactivation in astronauts (Front. Microbiol.)",
+   "url": "https://www.frontiersin.org/articles/10.3389/fmicb.2019.00016/pdf"
+  },
+  "ORTHO_CVL": {
+   "title": "NASA Cardiovascular and Vision Laboratory: orthostatic intolerance",
+   "url": "https://www.nasa.gov/?p=207552"
+  },
+  "ORTHO_GCG": {
+   "title": "Lee et al. 2020, Stand test after long-duration spaceflight (Front. Physiol.)",
+   "url": "https://www.frontiersin.org/articles/10.3389/fphys.2020.00784/pdf"
+  },
+  "ISS_MED": {
+   "title": "NASA ISS Medical Project on-orbit hardware",
+   "url": "https://www.nasa.gov/sites/default/files/atoms/files/issmp_on-orbit_hardware.pdf"
+  },
+  "CLINICAL": {
+   "title": "General clinical reference (confirm with a medical mentor)",
+   "url": ""
+  },
+  "PVT_ISS": {
+   "title": "Basner et al. 2011, Validity and sensitivity of a brief psychomotor vigilance test (PVT-B); used on the ISS as the Reaction Self Test",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/22025811/"
+  },
+  "HRP_MUSCLE": {
+   "title": "NASA HRP: Risk of impaired performance due to reduced muscle size, strength and endurance",
+   "url": "https://humanresearchroadmap.nasa.gov/Risks/"
+  }
+ },
+ "hazards": [
+  "Space radiation",
+  "Isolation and confinement",
+  "Distance from Earth",
+  "Gravity fields",
+  "Hostile/closed environments"
+ ],
+ "indicators": [
+  {
+   "id": "bp",
+   "name": "Blood pressure",
+   "unit": "mmHg",
+   "fields": [
+    "sys",
+    "dia"
+   ],
+   "body_part": "heart",
+   "devices": [
+    "BP cuff",
+    "Tempus ALS (integrated monitor)"
+   ],
+   "frequency": "daily, morning",
+   "hazard": "Gravity fields",
+   "risk": "Risk of Cardiovascular Adaptations",
+   "space_effect": "Fluid shifts toward the head and blood volume falls; pressure patterns change in flight and many crew struggle to keep pressure up when standing after landing.",
+   "why_measure": "Shows how the heart and vessels are adapting, and is the baseline for landing-day readiness.",
+   "personal": {
+    "metric": "robust_z",
+    "amber_abs_z": 2.5,
+    "min_days": 3
+   },
+   "absolute": {
+    "red_high": {
+     "sys": 160,
+     "dia": 100
     },
-    {
-      "id": "hr", "name": "Resting heart rate and rhythm", "unit": "bpm", "body_part": "heart",
-      "devices": ["Holter ECG", "Wearable", "LIFEPAK 1000 (3-lead view)"], "frequency": "continuous",
-      "hazard": "Gravity fields", "risk": "Risk of Cardiovascular Adaptations",
-      "space_effect": "The heart works less without gravity and can lose fitness; rhythm problems are rare but would be serious far from Earth.",
-      "why_measure": "Catches rhythm problems early and tracks fitness loss.",
-      "personal": {"metric": "robust_z", "amber_abs_z": 2.5, "min_days": 2},
-      "absolute": {"red_high": 120, "amber_high": 100, "red_low": 40, "irregular_rhythm": "emergency"},
-      "escalation": {"amber": "self_care", "red": "flight_surgeon", "irregular_rhythm": "emergency"},
-      "actions": ["Rest and re-check in 10 min", "If irregular with dizziness or chest symptoms: emergency, start Triage"],
-      "sources": ["HRP_RISKS", "CLINICAL"]
+    "amber_high": {
+     "sys": 140,
+     "dia": 90
     },
-    {
-      "id": "hrv", "name": "Heart-rate variability (RMSSD)", "unit": "ms", "body_part": "brain",
-      "devices": ["Holter ECG", "Wearable"], "frequency": "nightly",
-      "hazard": "Isolation and confinement", "risk": "Risk of Behavioral Changes and Psychiatric Disorders",
-      "space_effect": "Falls with stress, poor sleep and illness.",
-      "why_measure": "An early, objective stress and recovery signal.",
-      "personal": {"metric": "robust_z", "amber_abs_z": 2.0, "direction": "low", "min_days": 3},
-      "absolute": {},
-      "escalation": {"amber": "self_care"},
-      "actions": ["Protect sleep", "Lighter workload block", "Voice check-in"],
-      "sources": ["HRP_RISKS"]
-    },
-    {
-      "id": "spo2", "name": "Blood oxygen", "unit": "%", "body_part": "lungs",
-      "devices": ["Pulse oximeter", "Tempus ALS"], "frequency": "daily",
-      "hazard": "Hostile/closed environments", "risk": "Risk of Hypoxia",
-      "space_effect": "Cabin oxygen is engineered; a drop can mean an atmosphere or lung problem.",
-      "why_measure": "Simple early warning for both the person and the cabin air.",
-      "personal": {"metric": "robust_z", "amber_abs_z": 3.0, "direction": "low", "min_days": 1},
-      "absolute": {"amber_low": 95, "red_low": 92},
-      "escalation": {"amber": "crew_medical_officer", "red": "emergency"},
-      "actions": ["Re-check on another finger", "Check cabin O2 and CO2 readings", "If below 92%: oxygen and emergency"],
-      "sources": ["STD3001_ECLSS", "CLINICAL"]
-    },
-    {
-      "id": "temp", "name": "Body temperature", "unit": "°C", "body_part": "immune",
-      "devices": ["Thermometer", "Tempus ALS"], "frequency": "daily",
-      "hazard": "Hostile/closed environments", "risk": "Risk of Altered Immune System Responses",
-      "space_effect": "The immune system is weakened in flight, so infections and reactivated viruses are more likely.",
-      "why_measure": "Fever is the simplest sign of infection.",
-      "personal": {"metric": "robust_z", "amber_abs_z": 3.0, "direction": "high", "min_days": 1},
-      "absolute": {"amber_high": 37.5, "red_high": 38.0},
-      "escalation": {"amber": "self_care", "red": "crew_medical_officer", "red_persistent_2d": "flight_surgeon"},
-      "actions": ["Re-measure in 1 h", "Fluids and rest", "Log symptoms", "Limit close contact if fever"],
-      "sources": ["VIRUS_2017", "CLINICAL"]
-    },
-    {
-      "id": "glucose", "name": "Blood sugar (fasting)", "unit": "mg/dL", "body_part": "gut",
-      "devices": ["Glucose meter"], "frequency": "weekly or when prompted",
-      "hazard": "Isolation and confinement", "risk": "Risk of Inadequate Food and Nutrition",
-      "space_effect": "Stress hormones and lower activity can push blood sugar up.",
-      "why_measure": "Named by the challenge brief; tracks metabolic health.",
-      "personal": {"metric": "robust_z", "amber_abs_z": 2.5, "min_days": 2},
-      "absolute": {"amber_high": 126, "red_high": 180, "red_low": 70},
-      "escalation": {"amber": "self_care", "red": "crew_medical_officer"},
-      "actions": ["Re-test with a fresh strip", "If under 70: fast sugar now and re-test in 15 min", "Review recent meals"],
-      "sources": ["CLINICAL"]
-    },
-    {
-      "id": "sleep", "name": "Sleep duration", "unit": "h", "body_part": "brain",
-      "devices": ["Actiwatch (wrist actigraphy)"], "frequency": "nightly",
-      "hazard": "Isolation and confinement", "risk": "Risk of Inadequate Sleep and Irregular Schedules",
-      "space_effect": "Astronauts averaged about 6 h of sleep on ISS despite 8.5 h scheduled; sleep loss reduces alertness and performance.",
-      "why_measure": "Short sleep builds up into slower reactions and mistakes.",
-      "personal": {"metric": "robust_z", "amber_abs_z": 2.0, "direction": "low", "min_days": 3},
-      "absolute": {"amber_low": 5.5, "amber_low_run": 3, "red_low": 4.0, "red_low_run": 2},
-      "escalation": {"amber": "self_care", "red": "crew_medical_officer"},
-      "actions": ["Bed 1 h earlier", "Dim lights 1 h before sleep", "Move demanding tasks after lunch"],
-      "sources": ["BARGER_2014", "HRP_RISKS"]
-    },
-    {
-      "id": "mood", "name": "Mood (self-report 1-5)", "unit": "score", "body_part": "brain",
-      "devices": ["Tablet check-in", "Voice check-in"], "frequency": "daily",
-      "hazard": "Isolation and confinement", "risk": "Risk of Behavioral Changes and Psychiatric Disorders",
-      "space_effect": "Isolation, confinement and workload can lower mood over long missions.",
-      "why_measure": "Named by the challenge brief; behavioural changes are easier to address early.",
-      "personal": {"metric": "robust_z", "amber_abs_z": 2.0, "direction": "low", "min_days": 3},
-      "absolute": {"amber_low": 2, "amber_low_run": 3},
-      "escalation": {"amber": "self_care", "amber_persistent_5d": "crew_medical_officer", "behavioral_concern": "flight_surgeon_private"},
-      "actions": ["Talk to your buddy", "Schedule a private call with the behavioural health team", "Protect leisure time"],
-      "sources": ["HRP_RISKS"]
-    },
-    {
-      "id": "fatigue", "name": "Face fatigue (PERCLOS)", "unit": "% eyes mostly closed", "body_part": "brain",
-      "devices": ["Tablet camera (MediaPipe Face Mesh)"], "frequency": "daily, 10 s",
-      "hazard": "Isolation and confinement", "risk": "Risk of Inadequate Sleep and Irregular Schedules",
-      "space_effect": "Fatigue shows in eye closure and blinking before people notice it.",
-      "why_measure": "Objective fatigue signal to pair with sleep data.",
-      "personal": {"metric": "robust_z", "amber_abs_z": 2.0, "direction": "high", "min_days": 2},
-      "absolute": {"amber_high": 15},
-      "escalation": {"amber": "self_care"},
-      "actions": ["Avoid critical tasks in the next 2 h", "Short rest block"],
-      "sources": ["CLINICAL"]
-    },
-    {
-      "id": "vision", "name": "Vision check (Amsler grid + near acuity)", "unit": "flag", "body_part": "eyes",
-      "devices": ["Tablet Amsler grid", "Ophthalmoscope (medical officer)"], "frequency": "weekly",
-      "hazard": "Gravity fields", "risk": "Risk of Spaceflight Associated Neuro-ocular Syndrome (SANS)",
-      "space_effect": "Fluid shift can change the eye and optic nerve; most long-duration astronauts show at least one SANS sign.",
-      "why_measure": "NASA's leading spaceflight health risk; early changes are worth reporting even without symptoms.",
-      "personal": {"metric": "change_from_last", "amber_on_change": true},
-      "absolute": {"amber_flag": "any distortion or new blur", "red_flag": "sudden vision loss"},
-      "escalation": {"amber": "crew_medical_officer", "red": "flight_surgeon"},
-      "actions": ["Repeat with the other eye", "Medical officer eye exam", "Add to Earth report"],
-      "sources": ["SANS_EVIDENCE", "SANS_PREV"]
-    },
-    {
-      "id": "bone", "name": "Bone index (exercise load + urine calcium)", "unit": "index", "body_part": "bones",
-      "devices": ["Resistance exercise device log", "Urine calcium lab kit"], "frequency": "weekly",
-      "hazard": "Gravity fields", "risk": "Risk of Spaceflight-Induced Bone Changes",
-      "space_effect": "Weight-bearing bones lose on average 1-1.5% of density per month on 4-6 month missions.",
-      "why_measure": "Loss is silent; only trends show it. Exercise is the main countermeasure.",
-      "personal": {"metric": "drift_cusum", "direction": "low"},
-      "absolute": {"forecast_watch_level": 89.0},
-      "escalation": {"amber": "self_care", "amber_persistent_14d": "flight_surgeon"},
-      "actions": ["Add resistance exercise", "Hit calcium 1000-1200 mg/d", "Vitamin D 1000 IU/d"],
-      "sources": ["HRP_BONE", "LANG_2004", "NUTR_REQ"]
-    },
-    {
-      "id": "fluid", "name": "Fluid intake", "unit": "mL/day", "body_part": "gut",
-      "devices": ["Water dispenser log", "Tablet food log"], "frequency": "daily",
-      "hazard": "Distance from Earth", "risk": "Risk of Inadequate Food and Nutrition",
-      "space_effect": "Thirst is blunted in flight; low fluid raises kidney stone risk alongside bone calcium loss.",
-      "why_measure": "Easy to fix, easy to forget.",
-      "personal": {},
-      "absolute": {"amber_low": 2000, "target_male": 2500, "target_female": 2100},
-      "escalation": {"amber": "self_care"},
-      "actions": ["Drink 500 mL now", "Set hourly sip reminders"],
-      "sources": ["NUTR_REQ"]
-    },
-    {
-      "id": "calcium", "name": "Calcium intake", "unit": "mg/day", "body_part": "bones",
-      "devices": ["Tablet food log (pouch photo)"], "frequency": "daily",
-      "hazard": "Distance from Earth", "risk": "Risk of Inadequate Food and Nutrition",
-      "space_effect": "Bone loss releases calcium; intake must stay in range to support bone.",
-      "why_measure": "Supports the bone countermeasure.",
-      "personal": {},
-      "absolute": {"amber_low": 800, "target_low": 1000, "target_high": 1200, "max": 2500},
-      "escalation": {"amber": "self_care"},
-      "actions": ["Add a dairy or fortified pouch"],
-      "sources": ["NUTR_REQ"]
-    },
-    {
-      "id": "co2", "name": "Cabin CO2", "unit": "mmHg (ppCO2)", "body_part": "lungs",
-      "devices": ["Cabin air sensors"], "frequency": "continuous",
-      "hazard": "Hostile/closed environments", "risk": "Risk of Hypoxia",
-      "space_effect": "CO2 builds up in closed cabins; headaches are linked to levels between 2.8 and 4.5 mmHg.",
-      "why_measure": "Explains headaches and poor focus that look like illness.",
-      "personal": {},
-      "absolute": {"amber_7d_avg": 2.5, "red_1h_avg": 3.0},
-      "escalation": {"amber": "crew_medical_officer", "red": "crew_medical_officer"},
-      "actions": ["Sleep near a ventilation outlet", "Report to crew for scrubber check"],
-      "sources": ["STD3001_CO2"]
-    },
-    {
-      "id": "rad_daily", "name": "Radiation dose rate", "unit": "mSv/day", "body_part": "rad",
-      "devices": ["Area dosimeters", "Personal dosimeter", "NASA DONKI space-weather feed"], "frequency": "continuous",
-      "hazard": "Space radiation", "risk": "Risk of Radiation-Induced Cancers",
-      "space_effect": "Galactic cosmic rays give a steady dose; solar particle events can add a large dose quickly.",
-      "why_measure": "Solar storms need fast sheltering.",
-      "personal": {},
-      "absolute": {"amber_solar_event": "SEP alert from DONKI", "red_solar_event": "SEP storm in progress: shelter"},
-      "escalation": {"amber": "self_care", "red": "emergency"},
-      "actions": ["Know your shelter location", "Move to storm shelter on red"],
-      "sources": ["STD3001_RAD"]
-    },
-    {
-      "id": "rad_career", "name": "Cumulative radiation dose", "unit": "mSv", "body_part": "rad",
-      "devices": ["Personal dosimeter"], "frequency": "daily total",
-      "hazard": "Space radiation", "risk": "Risk of Radiation-Induced Cancers",
-      "space_effect": "NASA's career limit is 600 mSv effective dose; solar particle events are limited to 250 mSv per event.",
-      "why_measure": "Mission planning and long-term cancer risk.",
-      "personal": {},
-      "absolute": {"amber_fraction_of_limit": 0.8, "career_limit": 600, "spe_event_limit": 250},
-      "escalation": {"amber": "flight_surgeon"},
-      "actions": ["Flight surgeon review of remaining exposure"],
-      "sources": ["STD3001_RAD"]
-    },
-    {
-      "id": "skin", "name": "Skin and lip check (photo + symptoms)", "unit": "flag", "body_part": "immune",
-      "devices": ["Tablet camera (MedSigLIP screening)"], "frequency": "when symptoms or weekly",
-      "hazard": "Hostile/closed environments", "risk": "Risk of Altered Immune System Responses",
-      "space_effect": "Latent herpes viruses reactivate in over half of astronauts; rashes and cold sores are more common.",
-      "why_measure": "Early sign of immune stress or infection.",
-      "personal": {"metric": "change_from_last", "amber_on_change": true},
-      "absolute": {"red_flag": "rash with fever"},
-      "escalation": {"amber": "crew_medical_officer", "red": "flight_surgeon"},
-      "actions": ["Photo log for the medical officer", "Antiviral per formulary if prescribed"],
-      "sources": ["VIRUS_2019", "VIRUS_2017"]
-    },
-    {
-      "id": "orthostatic", "name": "Stand-up test (landing readiness)", "unit": "bpm rise / mmHg drop", "body_part": "heart",
-      "devices": ["Holter ECG", "BP cuff"], "frequency": "last week of mission",
-      "hazard": "Gravity fields", "risk": "Risk of Cardiovascular Adaptations",
-      "space_effect": "After long flights many astronauts feel faint on standing; compression garments and fluid loading help.",
-      "why_measure": "Decides how much help someone needs after landing.",
-      "personal": {},
-      "absolute": {"amber_hr_rise": 30, "amber_sys_drop": 20},
-      "escalation": {"amber": "flight_surgeon"},
-      "actions": ["Fluid loading before landing", "Compression garment", "Assisted egress"],
-      "sources": ["ORTHO_GCG", "ORTHO_CVL"]
+    "red_low": {
+     "sys": 85
     }
-  ]
+   },
+   "escalation": {
+    "amber": "self_care",
+    "amber_persistent_3d": "crew_medical_officer",
+    "red": "flight_surgeon"
+   },
+   "actions": [
+    "Re-measure after 5 min rest, arm at heart level",
+    "Check fluid intake",
+    "Report headache or vision change with it"
+   ],
+   "sources": [
+    "ORTHO_CVL",
+    "CLINICAL"
+   ]
+  },
+  {
+   "id": "hr",
+   "name": "Resting heart rate and rhythm",
+   "unit": "bpm",
+   "body_part": "heart",
+   "devices": [
+    "Holter ECG",
+    "Wearable",
+    "LIFEPAK 1000 (3-lead view)"
+   ],
+   "frequency": "continuous",
+   "hazard": "Gravity fields",
+   "risk": "Risk of Cardiovascular Adaptations",
+   "space_effect": "The heart works less without gravity and can lose fitness; rhythm problems are rare but would be serious far from Earth.",
+   "why_measure": "Catches rhythm problems early and tracks fitness loss.",
+   "personal": {
+    "metric": "robust_z",
+    "amber_abs_z": 2.5,
+    "min_days": 2
+   },
+   "absolute": {
+    "red_high": 120,
+    "amber_high": 100,
+    "red_low": 40,
+    "irregular_rhythm": "emergency"
+   },
+   "escalation": {
+    "amber": "self_care",
+    "red": "flight_surgeon",
+    "irregular_rhythm": "emergency"
+   },
+   "actions": [
+    "Rest and re-check in 10 min",
+    "If irregular with dizziness or chest symptoms: emergency, start Triage"
+   ],
+   "sources": [
+    "HRP_RISKS",
+    "CLINICAL"
+   ]
+  },
+  {
+   "id": "hrv",
+   "name": "Heart-rate variability (RMSSD)",
+   "unit": "ms",
+   "body_part": "brain",
+   "devices": [
+    "Holter ECG",
+    "Wearable"
+   ],
+   "frequency": "nightly",
+   "hazard": "Isolation and confinement",
+   "risk": "Risk of Behavioral Changes and Psychiatric Disorders",
+   "space_effect": "Falls with stress, poor sleep and illness.",
+   "why_measure": "An early, objective stress and recovery signal.",
+   "personal": {
+    "metric": "robust_z",
+    "amber_abs_z": 2.0,
+    "direction": "low",
+    "min_days": 3
+   },
+   "absolute": {},
+   "escalation": {
+    "amber": "self_care"
+   },
+   "actions": [
+    "Protect sleep",
+    "Lighter workload block",
+    "Voice check-in"
+   ],
+   "sources": [
+    "HRP_RISKS"
+   ]
+  },
+  {
+   "id": "spo2",
+   "name": "Blood oxygen",
+   "unit": "%",
+   "body_part": "lungs",
+   "devices": [
+    "Pulse oximeter",
+    "Tempus ALS"
+   ],
+   "frequency": "daily",
+   "hazard": "Hostile/closed environments",
+   "risk": "Risk of Hypoxia",
+   "space_effect": "Cabin oxygen is engineered; a drop can mean an atmosphere or lung problem.",
+   "why_measure": "Simple early warning for both the person and the cabin air.",
+   "personal": {
+    "metric": "robust_z",
+    "amber_abs_z": 3.0,
+    "direction": "low",
+    "min_days": 1
+   },
+   "absolute": {
+    "amber_low": 95,
+    "red_low": 92
+   },
+   "escalation": {
+    "amber": "crew_medical_officer",
+    "red": "emergency"
+   },
+   "actions": [
+    "Re-check on another finger",
+    "Check cabin O2 and CO2 readings",
+    "If below 92%: oxygen and emergency"
+   ],
+   "sources": [
+    "STD3001_ECLSS",
+    "CLINICAL"
+   ]
+  },
+  {
+   "id": "temp",
+   "name": "Body temperature",
+   "unit": "\u00b0C",
+   "body_part": "immune",
+   "devices": [
+    "Thermometer",
+    "Tempus ALS"
+   ],
+   "frequency": "daily",
+   "hazard": "Hostile/closed environments",
+   "risk": "Risk of Altered Immune System Responses",
+   "space_effect": "The immune system is weakened in flight, so infections and reactivated viruses are more likely.",
+   "why_measure": "Fever is the simplest sign of infection.",
+   "personal": {
+    "metric": "robust_z",
+    "amber_abs_z": 3.0,
+    "direction": "high",
+    "min_days": 1
+   },
+   "absolute": {
+    "amber_high": 37.5,
+    "red_high": 38.0
+   },
+   "escalation": {
+    "amber": "self_care",
+    "red": "crew_medical_officer",
+    "red_persistent_2d": "flight_surgeon"
+   },
+   "actions": [
+    "Re-measure in 1 h",
+    "Fluids and rest",
+    "Log symptoms",
+    "Limit close contact if fever"
+   ],
+   "sources": [
+    "VIRUS_2017",
+    "CLINICAL"
+   ]
+  },
+  {
+   "id": "glucose",
+   "name": "Blood sugar (fasting)",
+   "unit": "mg/dL",
+   "body_part": "gut",
+   "devices": [
+    "Glucose meter"
+   ],
+   "frequency": "weekly or when prompted",
+   "hazard": "Isolation and confinement",
+   "risk": "Risk of Inadequate Food and Nutrition",
+   "space_effect": "Stress hormones and lower activity can push blood sugar up.",
+   "why_measure": "Named by the challenge brief; tracks metabolic health.",
+   "personal": {
+    "metric": "robust_z",
+    "amber_abs_z": 2.5,
+    "min_days": 2
+   },
+   "absolute": {
+    "amber_high": 126,
+    "red_high": 180,
+    "red_low": 70
+   },
+   "escalation": {
+    "amber": "self_care",
+    "red": "crew_medical_officer"
+   },
+   "actions": [
+    "Re-test with a fresh strip",
+    "If under 70: fast sugar now and re-test in 15 min",
+    "Review recent meals"
+   ],
+   "sources": [
+    "CLINICAL"
+   ]
+  },
+  {
+   "id": "sleep",
+   "name": "Sleep duration",
+   "unit": "h",
+   "body_part": "brain",
+   "devices": [
+    "Actiwatch (wrist actigraphy)"
+   ],
+   "frequency": "nightly",
+   "hazard": "Isolation and confinement",
+   "risk": "Risk of Inadequate Sleep and Irregular Schedules",
+   "space_effect": "Astronauts averaged about 6 h of sleep on ISS despite 8.5 h scheduled; sleep loss reduces alertness and performance.",
+   "why_measure": "Short sleep builds up into slower reactions and mistakes.",
+   "personal": {
+    "metric": "robust_z",
+    "amber_abs_z": 2.0,
+    "direction": "low",
+    "min_days": 3
+   },
+   "absolute": {
+    "amber_low": 5.5,
+    "amber_low_run": 3,
+    "red_low": 4.0,
+    "red_low_run": 2
+   },
+   "escalation": {
+    "amber": "self_care",
+    "red": "crew_medical_officer"
+   },
+   "actions": [
+    "Bed 1 h earlier",
+    "Dim lights 1 h before sleep",
+    "Move demanding tasks after lunch"
+   ],
+   "sources": [
+    "BARGER_2014",
+    "HRP_RISKS"
+   ]
+  },
+  {
+   "id": "mood",
+   "name": "Mood (self-report 1-5)",
+   "unit": "score",
+   "body_part": "brain",
+   "devices": [
+    "Tablet check-in",
+    "Voice check-in"
+   ],
+   "frequency": "daily",
+   "hazard": "Isolation and confinement",
+   "risk": "Risk of Behavioral Changes and Psychiatric Disorders",
+   "space_effect": "Isolation, confinement and workload can lower mood over long missions.",
+   "why_measure": "Named by the challenge brief; behavioural changes are easier to address early.",
+   "personal": {
+    "metric": "robust_z",
+    "amber_abs_z": 2.0,
+    "direction": "low",
+    "min_days": 3
+   },
+   "absolute": {
+    "amber_low": 2,
+    "amber_low_run": 3
+   },
+   "escalation": {
+    "amber": "self_care",
+    "amber_persistent_5d": "crew_medical_officer",
+    "behavioral_concern": "flight_surgeon_private"
+   },
+   "actions": [
+    "Talk to your buddy",
+    "Schedule a private call with the behavioural health team",
+    "Protect leisure time"
+   ],
+   "sources": [
+    "HRP_RISKS"
+   ]
+  },
+  {
+   "id": "fatigue",
+   "name": "Face fatigue (PERCLOS)",
+   "unit": "% eyes mostly closed",
+   "body_part": "brain",
+   "devices": [
+    "Tablet camera (MediaPipe Face Mesh)"
+   ],
+   "frequency": "daily, 10 s",
+   "hazard": "Isolation and confinement",
+   "risk": "Risk of Inadequate Sleep and Irregular Schedules",
+   "space_effect": "Fatigue shows in eye closure and blinking before people notice it.",
+   "why_measure": "Objective fatigue signal to pair with sleep data.",
+   "personal": {
+    "metric": "robust_z",
+    "amber_abs_z": 2.0,
+    "direction": "high",
+    "min_days": 2
+   },
+   "absolute": {
+    "amber_high": 15
+   },
+   "escalation": {
+    "amber": "self_care"
+   },
+   "actions": [
+    "Avoid critical tasks in the next 2 h",
+    "Short rest block"
+   ],
+   "sources": [
+    "CLINICAL"
+   ]
+  },
+  {
+   "id": "vision",
+   "name": "Vision check (Amsler grid + near acuity)",
+   "unit": "flag",
+   "body_part": "eyes",
+   "devices": [
+    "Tablet Amsler grid",
+    "Ophthalmoscope (medical officer)"
+   ],
+   "frequency": "weekly",
+   "hazard": "Gravity fields",
+   "risk": "Risk of Spaceflight Associated Neuro-ocular Syndrome (SANS)",
+   "space_effect": "Fluid shift can change the eye and optic nerve; most long-duration astronauts show at least one SANS sign.",
+   "why_measure": "NASA's leading spaceflight health risk; early changes are worth reporting even without symptoms.",
+   "personal": {
+    "metric": "change_from_last",
+    "amber_on_change": true
+   },
+   "absolute": {
+    "amber_flag": "any distortion or new blur",
+    "red_flag": "sudden vision loss"
+   },
+   "escalation": {
+    "amber": "crew_medical_officer",
+    "red": "flight_surgeon"
+   },
+   "actions": [
+    "Repeat with the other eye",
+    "Medical officer eye exam",
+    "Add to Earth report"
+   ],
+   "sources": [
+    "SANS_EVIDENCE",
+    "SANS_PREV"
+   ]
+  },
+  {
+   "id": "bone",
+   "name": "Bone index (exercise load + urine calcium)",
+   "unit": "index",
+   "body_part": "bones",
+   "devices": [
+    "Resistance exercise device log",
+    "Urine calcium lab kit"
+   ],
+   "frequency": "weekly",
+   "hazard": "Gravity fields",
+   "risk": "Risk of Spaceflight-Induced Bone Changes",
+   "space_effect": "Weight-bearing bones lose on average 1-1.5% of density per month on 4-6 month missions.",
+   "why_measure": "Loss is silent; only trends show it. Exercise is the main countermeasure.",
+   "personal": {
+    "metric": "drift_cusum",
+    "direction": "low"
+   },
+   "absolute": {
+    "forecast_watch_level": 89.0
+   },
+   "escalation": {
+    "amber": "self_care",
+    "amber_persistent_14d": "flight_surgeon"
+   },
+   "actions": [
+    "Add resistance exercise",
+    "Hit calcium 1000-1200 mg/d",
+    "Vitamin D 1000 IU/d"
+   ],
+   "sources": [
+    "HRP_BONE",
+    "LANG_2004",
+    "NUTR_REQ"
+   ]
+  },
+  {
+   "id": "fluid",
+   "name": "Fluid intake",
+   "unit": "mL/day",
+   "body_part": "gut",
+   "devices": [
+    "Water dispenser log",
+    "Tablet food log"
+   ],
+   "frequency": "daily",
+   "hazard": "Distance from Earth",
+   "risk": "Risk of Inadequate Food and Nutrition",
+   "space_effect": "Thirst is blunted in flight; low fluid raises kidney stone risk alongside bone calcium loss.",
+   "why_measure": "Easy to fix, easy to forget.",
+   "personal": {},
+   "absolute": {
+    "amber_low": 2000,
+    "target_male": 2500,
+    "target_female": 2100
+   },
+   "escalation": {
+    "amber": "self_care"
+   },
+   "actions": [
+    "Drink 500 mL now",
+    "Set hourly sip reminders"
+   ],
+   "sources": [
+    "NUTR_REQ"
+   ]
+  },
+  {
+   "id": "calcium",
+   "name": "Calcium intake",
+   "unit": "mg/day",
+   "body_part": "bones",
+   "devices": [
+    "Tablet food log (pouch photo)"
+   ],
+   "frequency": "daily",
+   "hazard": "Distance from Earth",
+   "risk": "Risk of Inadequate Food and Nutrition",
+   "space_effect": "Bone loss releases calcium; intake must stay in range to support bone.",
+   "why_measure": "Supports the bone countermeasure.",
+   "personal": {},
+   "absolute": {
+    "amber_low": 800,
+    "target_low": 1000,
+    "target_high": 1200,
+    "max": 2500
+   },
+   "escalation": {
+    "amber": "self_care"
+   },
+   "actions": [
+    "Add a dairy or fortified pouch"
+   ],
+   "sources": [
+    "NUTR_REQ"
+   ]
+  },
+  {
+   "id": "co2",
+   "name": "Cabin CO2",
+   "unit": "mmHg (ppCO2)",
+   "body_part": "lungs",
+   "devices": [
+    "Cabin air sensors"
+   ],
+   "frequency": "continuous",
+   "hazard": "Hostile/closed environments",
+   "risk": "Risk of Hypoxia",
+   "space_effect": "CO2 builds up in closed cabins; headaches are linked to levels between 2.8 and 4.5 mmHg.",
+   "why_measure": "Explains headaches and poor focus that look like illness.",
+   "personal": {},
+   "absolute": {
+    "amber_7d_avg": 2.5,
+    "red_1h_avg": 3.0
+   },
+   "escalation": {
+    "amber": "crew_medical_officer",
+    "red": "crew_medical_officer"
+   },
+   "actions": [
+    "Sleep near a ventilation outlet",
+    "Report to crew for scrubber check"
+   ],
+   "sources": [
+    "STD3001_CO2"
+   ]
+  },
+  {
+   "id": "rad_daily",
+   "name": "Radiation dose rate",
+   "unit": "mSv/day",
+   "body_part": "rad",
+   "devices": [
+    "Area dosimeters",
+    "Personal dosimeter",
+    "NASA DONKI space-weather feed"
+   ],
+   "frequency": "continuous",
+   "hazard": "Space radiation",
+   "risk": "Risk of Radiation-Induced Cancers",
+   "space_effect": "Galactic cosmic rays give a steady dose; solar particle events can add a large dose quickly.",
+   "why_measure": "Solar storms need fast sheltering.",
+   "personal": {},
+   "absolute": {
+    "amber_solar_event": "SEP alert from DONKI",
+    "red_solar_event": "SEP storm in progress: shelter"
+   },
+   "escalation": {
+    "amber": "self_care",
+    "red": "emergency"
+   },
+   "actions": [
+    "Know your shelter location",
+    "Move to storm shelter on red"
+   ],
+   "sources": [
+    "STD3001_RAD"
+   ]
+  },
+  {
+   "id": "rad_career",
+   "name": "Cumulative radiation dose",
+   "unit": "mSv",
+   "body_part": "rad",
+   "devices": [
+    "Personal dosimeter"
+   ],
+   "frequency": "daily total",
+   "hazard": "Space radiation",
+   "risk": "Risk of Radiation-Induced Cancers",
+   "space_effect": "NASA's career limit is 600 mSv effective dose; solar particle events are limited to 250 mSv per event.",
+   "why_measure": "Mission planning and long-term cancer risk.",
+   "personal": {},
+   "absolute": {
+    "amber_fraction_of_limit": 0.8,
+    "career_limit": 600,
+    "spe_event_limit": 250
+   },
+   "escalation": {
+    "amber": "flight_surgeon"
+   },
+   "actions": [
+    "Flight surgeon review of remaining exposure"
+   ],
+   "sources": [
+    "STD3001_RAD"
+   ]
+  },
+  {
+   "id": "skin",
+   "name": "Skin and lip check (photo + symptoms)",
+   "unit": "flag",
+   "body_part": "immune",
+   "devices": [
+    "Tablet camera (MedSigLIP screening)"
+   ],
+   "frequency": "when symptoms or weekly",
+   "hazard": "Hostile/closed environments",
+   "risk": "Risk of Altered Immune System Responses",
+   "space_effect": "Latent herpes viruses reactivate in over half of astronauts; rashes and cold sores are more common.",
+   "why_measure": "Early sign of immune stress or infection.",
+   "personal": {
+    "metric": "change_from_last",
+    "amber_on_change": true
+   },
+   "absolute": {
+    "red_flag": "rash with fever"
+   },
+   "escalation": {
+    "amber": "crew_medical_officer",
+    "red": "flight_surgeon"
+   },
+   "actions": [
+    "Photo log for the medical officer",
+    "Antiviral per formulary if prescribed"
+   ],
+   "sources": [
+    "VIRUS_2019",
+    "VIRUS_2017"
+   ]
+  },
+  {
+   "id": "orthostatic",
+   "name": "Stand-up test (landing readiness)",
+   "unit": "bpm rise / mmHg drop",
+   "body_part": "heart",
+   "devices": [
+    "Holter ECG",
+    "BP cuff"
+   ],
+   "frequency": "last week of mission",
+   "hazard": "Gravity fields",
+   "risk": "Risk of Cardiovascular Adaptations",
+   "space_effect": "After long flights many astronauts feel faint on standing; compression garments and fluid loading help.",
+   "why_measure": "Decides how much help someone needs after landing.",
+   "personal": {},
+   "absolute": {
+    "amber_hr_rise": 30,
+    "amber_sys_drop": 20
+   },
+   "escalation": {
+    "amber": "flight_surgeon"
+   },
+   "actions": [
+    "Fluid loading before landing",
+    "Compression garment",
+    "Assisted egress"
+   ],
+   "sources": [
+    "ORTHO_GCG",
+    "ORTHO_CVL"
+   ]
+  },
+  {
+   "id": "reaction",
+   "name": "Reaction time (alertness test)",
+   "unit": "ms",
+   "body_part": "brain",
+   "devices": [
+    "Tablet reaction test"
+   ],
+   "frequency": "daily (morning)",
+   "hazard": "Isolation and confinement",
+   "risk": "Risk of Performance Decrements from Sleep Loss and Work Overload",
+   "space_effect": "Short sleep, shifted schedules and high workload slow reactions before people feel tired.",
+   "why_measure": "A slow morning score is an early sign to rest before critical tasks.",
+   "personal": {
+    "metric": "robust_z",
+    "amber_abs_z": 2.5,
+    "direction": "high",
+    "min_days": 3
+   },
+   "absolute": {
+    "amber_high": 400,
+    "red_high": 550
+   },
+   "escalation": {
+    "amber": "self_care",
+    "red": "crew_medical_officer"
+   },
+   "actions": [
+    "Avoid critical tasks for 2 h and take a short rest",
+    "Protect tonight's sleep"
+   ],
+   "sources": [
+    "PVT_ISS",
+    "BARGER_2014"
+   ]
+  },
+  {
+   "id": "exercise",
+   "name": "Exercise done",
+   "unit": "min/day",
+   "body_part": "bones",
+   "devices": [
+    "Exercise device log",
+    "Tablet entry"
+   ],
+   "frequency": "daily (evening)",
+   "hazard": "Gravity fields",
+   "risk": "Risk of Reduced Muscle Mass, Strength and Endurance",
+   "space_effect": "Without gravity, muscles and bones weaken quickly; ISS crews exercise about 2 hours a day to slow this.",
+   "why_measure": "Exercise is the main countermeasure; missed days add up.",
+   "personal": {},
+   "absolute": {
+    "amber_low": 60
+   },
+   "escalation": {
+    "amber": "self_care"
+   },
+   "actions": [
+    "Add a resistance session tomorrow",
+    "Split exercise into two shorter blocks"
+   ],
+   "sources": [
+    "HRP_MUSCLE",
+    "HRP_BONE"
+   ]
+  },
+  {
+   "id": "mass",
+   "name": "Body mass",
+   "unit": "kg",
+   "body_part": "gut",
+   "devices": [
+    "Body mass measurement device",
+    "Tablet entry"
+   ],
+   "frequency": "weekly",
+   "hazard": "Distance from Earth",
+   "risk": "Risk of Inadequate Food and Nutrition",
+   "space_effect": "Many astronauts eat less in space and lose body mass, which speeds muscle and bone loss.",
+   "why_measure": "A steady fall means not enough food or muscle loss.",
+   "personal": {
+    "metric": "robust_z",
+    "amber_abs_z": 3.0,
+    "min_days": 3
+   },
+   "absolute": {},
+   "escalation": {
+    "amber": "crew_medical_officer"
+   },
+   "actions": [
+    "Add one extra meal pouch per day",
+    "Review the food log with the crew medical officer"
+   ],
+   "sources": [
+    "NUTR_REQ"
+   ]
+  },
+  {
+   "id": "back_pain",
+   "name": "Back pain",
+   "unit": "0-10",
+   "body_part": "bones",
+   "devices": [
+    "Tablet entry"
+   ],
+   "frequency": "weekly or when it hurts",
+   "hazard": "Gravity fields",
+   "risk": "Risk of Reduced Muscle Mass, Strength and Endurance",
+   "space_effect": "The spine lengthens in weightlessness and back pain is common, mostly early in flight.",
+   "why_measure": "Pain that stays or grows needs the crew medical officer.",
+   "personal": {},
+   "absolute": {
+    "amber_high": 4,
+    "red_high": 7
+   },
+   "escalation": {
+    "amber": "self_care",
+    "red": "crew_medical_officer"
+   },
+   "actions": [
+    "Knees-to-chest stretch for 5 minutes",
+    "Tell the crew medical officer if it lasts 3 days"
+   ],
+   "sources": [
+    "HRP_MUSCLE",
+    "CLINICAL"
+   ]
+  }
+ ]
 }

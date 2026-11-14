@@ -39,8 +39,14 @@
 | 33 | Comms-delay toggle | ✅ | ISS / Moon / Mars on Earth link; changes the Flight Surgeon's decision |
 | 34 | Report queue | ✅ | Priorities, sizes, send in link window with animation |
 | 35 | On-device AI | ✅ | Ollama if present, offline fallback; MediaPipe models served from the onboard computer |
-| 36 | Agent office | ✅ | Web screen: cases, timeline, tools, constellation |
+| 36 | Agent office | ✅ | Tree diagram: event → mission orchestrator → team orchestrators → agents, with the hand-off line, idle teams dimmed, a detail panel (given by, given, tools, returned, passed to) and step-by-step replay |
+| 37 | Mission deck | ✅ | One screen for Sense → Understand → Act → Report: the 6 measurements, hologram body with status labels and day ring, live agent view, one next step, Earth link, and the day's timeline as the menu |
+| 38 | Routine prompts + guided capture | ✅ | Morning session (at the learned time), evening session (21:00), weekly items and re-checks. Each measurement has three cards: how to measure, what the number means (GO / WATCH / NO-GO bar), why it matters in space |
+| 39 | What you get back | ✅ | After every reading: one personal insight, day ring, readiness, streak, crew goal, which agents checked it, and the next item |
+| 40 | Reaction test, exercise, body mass, back pain | ✅ | 8-round tap test (median reaction time vs limits), plus three simple entries; all go through the agents and have trends |
+| 41 | Alertness and strain trend | ✅ | 30-day overview of sleep, mood, alertness and strain from sleep, mood, HRV, eye closure and reaction time against your own normal. Not an emotion detector |
+| 42 | Talk to TRIX | ✅ | Voice or text on every screen: logs readings, answers status and knowledge questions with citations, opens screens, and starts the Emergency team. Health events go through the mission orchestrator |
 
-**Totals:** 34 ✅ · 2 🟡 · 0 ⬜ (of 36)
+**Totals:** 40 ✅ · 2 🟡 · 0 ⬜ (of 42)
 
-Tested by `tests/` (320 tests, including every API endpoint the app uses) and in a headless browser on every screen. Camera checks were tested on synthetic images, not real patients.
+Tested by `tests/` (347 tests, including every API endpoint the app uses) and in a headless browser on every screen. Camera checks were tested on synthetic images, not real patients.
