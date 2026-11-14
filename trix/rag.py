@@ -76,7 +76,8 @@ class Retriever:
             x = np.asarray(x, dtype=float)
             rng_ = x.max() - x.min()
             return (x - x.min()) / rng_ if rng_ > 0 else np.zeros_like(x)
-        parts = [norm(self.bm25.get_scores(tok(query))),
+        raw = self.bm25.get_scores(tok(query))
+        parts = [norm(raw),
                  norm((self.M @ self.tfidf.transform([query]).T).toarray().ravel())]
         if self.E is not None:
             parts.append(norm(self.E @ np.array(self.embedder(query))))
@@ -87,7 +88,8 @@ class Retriever:
             if c.doc_id in seen:
                 continue
             seen.add(c.doc_id)
-            out.append({"doc_id": c.doc_id, "title": c.title, "url": c.url, "text": c.text, "score": round(float(score[idx]), 4)})
+            out.append({"doc_id": c.doc_id, "title": c.title, "url": c.url, "text": c.text, "score": round(float(score[idx]), 4),
+                        "raw": round(float(raw[idx]), 3)})
             if len(out) >= k:
                 break
         return out

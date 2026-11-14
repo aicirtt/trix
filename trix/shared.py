@@ -45,7 +45,9 @@ def safety_node(team: str):
             reasons += v.reasons
             checked += len(steps)
         for where, text, proto in _texts(state):
-            cited = ("[" in text) if where.startswith("specialist") else None
+            cited = None
+            if where.startswith("specialist") and not sp.get("uncited_ok"):
+                cited = "[" in text
             v = safety.check_text(text, proto, cited=cited)
             checked += 1
             if not v.allowed:

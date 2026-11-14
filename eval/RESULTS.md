@@ -6,13 +6,13 @@ All data is **synthetic** (see `trix/synth.py`), grounded in published spaceflig
 
 | Metric | TRIX | Fixed limits only |
 |---|---|---|
-| Events caught (recall) | 100% | 75% |
-| Mean recall over 10 random seeds | 100% | 75% |
+| Events caught (recall) | 100% | 88% |
+| Mean recall over 10 random seeds | 100% | 88% |
 | False-alarm days per astronaut-week | 0.227 (10-seed mean 0.275) | 0.021 |
 | Alert-day precision | 89% (10-seed mean 87%) | 98% |
 
-- Slow-drift events caught only by TRIX: E4, E6 (bone loss, mood decline).
-- Rising blood pressure flagged **15.0 days earlier** than fixed limits.
+- Slow-drift events caught only by TRIX: E6 (bone loss, mood decline).
+- Rising blood pressure flagged **25.0 days earlier** than fixed limits.
 - Accelerated bone loss flagged **35 days before** the bone index crossed the watch level (day 210).
 - Per-event table: `eval/results/detection_events.csv`.
 
@@ -22,7 +22,7 @@ All data is **synthetic** (see `trix/synth.py`), grounded in published spaceflig
 |---|---|
 | Correct source ranked first (hit@1) | 97% |
 | Correct source in top 3 (hit@3) | 100% |
-| Answers citing only correct sources | 90% |
+| Answers citing only correct sources | 97% |
 
 ## Safety agent red-team
 

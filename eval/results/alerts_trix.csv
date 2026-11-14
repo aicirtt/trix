@@ -242,11 +242,11 @@ day,who,indicator,status,level,reasons,confidence,route,body_part,source
 196,C,bone,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,bones,rules
 203,C,bone,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,bones,rules
 209,C,multi_signal,amber,self_care,unusual combination: ,1.0,onboard,whole,iforest
-210,C,bone,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,bones,rules
-217,C,bone,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,bones,rules
+210,C,bone,amber,self_care,"bone density 88.76% of pre-flight, at or below the 89.0% watch level; slow downward drift detected (CUSUM)",1.0,onboard,bones,rules
+217,C,bone,amber,self_care,"bone density 88.27% of pre-flight, at or below the 89.0% watch level; slow downward drift detected (CUSUM)",1.0,onboard,bones,rules
 219,C,multi_signal,amber,self_care,unusual combination: ,1.0,onboard,whole,iforest
-224,C,bone,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,bones,rules
+224,C,bone,amber,self_care,"bone density 87.81% of pre-flight, at or below the 89.0% watch level; slow downward drift detected (CUSUM)",1.0,onboard,bones,rules
 225,C,temp,amber,self_care,4.1 robust SDs above your normal,1.0,onboard,immune,rules
 229,C,mood,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,brain,rules
-231,C,bone,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,bones,rules
-238,C,bone,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,bones,rules
+231,C,bone,amber,self_care,"bone density 87.25% of pre-flight, at or below the 89.0% watch level; slow downward drift detected (CUSUM)",1.0,onboard,bones,rules
+238,C,bone,amber,self_care,"bone density 86.52% of pre-flight, at or below the 89.0% watch level; slow downward drift detected (CUSUM)",1.0,onboard,bones,rules

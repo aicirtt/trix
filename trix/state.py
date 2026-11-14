@@ -27,6 +27,8 @@ class State(TypedDict, total=False):
     body_map: dict
     coach: dict
     reminder: dict
+    findings: list          # abnormal indicators found by Triage, e.g. ["Blood oxygen"]
+    baseline: str           # "personal" | "standard limits only" | "no readings"
     urgency: str
     route: str
     specialist_plan: dict

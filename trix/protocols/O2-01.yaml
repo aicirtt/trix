@@ -1,0 +1,19 @@
+id: O2-01
+title: Low blood oxygen
+specialist: general
+use_when: [low_oxygen]
+note: Simplified demo protocol. Real use follows the mission medical checklist.
+equipment: [pulse oximeter, oxygen mask and supply, cabin air display]
+steps:
+  - id: s1
+    say: Re-check oxygen on a different finger, hand still and warm.
+    why: Cold or moving fingers can give a falsely low reading.
+    check: {type: device, target: spo2_recheck}
+  - id: s2
+    say: Check the cabin oxygen and CO2 readings on the air display.
+    why: A cabin air problem affects the whole crew, not just one person.
+    check: {type: device, target: cabin_air}
+  - id: s3
+    say: If oxygen is still below 92 percent, put on the oxygen mask and call the crew medical officer.
+    why: Supplemental oxygen is the first treatment while the cause is found.
+    check: {type: confirm}

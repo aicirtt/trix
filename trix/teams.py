@@ -9,7 +9,7 @@ from pathlib import Path
 import pandas as pd
 from langgraph.graph import END, StateGraph
 
-from . import detect, escalation, office, rag, reminders
+from . import detect, escalation, kb, office, rag, reminders
 from .shared import report_node, safety_node, settings_for
 from .state import State
 
@@ -26,11 +26,13 @@ def retriever():
     return _R
 
 
-def _history(who: str) -> pd.DataFrame | None:
-    if DATA.exists():
-        df = pd.read_csv(DATA)
-        return df[df.who == who].set_index("day").sort_index()
-    return None
+def _history(who: str | None) -> pd.DataFrame | None:
+    """Past daily data for this astronaut, or None (new or unknown crew member: absolute limits only)."""
+    if not who or not DATA.exists():
+        return None
+    df = pd.read_csv(DATA)
+    h = df[df.who == who].set_index("day").sort_index()
+    return h if len(h) else None
 
 
 # ---------------- Daily care ----------------
@@ -68,6 +70,17 @@ def detection(state: State) -> State:
         out.append(a)
     if "sys" in r:
         out.append(escalation.assess("bp", {"sys": r["sys"], "dia": r.get("dia")}, location=loc))
+    # the other indicators (vision, skin, fluid, calcium, CO2, bone, radiation, stand test) use fixed limits
+    done = {"hr", "hrv", "spo2", "temp", "sleep", "mood", "fatigue", "glucose", "bp"}
+    for ind in kb.indicators():
+        if ind not in done and ind in r:
+            out.append(escalation.assess(ind, r[ind], location=loc))
+    if not r:
+        state["baseline"] = "no readings"
+    elif hist is None:
+        state["baseline"] = "standard limits only"  # new or unknown crew member: no personal history yet
+    else:
+        state["baseline"] = "personal"
     office.tool("detect.RobustBaseline + escalation.assess", len(out), {a.indicator: a.status for a in out if a.status != "green"})
     state["assessments"] = [{"indicator": a.indicator, "status": a.status, "level": a.level, "reasons": a.reasons,
                              "confidence": a.confidence, "route": a.route} for a in out]
@@ -76,7 +89,8 @@ def detection(state: State) -> State:
     state["handoff"] = worst >= escalation.RANK["emergency"] or any(a.status == "red" for a in out if a.indicator in ("hr", "spo2"))
     if state["handoff"]:
         state["vitals"] = {k: r[k] for k in ("hr", "spo2", "temp") if k in r}
-        state["flags"] = ["irregular_rhythm"] if r.get("irregular_rhythm") else []
+        state["flags"] = (["irregular_rhythm"] if r.get("irregular_rhythm") else []) + \
+            (["solar_event"] if any(a.indicator == "rad_daily" and a.status == "red" for a in out) else [])
     flagged = {k: v["status"] for k, v in state["body_map"].items() if v["status"] != "green"}
     office.current().result({"flagged": flagged, "handoff_to_emergency": state["handoff"]})
     return state
@@ -95,7 +109,15 @@ def coach(state: State) -> State:
         office.tool("rag.search", ind["name"], hits[0]["doc_id"] if hits else None)
         if hits:
             learn.append({"indicator": a["indicator"], "text": hits[0]["text"][:220], "source": hits[0]["title"], "url": hits[0]["url"]})
-    state["coach"] = {"messages": msgs or ["Everything is within your normal range today."], "learn": learn}
+    if not msgs:
+        base = state.get("baseline")
+        if base == "no readings":
+            msgs = ["No readings yet. Start your check-in so TRIX can look at today's numbers."]
+        elif base == "standard limits only":
+            msgs = ["Within standard limits. TRIX is still learning your personal normal, so keep checking in."]
+        else:
+            msgs = ["Everything is within your normal range today."]
+    state["coach"] = {"messages": msgs, "learn": learn}
     office.current().result({"tips": len(msgs), "learn_cards": len(learn)})
     return state
 
@@ -183,8 +205,9 @@ def build_ops():
                      ("safety", safety_node(OPS)), ("report", report_node(OPS))]:
         g.add_node(name, fn)
     g.set_entry_point("router")
-    g.add_conditional_edges("router", lambda s: {"pharmacy": "pharmacy", "devices": "devices", "privacy": "privacy"}.get(s.get("event"), "report"),
-                            {"pharmacy": "pharmacy", "devices": "devices", "privacy": "privacy", "report": "report"})
+    # every path, including a plain report request, goes through the shared Safety gate
+    g.add_conditional_edges("router", lambda s: {"pharmacy": "pharmacy", "devices": "devices", "privacy": "privacy"}.get(s.get("event"), "safety"),
+                            {"pharmacy": "pharmacy", "devices": "devices", "privacy": "privacy", "safety": "safety"})
     for k in ("pharmacy", "devices", "privacy"):
         g.add_edge(k, "safety")
     g.add_edge("safety", "report")
