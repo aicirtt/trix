@@ -340,6 +340,7 @@ def capture_info(who: str, ind: str):
     return _clean({"id": ind, "name": k["name"].split(" (")[0], "unit": k["unit"], "howto": routine.HOWTO[ind], "label": routine.ITEMS[ind][0],
                    "minutes": routine.ITEMS[ind][1], "why": f"{k['space_effect']} {k['why_measure']}", "source": src[0] if src else None,
                    "limits": k.get("absolute", {}), "last": last, "devices": k["devices"], "in_six": ind in routine.SIX,
+                   "sim_device": routine.DEVICE.get(ind),
                    "ring": routine.routine(who, _merged_view(who), teams._BANDIT.best(who)["slot"])["ring"]})
 
 
@@ -378,6 +379,42 @@ def capture(body: dict = Body(...)):
                    "ring": after["ring"], "ring_before": before["ring"], "readiness": after["readiness"], "readiness_before": before["readiness"],
                    "streak": game.streak(who), "team_goal": game.team_goal(), "xp": 20, "level": {"level": pts // 250 + 1, "xp": pts % 250, "next": 250},
                    "next": routine.next_item(who, ind), "agents": [s["agent"] for s in office.spans(out["case_id"]) if "orchestrator" not in s["agent"]]})
+
+
+@app.post("/api/devices/read")
+def device_read(body: dict = Body(...)):
+    """One reading from a (simulated) onboard device, to fill the capture screen. Not saved until the astronaut confirms."""
+    r = routine.device_read(body.get("who"), body.get("indicator")) if body.get("who") in game.CREW else None
+    if r is None:
+        raise HTTPException(404, "no device for that measurement")
+    return _clean(r)
+
+
+@app.post("/api/devices/sync")
+def device_sync(body: dict = Body(...)):
+    """Pull every device-fed morning reading that is still missing today (simulated devices) and send them to the agents."""
+    who = body.get("who")
+    if who not in game.CREW:
+        raise HTTPException(400, "who must be A, B or C")
+    done = routine._done_today(who)
+    readings, devices = {}, []
+    for ind in ("sleep", "hr", "bp", "temp", "glucose", "spo2", "co2"):
+        if ind in done or (ind == "co2" and "co2" in done):
+            continue
+        r = routine.device_read(who, ind)
+        readings |= r["values"]
+        devices.append(r["device"])
+    if not readings:
+        return {"synced": 0, "message": "All device readings are already in for today."}
+    first_today = store.today() not in store.checkin_days(who)
+    store.add_readings(who, readings, "simulated device")
+    out = run({"event": "reading", "who": who, "readings": readings | {"day": store.today()}})
+    if first_today:
+        teams._BANDIT.update(who, teams._BANDIT.best(who)["slot"], True)
+    flagged = [a["indicator"] for a in out.get("assessments", []) if a["status"] != "green"]
+    return _clean({"synced": len(readings), "devices": devices, "readings": readings, "case_id": out["case_id"], "flagged": flagged,
+                   "handoff": out.get("handoff"), "simulated": True,
+                   "message": f"{len(devices)} simulated devices synced. " + ("All GO." if not flagged else f"{len(flagged)} to watch.")})
 
 
 @app.get("/api/overview/{who}")

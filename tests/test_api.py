@@ -297,3 +297,15 @@ def test_assistant_routes_to_the_right_place(text, kind):
         assert r["readings"] and "Logged" in r["say"]
     if kind == "ask":
         assert r["sources"]
+
+
+def test_simulated_devices_read_and_sync():
+    r = c.post("/api/devices/read", json={"who": "A", "indicator": "bp"}).json()
+    assert r["simulated"] and 80 < r["values"]["sys"] < 180 and r["device"] == "BP cuff"
+    assert c.post("/api/devices/read", json={"who": "A", "indicator": "mood"}).status_code == 404
+    s = c.post("/api/devices/sync", json={"who": "A"}).json()
+    assert s["synced"] >= 6 and s["simulated"] and s["case_id"]
+    six = {x["id"]: x for x in c.get("/api/today/A").json()["six"]}
+    assert all(six[k]["measured_today"] for k in ("bp", "hr", "glucose", "temp", "sleep"))
+    assert any(x["source"] == "simulated device" for x in store.live_readings("A"))
+    assert c.post("/api/devices/sync", json={"who": "A"}).json()["synced"] == 0

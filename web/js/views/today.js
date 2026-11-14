@@ -1,6 +1,6 @@
 // Mission deck: Sense -> Understand -> Act -> Report on one screen.
 import { api } from '../api.js';
-import { esc, icon, chip, hologram, spark, plain, STATUS_WORD, fmtTime } from '../ui.js';
+import { esc, icon, chip, hologram, spark, plain, STATUS_WORD, fmtTime, toast } from '../ui.js';
 
 const COL = { green: 'var(--ok)', amber: 'var(--watch)', red: 'var(--alert)', none: 'var(--none)' };
 const PART_OF = { bp: 'heart', hr: 'heart', orthostatic: 'heart', hrv: 'brain', sleep: 'brain', mood: 'brain', fatigue: 'brain', reaction: 'brain',
@@ -69,6 +69,7 @@ export async function render(el, { state }) {
         <span><span style="display:block;font-weight:600;font-size:14.5px">${esc(s.name)}</span><span class="mono">${s.value == null ? '—' : esc(typeof s.value === 'number' ? +s.value.toFixed(1) : s.value)} <span class="small dim">${esc(s.unit)}</span></span></span>
         ${spark(s.spark, COL[s.status])}${s.measured_today ? chip(s.status, STATUS_WORD[s.status]) : chip('blue', 'DUE')}</a>`).join('')}
       <div style="padding:12px 14px;border-top:1px solid var(--bd)"><div class="kicker" style="font-size:12px;margin-bottom:8px">Capture · any way you like</div>
+        <button class="btn sm" id="sync" style="width:100%;margin-bottom:8px">${icon('chip', '#fff', 18)}Sync devices <span style="opacity:.75;text-transform:none;letter-spacing:0">(simulated)</span></button>
         <div class="capgrid"><button class="btn ghost" data-talk>${icon('mic', 'var(--bluet)', 18)}Speak</button><a class="btn ghost" href="#/checkin/2">${icon('camera', 'var(--bluet)', 18)}Face · voice</a>
         <a class="btn ghost" href="#/checkin/4">${icon('drop', 'var(--bluet)', 18)}Scan pouch</a><a class="btn ghost" href="#/capture/reaction">${icon('clock', 'var(--bluet)', 18)}Reaction</a></div></div>
       <a href="#/crew" style="margin-top:auto;padding:12px 14px;border-top:1px solid var(--bd);display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit"><span class="cond" style="font-weight:700;color:var(--watch)">LVL ${t.level.level}</span><span class="xp" style="flex:1" title="${t.level.xp} / ${t.level.next} XP"><i style="width:${Math.round(t.level.xp / t.level.next * 100)}%"></i></span><span class="mono small muted">${t.streak}-day streak</span></a>
@@ -94,5 +95,11 @@ export async function render(el, { state }) {
   </div>
   <div class="card" style="padding:0;gap:0"><div class="tile"><div class="ptitle"><span>Today · your day is the menu</span><span class="mono small dim">morning check ${esc(rt.sessions[0].at)} (learned) · evening check 21:00 · tap a block</span></div></div><div style="padding:6px 14px 4px">${timeline(rt)}</div></div>`;
   el.querySelectorAll('.mk').forEach((g) => { const go = () => { location.hash = `#/body/${PART_GO[g.dataset.part]}`; }; g.onclick = go; g.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') go(); }; });
+  el.querySelector('#sync').onclick = async (e) => {
+    e.currentTarget.disabled = true;
+    const r = await api.post('/api/devices/sync', { who });
+    toast(esc(r.message) + (r.case_id ? ` <a href="#/office/${r.case_id}">Agent tree</a>` : ''));
+    if (r.handoff) location.hash = `#/emergency/${r.case_id}`; else render(el, { state });
+  };
   el.querySelector('[data-talk]').onclick = () => document.getElementById('talkbtn')?.click();
 }

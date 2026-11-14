@@ -27,7 +27,7 @@ export async function render(el, { params, state, go }) {
       <div class="card" style="flex:1"><div class="head"><h2>1 · How to measure</h2><button class="btn ghost sm" id="read">${icon('mic')}Read it to me</button></div>
         ${info.howto.map((s, i) => `<div class="hstep ${i === 1 ? 'now' : i === 0 ? 'done' : ''}"><b>${i + 1}</b><span>${esc(s)}</span></div>`).join('')}</div>
       <div class="card"><div class="head"><h2>Reading</h2><span class="mono small dim">${esc(lastTxt)}</span></div>${input}
-        ${ind === 'reaction' ? '' : `<div class="row" style="justify-content:space-between;align-items:center"><span class="mono muted">${esc(info.unit)}</span><button class="btn big" id="save">${icon('check', '#fff', 22)}Done · save</button></div>`}<div id="err" class="small" style="color:var(--redt)" role="alert"></div></div>
+        ${ind === 'reaction' ? '' : `<div class="row" style="justify-content:space-between;align-items:center"><span class="col" style="gap:6px"><span class="mono muted">${esc(info.unit)}</span>${info.sim_device ? `<button class="btn ghost sm" id="dev">${icon('chip')}Read from ${esc(info.sim_device)}</button><span class="small dim">Simulated device for the demo</span>` : ''}</span><button class="btn big" id="save">${icon('check', '#fff', 22)}Done · save</button></div>`}<div id="err" class="small" style="color:var(--redt)" role="alert"></div></div>
     </div>
     <div class="col" style="flex:1;min-width:300px">
       <div class="card"><h2>2 · What the number means</h2><div id="mean" class="muted" style="line-height:1.5">Green is GO, amber is WATCH, red is NO-GO. TRIX also compares the reading with your own usual range.</div>${limitBar(info.limits, null)}</div>
@@ -37,13 +37,20 @@ export async function render(el, { params, state, go }) {
   </div>`;
   animateRings(el);
   el.querySelector('#read').onclick = () => speak(info.howto.join(' '));
-  let picked = null;
+  let picked = null, source = 'tablet';
   el.querySelectorAll('[data-pick]').forEach((b) => b.onclick = () => { picked = +b.dataset.pick; el.querySelectorAll('[data-pick]').forEach((x) => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', x === b); }); });
   const save = async (value) => {
-    const body = { who, indicator: ind };
+    const body = { who, indicator: ind, source };
     if (ind === 'bp') { body.sys = el.querySelector('#v-sys').value; body.dia = el.querySelector('#v-dia').value; } else body.value = value ?? (picked ?? el.querySelector('#v')?.value);
     try { result(await api.post('/api/capture', body)); } catch (e) { el.querySelector('#err').textContent = e.message; }
   };
+  el.querySelector('#dev')?.addEventListener('click', async () => {
+    const r = await api.post('/api/devices/read', { who, indicator: ind });
+    if (ind === 'bp') { el.querySelector('#v-sys').value = r.values.sys; el.querySelector('#v-dia').value = r.values.dia; } else el.querySelector('#v').value = r.values[ind];
+    el.querySelectorAll('.bigin').forEach((i) => i.classList.add('pop'));
+    el.querySelector('#err').innerHTML = `<span style="color:var(--ok)">● received from ${esc(r.device)} (simulated)</span>`;
+    source = 'simulated device';
+  });
   el.querySelector('#save')?.addEventListener('click', () => save());
   el.querySelectorAll('.bigin').forEach((i) => i.addEventListener('keydown', (e) => { if (e.key === 'Enter') save(); }));
   (el.querySelector('#v') || el.querySelector('#v-sys'))?.focus();

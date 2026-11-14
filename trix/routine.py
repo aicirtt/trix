@@ -242,3 +242,32 @@ def intent(text: str) -> dict:
     if SYMPTOM.search(low) and not question:
         return {"kind": "symptom", "symptoms": t}
     return {"kind": "ask", "question": t}
+
+
+# ------------------------------------------------------------------ simulated devices
+# The demo has no real BP cuff, oximeter, glucose meter... so these devices are simulated: a reading is drawn
+# around this astronaut's own recent values. Every such reading is labelled "simulated device".
+DEVICE = {"hr": "Holter ECG", "bp": "BP cuff", "spo2": "Pulse oximeter", "temp": "Thermometer", "glucose": "Glucose meter",
+          "sleep": "Sleep watch", "mass": "Body mass device", "exercise": "Exercise device log", "co2": "Cabin air sensors"}
+_DEFAULT = {"mass": (72.0, 0.3), "exercise": (110, 15), "glucose": (92, 4), "co2": (2.0, 0.2)}
+_ROUND = {"hr": 0, "sys": 0, "dia": 0, "spo2": 0, "temp": 1, "glucose": 0, "sleep": 1, "mass": 1, "exercise": 0, "co2": 2}
+
+
+def _draw(who: str, col: str) -> float:
+    import random
+    vals = [p["value"] for p in store.series(who, col)][-14:]
+    if len(vals) >= 5:
+        med = st.median(vals)
+        sd = max(st.pstdev(vals) * 0.6, abs(med) * 0.004)
+    else:
+        med, sd = _DEFAULT.get(col, (0, 1))
+    lo, hi = RANGE.get(col, (-1e9, 1e9))
+    v = round(min(hi, max(lo, random.gauss(med, sd))), _ROUND.get(col, 1))
+    return int(v) if _ROUND.get(col, 1) == 0 else v
+
+
+def device_read(who: str, ind: str) -> dict | None:
+    if ind not in DEVICE:
+        return None
+    vals = {"sys": _draw(who, "sys"), "dia": _draw(who, "dia")} if ind == "bp" else {ind: _draw(who, ind)}
+    return {"indicator": ind, "device": DEVICE[ind], "values": vals, "simulated": True}

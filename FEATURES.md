@@ -4,7 +4,7 @@
 
 | # | Feature | Status | How |
 |---|---|---|---|
-| 1 | Device adapters + live feed | ✅ | Bluetooth heart-rate straps and watches (standard Heart Rate service, with HRV from RR intervals), CSV device import, simulated ISS devices |
+| 1 | Device adapters + live feed | ✅ | Devices we do not have (BP cuff, oximeter, thermometer, glucose meter, sleep watch, cabin air) are simulated: “Sync devices” or “Read from device” draws a reading around the astronaut’s own recent values, labelled simulated. Bluetooth heart-rate straps and watches (standard Heart Rate service, with HRV from RR intervals), CSV device import, simulated ISS devices |
 | 2 | One combined health record | ✅ | SQLite onboard record (`trix/store.py`): simulated history + everything logged in the app |
 | 3 | Voice logging | ✅ | Speak readings and symptoms; `trix/voice.py` parses numbers ("118 over 76", "six and a half hours"). Tablet speech recognition, or offline faster-whisper if installed |
 | 4 | Manual entry | ✅ | Check-in vitals form |
@@ -49,4 +49,4 @@
 
 **Totals:** 40 ✅ · 2 🟡 · 0 ⬜ (of 42)
 
-Tested by `tests/` (347 tests, including every API endpoint the app uses) and in a headless browser on every screen. Camera checks were tested on synthetic images, not real patients.
+Tested by `tests/` (348 tests, including every API endpoint the app uses) and in a headless browser on every screen. Camera checks were tested on synthetic images, not real patients.
