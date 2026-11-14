@@ -18,19 +18,19 @@
 | 12 | Voice check-in biomarkers | ⬜ | Speech rate / pauses not analysed |
 | 13 | Vision check (Amsler grid) | ✅ | Per-eye grid in check-in → vision indicator → crew medical officer |
 | 14 | Symptom & illness diary | ✅ | Symptom text, quick chips, voice; stored with each case |
-| 15 | Skin photo | 🟡 | Redness map in Lab colour space + change vs last photo; MedSigLIP model not used |
-| 16 | Food & water from pouch photo | 🟡 | Reads the pouch QR label (printable labels at /api/food/labels) or menu pick → water, calcium, vitamin D rings; no food recognition from the photo |
+| 15 | Skin photo | 🟡 | Redness map in Lab colour space + change vs last photo (built in). MedSigLIP screening hint as an optional add-on (`scripts/setup_addons.py --medsiglip`): written, not yet run, because it needs a gated Hugging Face download |
+| 16 | Food & water from pouch photo | ✅ | Reads the pouch label from the photo (QR; printable labels at /api/food/labels) or menu pick → water, calcium, vitamin D rings. Same approach as NASA’s ISS FIT app (barcode scanning); no open model recognises space-food pouches |
 | 17 | Anomaly detection vs personal normal | ✅ | Robust baselines, CUSUM drift, Isolation Forest |
 | 18 | Plain-English explanations | ✅ | Alert reasons, cited answers |
 | 19 | Risk forecast | ✅ | Bone forecast on the chart |
-| 20 | Cabin air ↔ symptoms | 🟡 | CO₂ limits checked in every check-in; headache correlation not computed |
+| 20 | Cabin air ↔ symptoms | ✅ | Headache days vs cabin CO₂ for this crew, next to NASA’s curve (Law et al. 2014: odds double per 1 mmHg); a reported headache gets a CO₂-aware tip from the Coach |
 | 21 | Radiation (DONKI) | ✅ | Live NASA DONKI flares and SEP events, cached for offline; storm → Radiation specialist → shelter protocol for the whole crew |
 | 22 | Crew cohesion | ✅ | Crew-level mood trend + buddy concerns score on the Crew screen (no individual details) |
 | 23 | Countermeasure tips | ✅ | Coach messages and Today tasks |
 | 24 | Medicines & pharmacy | ✅ | Runs-out day, label expiry, radiation potency (simulated stock) |
 | 25 | Multi-agent triage | ✅ | Emergency screen → Triage → specialist → Flight Surgeon → Procedure → Safety → Report |
 | 26 | Guided ECG + camera check | ✅ | MediaPipe Pose finds shoulders and hips, OpenCV finds the sticker, TRIX says how many cm to move it; tested on synthetic images |
-| 27 | Ultrasound check | 🟡 | View-quality check (coverage, gain, sharpness, 4 chambers) with tips; EchoNet pumping-strength model not installed |
+| 27 | Ultrasound check | 🟡 | View-quality check (coverage, gain, sharpness, 4 chambers) with tips (built in). Pumping strength from a clip with the EchoNet-Dynamic add-on (`--echonet`): written and preprocessing tested, model not yet run, because PyTorch could not be installed in the build environment |
 | 28 | Spacewalk checks | ✅ | EVA-POST-01; tingling or joint pain escalates |
 | 29 | Landing readiness + Meteomatics | ✅ | Meteomatics go / no-go windows (needs account; sample offline), stand test with camera sway check |
 | 30 | Gamification | ✅ | Streaks, badges, points, team goal (rewards doing checks, never good numbers) |
@@ -41,6 +41,6 @@
 | 35 | On-device AI | ✅ | Ollama if present, offline fallback; MediaPipe models served from the onboard computer |
 | 36 | Agent office | ✅ | Web screen: cases, timeline, tools, constellation |
 
-**Totals:** 31 ✅ · 4 🟡 · 1 ⬜ (of 36)
+**Totals:** 33 ✅ · 2 🟡 · 1 ⬜ (of 36)
 
-Tested by `tests/` (316 tests, including every API endpoint the app uses) and in a headless browser on every screen. Camera checks were tested on synthetic images, not real patients.
+Tested by `tests/` (319 tests, including every API endpoint the app uses) and in a headless browser on every screen. Camera checks were tested on synthetic images, not real patients.

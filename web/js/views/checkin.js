@@ -149,7 +149,7 @@ export async function render(el, { params, state, go }) {
       const r = await api.post('/api/vision/skin', { who, image: img });
       if (r.ok) d.readings.skin = r.reading.skin;
       save(who, d);
-      el.querySelector('#skinres').innerHTML = r.ok ? `${chip(r.status, r.status === 'green' ? 'No red area' : 'Red area')} <span class="mono small">${r.red_pct}% of skin · ${r.spots} spots</span><p style="margin:6px 0 0">${esc(r.message)}</p><span class="small dim">${esc(r.note)}</span>` : esc(r.message);
+      el.querySelector('#skinres').innerHTML = r.ok ? `${chip(r.status, r.status === 'green' ? 'No red area' : 'Red area')} <span class="mono small">${r.red_pct}% of skin · ${r.spots} spots</span><p style="margin:6px 0 0">${esc(r.message)}</p><span class="small dim">${esc(r.note)}</span>${r.ai?.ok ? `<div class="note small" style="margin-top:8px"><strong>MedSigLIP:</strong> ${r.ai.top.map((t) => `${esc(t.label)} ${Math.round(t.p * 100)}%`).join(' · ')}<br>${esc(r.ai.note)}</div>` : `<div class="small dim" style="margin-top:6px">${esc(r.ai?.message || '')}</div>`}` : esc(r.message);
     };
     el.querySelector('#camon').onclick = async () => { try { stream = await startCamera(v, 'environment'); shot.hidden = true; el.querySelector('#idle').hidden = true; el.querySelector('#snap').disabled = false; } catch (e) { toast(esc(e.message)); } };
     el.querySelector('#snap').onclick = () => { const img = frameJpeg(v); stopCamera(stream); analyse(img); };

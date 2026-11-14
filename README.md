@@ -35,7 +35,7 @@ Live feeds: set `NASA_API_KEY` (or use `DEMO_KEY`) for DONKI and `METEOMATICS_US
 python demo.py                  # 3 events in parallel: hand-off to Emergency, morning check-in, pharmacy
 python agent_office.py --last   # agent office in the terminal
 python eval/run_all.py          # all evaluations -> eval/RESULTS.md
-python -m pytest -q tests       # 316 tests
+python -m pytest -q tests       # 319 tests
 ```
 Optional: run a local model with [Ollama](https://ollama.com) (`ollama pull llama3.2:3b`) and TRIX will use it for wording; otherwise a built-in extractive fallback answers from the cited sources.
 
@@ -154,7 +154,7 @@ time     team        agent                     triggered by              returne
 
 ## Testing: every flow, not just one
 
-`python -m pytest -q tests` runs **316 tests** (about 45 s), including `tests/test_api.py`, which drives every endpoint the web app uses. They cover:
+`python -m pytest -q tests` runs **319 tests** (about 45 s), including `tests/test_api.py`, which drives every endpoint the web app uses. They cover:
 
 | Area | What is checked |
 |---|---|
@@ -190,8 +190,9 @@ Eight labelled events are injected:
 - a solar particle event.
 
 ## Limits (say these to the judges)
-- **Camera checks are rule-based screening aids.** ECG placement, CPR rate, sway, skin redness, ultrasound view quality and food labels use MediaPipe landmarks plus OpenCV rules, tested on synthetic images. They have not been validated on real patients. Skin uses a redness map, not MedSigLIP; ultrasound checks view quality only (EchoNet-Dynamic for pumping strength is not installed).
-- **Food is logged by QR label or menu pick**, not by recognising food in a photo.
+- **Camera checks are rule-based screening aids.** ECG placement, CPR rate, sway, skin redness, ultrasound view quality and food labels use MediaPipe landmarks plus OpenCV rules, tested on synthetic images. They have not been validated on real patients.
+- **Optional AI add-ons** (`python scripts/setup_addons.py --medsiglip` / `--echonet`): MedSigLIP skin screening and EchoNet-Dynamic pumping strength. Written and wired into the app, but not yet run end to end (they need PyTorch and large downloads). Without them the app uses the built-in checks and says so.
+- **Food is logged by the pouch label**, like NASA’s ISS FIT app, not by recognising food itself.
 - **Speech:** the tablet's speech recognition (Chrome sends audio to Google, so it is not offline). For offline use install `faster-whisper` on the onboard computer.
 - **Bluetooth:** any standard Bluetooth heart-rate strap or watch works (Web Bluetooth). Other ISS devices are simulated.
 - **Not a medical device.** Clinical cut-offs marked "general clinical reference" need review by a medical mentor.

@@ -211,3 +211,37 @@ def test_web_app_is_served():
     assert "TRIX" in c.get("/").text
     for f in ("/js/app.js", "/css/app.css", "/js/views/checkin.js", "/js/sensors.js"):
         assert c.get(f).status_code == 200, f
+
+
+def test_co2_headache_link():
+    from trix import insights
+    r = c.get("/api/insights/co2-headache").json()
+    assert r["ok"] and r["rate_high"] > r["rate_low"] and len(r["bins"]) == 5
+    # NASA anchor: ~1% at 2.5 mmHg, odds double per mmHg
+    assert abs(insights.nasa_risk(2.5) - 0.01) < 1e-9 and insights.nasa_risk(3.5) > 1.9 * insights.nasa_risk(2.5)
+    c.post("/api/event", json={"event": "reading", "who": "B", "readings": {"co2": 3.4}})
+    out = c.post("/api/checkin", json={"who": "B", "readings": {"hr": 68}, "symptoms": "bad headache"}).json()
+    assert any("CO2" in m for m in out["coach"]["messages"]) and out["safety"]["allowed"]
+
+
+def test_addons_degrade_gracefully_when_not_installed():
+    from trix.addons import echonet, medsiglip
+    skin = np.full((300, 300, 3), (130, 160, 210), np.uint8)
+    r = c.post("/api/vision/skin", json={"who": "C", "image": b64(skin)}).json()
+    assert "ai" in r and (r["ai"]["ok"] or "setup_addons" in r["ai"]["message"])
+    r = c.post("/api/vision/ultrasound-clip", files={"clip": ("c.mp4", io.BytesIO(b"not a video"), "video/mp4")}).json()
+    assert r["ok"] or "setup_addons" in r["message"] or "too short" in r["message"]
+    assert "skin_ai" in c.get("/api/system").json()
+
+
+def test_echonet_clip_preprocessing(tmp_path):
+    from trix.addons import echonet
+    path = str(tmp_path / "clip.avi")
+    w = cv2.VideoWriter(path, cv2.VideoWriter_fourcc(*"MJPG"), 30, (160, 120))
+    for i in range(70):
+        f = np.zeros((120, 160, 3), np.uint8)
+        cv2.circle(f, (80, 60), 20 + int(10 * np.sin(i / 5)), (200, 200, 200), -1)
+        w.write(f)
+    w.release()
+    clip = echonet.load_clip(path)
+    assert clip.shape == (3, 32, 112, 112) and abs(float(clip.mean())) < 1e-3

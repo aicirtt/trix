@@ -19,7 +19,7 @@ from fastapi import Body, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
-from . import detect, escalation, feeds, game, kb, llm, office, orchestrator, protocols, rag, safety, store, teams, vision, voice
+from . import detect, escalation, feeds, game, insights, kb, llm, office, orchestrator, protocols, rag, safety, store, teams, vision, voice
 
 ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web"
@@ -89,7 +89,9 @@ def system_status() -> dict:
         whisper = True
     except ImportError:
         whisper = False
-    return {"llm": m.name, "llm_offline": True, "speech": "faster-whisper (offline)" if whisper else "tablet speech recognition",
+    from .addons import echonet, medsiglip
+    return {"llm": m.name, "llm_offline": True, "skin_ai": "MedSigLIP" if medsiglip.available()[0] else "redness check (MedSigLIP add-on not installed)",
+            "ultrasound_ai": "EchoNet-Dynamic" if echonet.available()[0] else "view quality (EchoNet add-on not installed)", "speech": "faster-whisper (offline)" if whisper else "tablet speech recognition",
             "face": "MediaPipe Face Mesh (on tablet)", "pose": "MediaPipe Pose (on tablet)",
             "vision": "OpenCV checks (onboard)", "reminders": "Thompson-sampling bandit (learning)"}
 
@@ -288,6 +290,11 @@ def trend(who: str, indicator: str, days: int = 90):
     return _clean(out)
 
 
+@app.get("/api/insights/co2-headache")
+def co2_headache(who: str | None = None):
+    return _clean(insights.co2_headache(who))
+
+
 # ------------------------------------------------------------------ procedures
 SESSIONS: dict = {}
 
@@ -362,7 +369,11 @@ def vision_fatigue(body: dict = Body(...)):
 def vision_skin(body: dict = Body(...)):
     who = body.get("who")
     prev = store.q("select result from photos where who=? and kind='skin' order by ts desc limit 1", (who,))
-    r = vision.skin(vision.decode_image(body["image"]), json.loads(prev[0]["result"]) if prev else None)
+    img = vision.decode_image(body["image"])
+    r = vision.skin(img, json.loads(prev[0]["result"]) if prev else None)
+    from .addons import medsiglip
+    if r.get("ok"):
+        r["ai"] = medsiglip.screen(img)          # optional add-on; says how to install it when missing
     if r.get("ok") and who in game.CREW:
         store.x("insert into photos(ts, who, kind, result) values(?,?,?,?)", (time.time(), who, "skin", json.dumps(_clean(r))))
         store.add_readings(who, r["reading"], "tablet camera")
@@ -372,6 +383,24 @@ def vision_skin(body: dict = Body(...)):
 @app.post("/api/vision/ultrasound")
 def vision_ultrasound(body: dict = Body(...)):
     return _clean(vision.ultrasound(vision.decode_image(body["image"])))
+
+
+@app.post("/api/vision/ultrasound-clip")
+async def ultrasound_clip(clip: UploadFile = File(...)):
+    """Pumping strength from a short 4-chamber video (EchoNet-Dynamic add-on)."""
+    from .addons import echonet
+    with tempfile.NamedTemporaryFile(suffix=Path(clip.filename or "c.mp4").suffix, delete=False) as f:
+        shutil.copyfileobj(clip.file, f)
+        path = f.name
+    try:
+        ok, why = echonet.available()
+        if not ok:
+            return {"ok": False, "message": why}
+        return _clean(echonet.ejection_fraction(path))
+    except ValueError as e:
+        return {"ok": False, "message": str(e)}
+    finally:
+        os.unlink(path)
 
 
 @app.post("/api/vision/food")

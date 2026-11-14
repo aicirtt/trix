@@ -32,9 +32,10 @@ export async function render(el) {
       <div class="idle" id="idle">${icon('heart', 'var(--t2)', 40)}<span>Point the tablet camera at the ultrasound screen, or upload a frame.</span></div></div>
       <div class="row" style="gap:10px"><button class="btn ghost" id="camon">${icon('camera')}Use camera</button><button class="btn" id="snap" disabled>Check this frame</button>
         <label class="btn ghost" for="up" style="cursor:pointer">${icon('upload')}Upload frame</label><input id="up" type="file" accept="image/*" class="sr">
+        <label class="btn ghost sm" for="clip" style="cursor:pointer">${icon('upload')}Clip: pumping strength</label><input id="clip" type="file" accept="video/*" class="sr">
         <button class="btn ghost sm" id="good">Practice image</button><button class="btn ghost sm" id="bad">Practice image (poor)</button></div></div>
     <div class="col" style="flex:1;min-width:300px"><div class="card" id="res"><h2>View quality</h2><p class="muted" style="margin:0">No frame checked yet.</p></div>
-      <div class="note">Checks: picture coverage, brightness (gain), sharpness and the four heart chambers. Pumping strength (ejection fraction) needs the EchoNet-Dynamic model, which is not installed on this computer.</div></div>
+      <div class="note">Checks: picture coverage, brightness (gain), sharpness and the four heart chambers. Pumping strength (ejection fraction) from a short clip uses the EchoNet-Dynamic add-on (scripts/setup_addons.py --echonet).</div></div>
   </div>`;
   const vid = el.querySelector('#vid'), img = el.querySelector('#img'), ov = el.querySelector('#ov');
   const check = async (dataUrl) => {
@@ -55,6 +56,13 @@ export async function render(el) {
   el.querySelector('#camon').onclick = async () => { try { stream = await startCamera(vid, 'environment'); img.hidden = true; el.querySelector('#idle').hidden = true; el.querySelector('#snap').disabled = false; } catch (e) { el.querySelector('#res').innerHTML = esc(e.message); } };
   el.querySelector('#snap').onclick = () => check(frameJpeg(vid));
   el.querySelector('#up').onchange = async (e) => { if (e.target.files[0]) check(await fileToDataUrl(e.target.files[0])); };
+  el.querySelector('#clip').onchange = async (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    const fd = new FormData(); fd.append('clip', f);
+    el.querySelector('#res').innerHTML = '<span class="spinner"></span> Measuring pumping strength…';
+    const r = await api.form('/api/vision/ultrasound-clip', fd);
+    el.querySelector('#res').innerHTML = `<h2>Pumping strength</h2>${r.ok ? `<div class="mono" style="font-size:44px">${r.ef}%</div><p style="margin:0">${esc(r.message)}</p><div class="small dim">${esc(r.note)}</div>` : `<p class="muted" style="margin:0">${esc(r.message)}</p>`}`;
+  };
   el.querySelector('#good').onclick = () => check(syntheticFrame(true));
   el.querySelector('#bad').onclick = () => check(syntheticFrame(false));
   return () => stopCamera(stream);

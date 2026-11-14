@@ -34,9 +34,24 @@ export async function render(el, { params, state }) {
           <div class="small muted">Measured with: ${esc(i.devices.join(', '))} · ${esc(i.frequency)}</div>
           <div class="small">${(i.sources || []).map((s) => { const src = ind.sources[s]; return src ? `<a href="${esc(src.url)}" target="_blank" rel="noopener">${esc(src.title)}</a>` : esc(s); }).join(' · ')}</div></div>
       </div>
+      ${sel === 'co2' ? '<div class="card" id="co2link"><span class="spinner"></span></div>' : ''}
       <div class="card"><h3>${icon('chip', 'var(--bluet)', 20)} Ask TRIX about this</h3><form id="ask" class="row" style="gap:10px"><label class="sr" for="q">Question</label><input class="input" id="q" style="flex:1;min-width:220px" value="Why does ${esc(i.name.split(' (')[0].toLowerCase())} change in space?"><button class="btn">Ask</button></form><div id="ans"></div></div>
     </div>
   </div>`;
+  if (sel === 'co2') {
+    const r = await api.get('/api/insights/co2-headache');
+    const max = Math.max(0.05, ...r.bins.map((b) => Math.max(b.rate || 0, b.nasa_risk)));
+    el.querySelector('#co2link').innerHTML = `<div class="head"><h2>Cabin air and headaches</h2>${chip(r.co2_7d_now >= 2.5 ? 'amber' : 'green', `7-day CO₂ ${r.co2_7d_now} mmHg`)}</div>
+      <p style="margin:0;line-height:1.5">${esc(r.finding)}</p>
+      <div class="row" style="gap:10px;align-items:flex-end;height:150px">${r.bins.map((b, i) => `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px">
+        <div style="display:flex;gap:4px;align-items:flex-end;height:110px">
+          <div class="rise" title="This crew: ${b.headache_days} of ${b.days} days" style="animation-delay:${i * 90}ms;width:22px;height:${Math.max(2, (b.rate || 0) / max * 110)}px;background:#FBBF24;border-radius:4px 4px 0 0"></div>
+          <div class="rise" title="NASA model" style="animation-delay:${i * 90 + 40}ms;width:22px;height:${Math.max(2, b.nasa_risk / max * 110)}px;background:#60A5FA;border-radius:4px 4px 0 0"></div></div>
+        <span class="mono small dim">${b.from}–${b.to}</span></div>`).join('')}</div>
+      <div class="row small muted" style="gap:16px"><span><span class="tdot" style="background:#FBBF24"></span> This crew: share of days with a headache</span><span><span class="tdot" style="background:#60A5FA"></span> NASA: risk doubles per 1 mmHg</span><span class="dim">x: cabin CO₂ (mmHg)</span></div>
+      <div class="note">${esc(r.advice)} Now: about ${(r.nasa_risk_now * 100).toFixed(1)}% headache risk on NASA's curve.${r.small_sample ? ' Few headaches logged so far, so treat the crew numbers as early.' : ''}</div>
+      <div class="small"><a href="${esc(r.source.url)}" target="_blank" rel="noopener">${esc(r.source.title)}</a></div>`;
+  }
   el.querySelector('#ask').onsubmit = async (e) => {
     e.preventDefault();
     const out = el.querySelector('#ans');

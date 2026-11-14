@@ -109,6 +109,12 @@ def coach(state: State) -> State:
         office.tool("rag.search", ind["name"], hits[0]["doc_id"] if hits else None)
         if hits:
             learn.append({"indicator": a["indicator"], "text": hits[0]["text"][:220], "source": hits[0]["title"], "url": hits[0]["url"]})
+    if "headache" in (state.get("symptoms") or "").lower():
+        from . import insights
+        hint = insights.headache_message(state.get("readings") or {}, state.get("who"))
+        if hint:
+            msgs.append(hint)
+            office.tool("insights.headache_message", "cabin CO2", hint[:60])
     if not msgs:
         base = state.get("baseline")
         if base == "no readings":
