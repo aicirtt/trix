@@ -1,0 +1,21 @@
+{
+  "note": "Simulated onboard menu modelled on ISS standard-menu foods. Values are approximate, for the demo. Each pouch carries a QR code with its id.",
+  "items": [
+    {"id": "TRIX-F01", "name": "Scrambled eggs", "kind": "rehydratable", "kcal": 160, "protein_g": 11, "fluid_ml": 0, "calcium_mg": 60, "vitamin_d_iu": 40, "sodium_mg": 360},
+    {"id": "TRIX-F02", "name": "Oatmeal with raisins", "kind": "rehydratable", "kcal": 180, "protein_g": 5, "fluid_ml": 0, "calcium_mg": 40, "vitamin_d_iu": 0, "sodium_mg": 180},
+    {"id": "TRIX-F03", "name": "Granola with milk", "kind": "rehydratable", "kcal": 260, "protein_g": 8, "fluid_ml": 0, "calcium_mg": 220, "vitamin_d_iu": 60, "sodium_mg": 150},
+    {"id": "TRIX-F04", "name": "Chicken teriyaki", "kind": "thermostabilized", "kcal": 230, "protein_g": 20, "fluid_ml": 0, "calcium_mg": 30, "vitamin_d_iu": 10, "sodium_mg": 620},
+    {"id": "TRIX-F05", "name": "Beef stew", "kind": "thermostabilized", "kcal": 250, "protein_g": 18, "fluid_ml": 0, "calcium_mg": 35, "vitamin_d_iu": 0, "sodium_mg": 700},
+    {"id": "TRIX-F06", "name": "Macaroni and cheese", "kind": "rehydratable", "kcal": 300, "protein_g": 12, "fluid_ml": 0, "calcium_mg": 250, "vitamin_d_iu": 20, "sodium_mg": 680},
+    {"id": "TRIX-F07", "name": "Tuna on tortilla", "kind": "thermostabilized", "kcal": 280, "protein_g": 22, "fluid_ml": 0, "calcium_mg": 40, "vitamin_d_iu": 120, "sodium_mg": 520},
+    {"id": "TRIX-F08", "name": "Vegetable quiche", "kind": "thermostabilized", "kcal": 240, "protein_g": 10, "fluid_ml": 0, "calcium_mg": 150, "vitamin_d_iu": 30, "sodium_mg": 480},
+    {"id": "TRIX-F09", "name": "Fortified milk drink", "kind": "beverage", "kcal": 120, "protein_g": 8, "fluid_ml": 250, "calcium_mg": 300, "vitamin_d_iu": 100, "sodium_mg": 110},
+    {"id": "TRIX-F10", "name": "Orange-mango drink", "kind": "beverage", "kcal": 90, "protein_g": 0, "fluid_ml": 250, "calcium_mg": 100, "vitamin_d_iu": 0, "sodium_mg": 10},
+    {"id": "TRIX-F11", "name": "Coffee with cream", "kind": "beverage", "kcal": 40, "protein_g": 1, "fluid_ml": 250, "calcium_mg": 30, "vitamin_d_iu": 0, "sodium_mg": 20},
+    {"id": "TRIX-F12", "name": "Water pouch", "kind": "beverage", "kcal": 0, "protein_g": 0, "fluid_ml": 500, "calcium_mg": 0, "vitamin_d_iu": 0, "sodium_mg": 0},
+    {"id": "TRIX-F13", "name": "Dried apricots", "kind": "natural form", "kcal": 110, "protein_g": 1, "fluid_ml": 0, "calcium_mg": 20, "vitamin_d_iu": 0, "sodium_mg": 5},
+    {"id": "TRIX-F14", "name": "Almonds", "kind": "natural form", "kcal": 170, "protein_g": 6, "fluid_ml": 0, "calcium_mg": 75, "vitamin_d_iu": 0, "sodium_mg": 0},
+    {"id": "TRIX-F15", "name": "Cheese spread on crackers", "kind": "natural form", "kcal": 200, "protein_g": 7, "fluid_ml": 0, "calcium_mg": 200, "vitamin_d_iu": 10, "sodium_mg": 420},
+    {"id": "TRIX-F16", "name": "Vitamin D3 tablet", "kind": "supplement", "kcal": 0, "protein_g": 0, "fluid_ml": 0, "calcium_mg": 0, "vitamin_d_iu": 1000, "sodium_mg": 0}
+  ]
+}

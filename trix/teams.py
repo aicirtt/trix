@@ -109,6 +109,12 @@ def coach(state: State) -> State:
         office.tool("rag.search", ind["name"], hits[0]["doc_id"] if hits else None)
         if hits:
             learn.append({"indicator": a["indicator"], "text": hits[0]["text"][:220], "source": hits[0]["title"], "url": hits[0]["url"]})
+    if "headache" in (state.get("symptoms") or "").lower():
+        from . import insights
+        hint = insights.headache_message(state.get("readings") or {}, state.get("who"))
+        if hint:
+            msgs.append(hint)
+            office.tool("insights.headache_message", "cabin CO2", hint[:60])
     if not msgs:
         base = state.get("baseline")
         if base == "no readings":
@@ -184,7 +190,10 @@ def pharmacy(state: State) -> State:
 @office.traced("Devices", OPS)
 def devices(state: State) -> State:
     d = json.loads((KB / "devices.json").read_text())["devices"]
-    state["ops"] = {"devices": [{"name": x["name"], "status": x["status"]} for x in d], "messages": []}
+    from . import store
+    d = d + store.get("devices:live", [])  # e.g. a Bluetooth heart-rate strap paired in the app
+    state["ops"] = {"devices": [{"id": x.get("id"), "name": x["name"], "status": x["status"], "feeds": x.get("feeds", [])} for x in d],
+                    "messages": []}
     office.current().result({"devices": len(d), "offline": sum(x["status"] == "offline" for x in d)})
     return state
 
@@ -194,6 +203,10 @@ def privacy(state: State) -> State:
     who = state.get("who")
     req = (state.get("request") or {}).get("set", {})
     cur = settings_for(who) | req
+    if req and who:
+        from . import store
+        store.put(f"privacy:{who}", store.get(f"privacy:{who}", {}) | req)
+        office.tool("store.put", f"privacy:{who}", sorted(req))
     state["ops"] = {"privacy": {"who": who, "settings": cur}, "messages": []}
     office.current().result({"who": who, "changed": sorted(req)})
     return state

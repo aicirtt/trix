@@ -10,3 +10,6 @@ NASA-STD-3001 Volume 2 requires the one-hour average CO2 partial pressure in the
 Headaches have been reported between about 2.8 and 4.5 mmHg, with fatigue, poor sleep and nausea at higher levels. Fluid shift in microgravity causes similar symptoms, so headaches should be checked against cabin CO2 before assuming illness.
 
 Practical steps: sleep near a ventilation outlet, report high readings so the crew can check the scrubber, and log headaches so patterns can be found.
+
+A NASA study of ISS crews from 2001 to 2012 (Law et al. 2014, Journal of Occupational and Environmental Medicine) found that for each 1 mmHg increase in CO2, the odds of a crew member reporting a headache doubled. To keep the risk of headache below 1%, the seven-day average CO2 should stay below 2.5 mmHg.
+

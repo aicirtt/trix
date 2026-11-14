@@ -1,16 +1,41 @@
-# TRIX core: health monitoring engine for astronauts
+# TRIX: health monitoring app for astronauts
 
 **TRIX** (Triage, Response & Intelligence eXpert): NASA Space Apps 2026, *Create Health Monitoring Software for Astronauts on Space Missions*. Built by Tricia and Xavier.
 
-This package is the engine behind the TRIX tablet app. It runs **fully offline** on a laptop. Feature status for all 35 features: [FEATURES.md](FEATURES.md).
+A tablet web app plus an onboard server, styled like mission software (NASA-style blue and red, mission clock, GO / WATCH / NO-GO). Everything runs on the spacecraft computer (a laptop for the demo) with **no internet**. Feature status for all 36 features: [FEATURES.md](FEATURES.md).
+
+## Run the app
 
 ```
 pip install -r requirements.txt
-python trix/synth.py        # make synthetic crew data -> data/
-python demo.py              # 3 events in parallel: hand-off to Emergency, morning check-in, pharmacy
-python agent_office.py --last   # agent office: timeline + call tree of the last case
-python eval/run_all.py      # all evaluations -> eval/RESULTS.md
-python tests/test_smoke.py && python tests/test_orchestration.py
+python trix/synth.py            # simulated crew history -> data/
+python scripts/setup_vendor.py  # once: copies the MediaPipe face/body models into web/vendor (needs npm)
+python app.py                   # open http://localhost:8000  (Chrome or Edge for camera, speech and Bluetooth)
+```
+Without `setup_vendor.py` the face and body models load from the jsDelivr CDN when online.
+
+| Screen | What it does |
+|---|---|
+| **Health** | Built around the NASA brief: the 6 measurements it names (blood pressure, heart rate, blood sugar, temperature, sleep, mood) as colour-coded GO / WATCH / NO-GO tiles with mini charts, plain explanations and “Measure now” prompts; clickable body map; level and streak; crew timeline; check-in reminder at the learned time |
+| **Check-in** | 4 steps: vitals (type, **speak**, **Bluetooth heart-rate strap**, or **CSV import**) → **face fatigue** (MediaPipe Face Mesh, PERCLOS) and **voice check** (pace, pauses, pitch vs your normal) → **vision grid** + **skin photo** → symptoms + **food pouch QR scan** and water/calcium rings. The agents check it and show what they found |
+| **Body** | Trend chart per indicator with your personal normal band, limits, logged points and the bone-loss forecast; learn cards with NASA sources; Ask TRIX |
+| **Care** | Every procedure, live or **practice with a score**; cited Q&A; **landing readiness** (Meteomatics go / no-go windows); medicine stock |
+| **Procedure** | Step-locked guidance read aloud, voice commands, camera checks: **ECG sticker placement** (MediaPipe Pose + OpenCV, tells you how many cm to move), **CPR compression rate**, **balance sway**; device readings feed the agents |
+| **Ultrasound** | View-quality check for the 4-chamber view (coverage, gain, sharpness, chambers) with tips |
+| **Emergency** | Pick the patient and what is happening (or speak it) → the Emergency team answers on board, first step first, then start the guided procedure |
+| **Crew** | Streaks, badges, team goal, rotating **buddy check**, personal privacy switches that apply to every Earth report |
+| **Earth link** | ISS / Moon / Mars delay, report queue with priorities and send animation, **NASA DONKI space weather** (alert the crew), devices, onboard AI |
+| **Agent office** | Every case: which agent ran, why, which tools, what it returned, as a timeline and a live constellation |
+
+Live feeds: set `NASA_API_KEY` (or use `DEMO_KEY`) for DONKI and `METEOMATICS_USER` / `METEOMATICS_PASSWORD` for landing weather. With no network TRIX uses the last saved reply, then a bundled sample, and the screen says which.
+
+## Engine only
+
+```
+python demo.py                  # 3 events in parallel: hand-off to Emergency, morning check-in, pharmacy
+python agent_office.py --last   # agent office in the terminal
+python eval/run_all.py          # all evaluations -> eval/RESULTS.md
+python -m pytest -q tests       # 320 tests
 ```
 Optional: run a local model with [Ollama](https://ollama.com) (`ollama pull llama3.2:3b`) and TRIX will use it for wording; otherwise a built-in extractive fallback answers from the cited sources.
 
@@ -129,7 +154,7 @@ time     team        agent                     triggered by              returne
 
 ## Testing: every flow, not just one
 
-`python -m pytest -q tests` runs **285 tests** (about 40 s). They cover:
+`python -m pytest -q tests` runs **320 tests** (about 45 s), including `tests/test_api.py`, which drives every endpoint the web app uses. They cover:
 
 | Area | What is checked |
 |---|---|
@@ -142,6 +167,7 @@ time     team        agent                     triggered by              returne
 | Safety | the Safety agent blocks a deliberately bad LLM (doses, unknown drugs, invasive steps, diagnoses, skipped steps) |
 | Privacy | mood details withheld unless the astronaut allows sharing; emergencies always shared |
 | Load | 40 mixed events in parallel; agent-office log stays consistent |
+| App API | check-in → body map, alerts, trends, all 8 procedures to the end, ECG camera check, face fatigue, skin photo change, food QR, ultrasound quality, voice parsing, Bluetooth pairing, CSV import, privacy, Earth queue, buddy check, DONKI storm → shelter |
 
 The coach is honest about what it checked: "No readings yet" for an empty check-in, and "still learning your personal normal" for a new crew member with no history.
 
@@ -164,6 +190,12 @@ Eight labelled events are injected:
 - a solar particle event.
 
 ## Limits (say these to the judges)
+- **Camera checks are rule-based screening aids.** ECG placement, CPR rate, sway, skin redness, ultrasound view quality and food labels use MediaPipe landmarks plus OpenCV rules, tested on synthetic images. They have not been validated on real patients.
+- **Optional AI add-ons** (`python scripts/setup_addons.py --medsiglip` / `--echonet`): MedSigLIP skin screening and EchoNet-Dynamic pumping strength. Written and wired into the app, but not yet run end to end (they need PyTorch and large downloads). Without them the app uses the built-in checks and says so.
+- **Voice check** was tested on synthetic speech-like audio, not real voices; it needs 3 of your own recordings before it compares against you.
+- **Food is logged by the pouch label**, like NASA’s ISS FIT app, not by recognising food itself.
+- **Speech:** the tablet's speech recognition (Chrome sends audio to Google, so it is not offline). For offline use install `faster-whisper` on the onboard computer.
+- **Bluetooth:** any standard Bluetooth heart-rate strap or watch works (Web Bluetooth). Other ISS devices are simulated.
 - **Not a medical device.** Clinical cut-offs marked "general clinical reference" need review by a medical mentor.
 - **Small, team-written test sets.** The retrieval and safety sets were written by the team and used while tuning. Write fresh held-out questions before quoting final numbers.
 - **Simplified protocols.** The protocol YAMLs are simplified for the demo. Real missions follow the official medical checklist.

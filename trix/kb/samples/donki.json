@@ -1,0 +1,37 @@
+{
+ "_note": "Bundled SAMPLE in the NASA DONKI format, used only when TRIX has no network and no cached reply.",
+ "FLR": [
+  {
+   "flrID": "2026-11-13T21:02:00-FLR-001",
+   "beginTime": "2026-11-13T21:02Z",
+   "peakTime": "2026-11-13T21:20Z",
+   "endTime": "2026-11-13T21:41Z",
+   "classType": "M2.4",
+   "sourceLocation": "S14W22",
+   "activeRegionNum": 14281,
+   "link": "https://webtools.ccmc.gsfc.nasa.gov/DONKI/view/FLR/"
+  },
+  {
+   "flrID": "2026-11-12T06:40:00-FLR-001",
+   "beginTime": "2026-11-12T06:40Z",
+   "peakTime": "2026-11-12T06:58Z",
+   "endTime": "2026-11-12T07:15Z",
+   "classType": "C7.1",
+   "sourceLocation": "N09E31",
+   "activeRegionNum": 14279,
+   "link": "https://webtools.ccmc.gsfc.nasa.gov/DONKI/view/FLR/"
+  },
+  {
+   "flrID": "2026-11-10T14:05:00-FLR-001",
+   "beginTime": "2026-11-10T14:05Z",
+   "peakTime": "2026-11-10T14:16Z",
+   "endTime": "2026-11-10T14:30Z",
+   "classType": "C3.3",
+   "sourceLocation": "S11E45",
+   "activeRegionNum": 14281,
+   "link": "https://webtools.ccmc.gsfc.nasa.gov/DONKI/view/FLR/"
+  }
+ ],
+ "SEP": [],
+ "fetched": "2026-11-14T12:00:00+00:00"
+}

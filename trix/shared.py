@@ -15,8 +15,14 @@ def privacy_settings() -> dict:
 
 
 def settings_for(who: str | None) -> dict:
+    """Defaults, then the astronaut's file settings, then anything they changed in the app."""
+    from . import store  # local import: the store is optional for the engine
     p = privacy_settings()
-    return p["default"] | p.get(who or "", {})
+    try:
+        saved = store.get(f"privacy:{who}", {}) if who else {}
+    except Exception:
+        saved = {}
+    return p["default"] | p.get(who or "", {}) | saved
 
 
 def _texts(state: State) -> list[tuple[str, str, str | None]]:
