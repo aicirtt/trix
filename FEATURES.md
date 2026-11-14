@@ -1,56 +1,46 @@
-# TRIX: status of all 35 features
+# TRIX features
 
-✅ in this code · 🟡 partly in code (engine/data done, UI or model hook still to build) · ⬜ mockup only (design exists, no code yet)
+✅ working in the app · 🟡 working, with a simpler method than planned · ⬜ not built
 
-| # | Feature | Status | What exists / what's left |
+| # | Feature | Status | How |
 |---|---|---|---|
-| 1 | Device adapters + simulated feed | 🟡 | Simulated data + device registry (`kb/devices.json`) read by the Check-in agent; real adapters per device still to write |
-| 2 | One combined health record | 🟡 | One table per astronaut; no persistence/API yet |
-| 3 | Voice logging | ⬜ | Speech-to-text (e.g. faster-whisper) → parse numbers |
-| 4 | Manual entry (labs) | ⬜ | UI form |
-| 5 | Clickable body map | 🟡 | Per-body-part status from `escalation.combine()`; UI in mockup |
-| 6 | Learn cards | 🟡 | Content in `kb/indicators.json` (effect, why, actions); UI in mockup |
-| 7 | Trend charts | 🟡 | Data ready; charts in UI |
-| 8 | Daily vitals: BP, HR, blood sugar, temp, sleep, mood | ✅ | Indicators, limits and escalation |
-| 9 | Reminders + how-to | 🟡 | How-to steps in protocols (e.g. `GLU-01`); scheduler to build |
-| 10 | RL reminder timing (bandit) | ✅ | `trix/reminders.py` Thompson sampling; Reminder agent in Daily care (72% vs 54% response, simulated) |
-| 11 | Facial fatigue | 🟡 | Indicator + limits; MediaPipe eye-closure code to add |
-| 12 | Voice check-in biomarkers | ⬜ | Speech rate / pauses from audio |
-| 13 | Vision check (Amsler grid) | 🟡 | Indicator + escalation; UI test to build |
-| 14 | Symptom & illness diary | 🟡 | Skin/fever logic; diary UI to build |
-| 15 | Skin photo (MedSigLIP) | ⬜ | Zero-shot labels via MedSigLIP |
-| 16 | Food & water from pouch photo | ⬜ | Local vision model + menu list; targets already in KB |
+| 1 | Device adapters + live feed | ✅ | Bluetooth heart-rate straps and watches (standard Heart Rate service, with HRV from RR intervals), CSV device import, simulated ISS devices |
+| 2 | One combined health record | ✅ | SQLite onboard record (`trix/store.py`): simulated history + everything logged in the app |
+| 3 | Voice logging | ✅ | Speak readings and symptoms; `trix/voice.py` parses numbers ("118 over 76", "six and a half hours"). Tablet speech recognition, or offline faster-whisper if installed |
+| 4 | Manual entry | ✅ | Check-in vitals form |
+| 5 | Clickable body map | ✅ | Today screen; colours from the agents; tap a part for its readings |
+| 6 | Learn cards | ✅ | Body screen: space effect, why we measure, what to do, NASA sources |
+| 7 | Trend charts | ✅ | Personal normal band, limits, logged points, bone forecast |
+| 8 | Daily vitals: BP, HR, blood sugar, temp, sleep, mood | ✅ | All checked against personal baselines and limits |
+| 9 | Reminders + how-to | ✅ | Learned reminder time on Today; how-to steps in every procedure (no OS push notification) |
+| 10 | RL reminder timing (bandit) | ✅ | Thompson sampling; every check-in updates it |
+| 11 | Facial fatigue | ✅ | MediaPipe Face Mesh on the tablet → PERCLOS, blink rate; only numbers leave the tablet |
+| 12 | Voice check-in biomarkers | ⬜ | Speech rate / pauses not analysed |
+| 13 | Vision check (Amsler grid) | ✅ | Per-eye grid in check-in → vision indicator → crew medical officer |
+| 14 | Symptom & illness diary | ✅ | Symptom text, quick chips, voice; stored with each case |
+| 15 | Skin photo | 🟡 | Redness map in Lab colour space + change vs last photo; MedSigLIP model not used |
+| 16 | Food & water from pouch photo | 🟡 | Reads the pouch QR label (printable labels at /api/food/labels) or menu pick → water, calcium, vitamin D rings; no food recognition from the photo |
 | 17 | Anomaly detection vs personal normal | ✅ | Robust baselines, CUSUM drift, Isolation Forest |
-| 18 | Plain-English explanations | ✅ | Alert reasons, SHAP drivers, cited answers |
-| 19 | Risk forecast | ✅ | `forecast_cross()`; bone flagged 35 days early |
-| 20 | Cabin air ↔ symptoms | 🟡 | CO₂ 1-hour limit (3 mmHg) and watch level checked in every check-in; headache correlation to compute |
-| 21 | Radiation (DONKI) | 🟡 | Solar alert/storm and career-dose limits; storm → Radiation specialist → `RAD-SHELTER-01` shelter protocol; DONKI API client to add |
-| 22 | Crew cohesion | ⬜ | Simple log-sentiment score |
-| 23 | Countermeasure tips | ✅ | `actions` per indicator |
-| 24 | Medicines & pharmacy | ✅ | Pharmacy agent: runs-out day, label expiry, radiation-potency flags (`kb/pharmacy.json`, simulated stock) |
-| 25 | Multi-agent triage | ✅ | LangGraph: Triage → specialists → Flight Surgeon → Safety → Report; protocols for ECG, CPR, ultrasound, blood sugar, spacewalk, landing, low oxygen (`O2-01`), solar storm (`RAD-SHELTER-01`) |
-| 26 | Guided ECG + camera check | 🟡 | Step-locked protocol engine; MediaPipe placement check to add |
-| 27 | Ultrasound check (EchoNet) | 🟡 | Protocol; EchoNet model hook to add |
-| 28 | Spacewalk checks | ✅ | `EVA-POST-01` protocol; tingling/joint pain after a spacewalk escalates to the crew medical officer (possible decompression sickness) |
-| 29 | Landing readiness + Meteomatics | 🟡 | `LAND-01` protocol + stand-test limits; Meteomatics client to add |
-| 30 | Gamification | ⬜ | Streaks / team goals |
-| 31 | Buddy check | ⬜ | Daily pairing |
-| 32 | Privacy controls | ✅ | Privacy agent + settings applied to every Earth report (`kb/privacy.json`); UI toggles in mockup |
-| 33 | Comms-delay toggle | ✅ | Location-aware routing (ISS / Moon / Mars) |
-| 34 | Report queue | ✅ | Report agent with priority and size |
-| 35 | On-device AI | ✅ | Ollama if present, offline fallback otherwise |
-| 36 | Agent office (new) | ✅ | Structured span log, timeline + call tree (`agent_office.py`), included in Earth reports; screen in mockup |
+| 18 | Plain-English explanations | ✅ | Alert reasons, cited answers |
+| 19 | Risk forecast | ✅ | Bone forecast on the chart |
+| 20 | Cabin air ↔ symptoms | 🟡 | CO₂ limits checked in every check-in; headache correlation not computed |
+| 21 | Radiation (DONKI) | ✅ | Live NASA DONKI flares and SEP events, cached for offline; storm → Radiation specialist → shelter protocol for the whole crew |
+| 22 | Crew cohesion | ✅ | Crew-level mood trend + buddy concerns score on the Crew screen (no individual details) |
+| 23 | Countermeasure tips | ✅ | Coach messages and Today tasks |
+| 24 | Medicines & pharmacy | ✅ | Runs-out day, label expiry, radiation potency (simulated stock) |
+| 25 | Multi-agent triage | ✅ | Emergency screen → Triage → specialist → Flight Surgeon → Procedure → Safety → Report |
+| 26 | Guided ECG + camera check | ✅ | MediaPipe Pose finds shoulders and hips, OpenCV finds the sticker, TRIX says how many cm to move it; tested on synthetic images |
+| 27 | Ultrasound check | 🟡 | View-quality check (coverage, gain, sharpness, 4 chambers) with tips; EchoNet pumping-strength model not installed |
+| 28 | Spacewalk checks | ✅ | EVA-POST-01; tingling or joint pain escalates |
+| 29 | Landing readiness + Meteomatics | ✅ | Meteomatics go / no-go windows (needs account; sample offline), stand test with camera sway check |
+| 30 | Gamification | ✅ | Streaks, badges, points, team goal (rewards doing checks, never good numbers) |
+| 31 | Buddy check | ✅ | Daily rotating pairs; a concern goes privately to the crew medical officer |
+| 32 | Privacy controls | ✅ | Switches on the Crew screen, saved, applied to every Earth report |
+| 33 | Comms-delay toggle | ✅ | ISS / Moon / Mars on Earth link; changes the Flight Surgeon's decision |
+| 34 | Report queue | ✅ | Priorities, sizes, send in link window with animation |
+| 35 | On-device AI | ✅ | Ollama if present, offline fallback; MediaPipe models served from the onboard computer |
+| 36 | Agent office | ✅ | Web screen: cases, timeline, tools, constellation |
 
-**Totals:** 14 ✅ · 14 🟡 · 8 ⬜ (of 36, including the new Agent office)
+**Totals:** 31 ✅ · 4 🟡 · 1 ⬜ (of 36)
 
-Every ✅ and the engine part of every 🟡 is covered by `tests/test_full.py` across ISS, Moon and Mars (see README → Testing).
-
-## Orchestration
-
-Two levels, in `trix/orchestrator.py`:
-1. **Mission orchestrator:** routes each event to a team.
-2. **Team orchestrators:** Daily care, Emergency and Operations, each a LangGraph sub-graph.
-
-Daily care hands off to Emergency when a reading is red. One shared Safety agent gates every team. Independent events run in parallel.
-
-**Next upgrade:** let the LLM choose routes and tools (function calling), keeping the rules as a fallback and Safety as the final gate.
+Tested by `tests/` (316 tests, including every API endpoint the app uses) and in a headless browser on every screen. Camera checks were tested on synthetic images, not real patients.

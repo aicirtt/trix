@@ -6,3 +6,9 @@ shap
 rank_bm25
 langgraph
 pyyaml
+fastapi
+uvicorn
+python-multipart
+opencv-python-headless
+# optional: offline speech-to-text
+# faster-whisper

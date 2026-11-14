@@ -62,8 +62,14 @@ def triage(state: State) -> State:
     elif has("chest pain", "chest tight", "chest pressure", "crushing"):
         urgency, route = "emergency", "cardiac"
         flags.add("chest_symptoms")
-    elif "irregular_rhythm" in flags or has("chest", "flutter", "palpitation", "heart"):
+    elif "irregular_rhythm" in flags or has("chest", "flutter", "palpitation", "heart", "irregular", "skipping"):
         route = "cardiac"
+        if "irregular_rhythm" in flags or has("irregular", "flutter", "skipping", "uneven", "palpitation", "racing"):
+            flags.add("irregular_rhythm")
+            urgency = _max(urgency, "crew_medical_officer")
+            if has("dizz", "faint", "light-headed", "lightheaded", "chest", "short of breath", "breathless", "passed out"):
+                urgency = "emergency"  # irregular rhythm with dizziness or chest symptoms is an emergency (NASA CVL)
+                findings.append("Irregular heartbeat with dizziness or chest symptoms")
     elif "solar_event" in flags or has("solar storm", "flare", "radiation storm", "particle event"):
         urgency, route = "emergency", "radiation"
         flags.add("solar_event")

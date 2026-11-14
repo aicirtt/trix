@@ -3,3 +3,8 @@ __pycache__/
 .venv/
 .DS_Store
 logs/
+
+# app runtime
+data/trix.db
+data/cache/
+web/vendor/

@@ -302,6 +302,10 @@ QUALITY = [
      {"urgency": "emergency", "protocol": "CPR-MG-01", "has": ["defibrillator"], "not": ["check-in", "couldn't find"]}),
     ("irregular heartbeat", {"event": "alert", "who": "A", "vitals": {"hr": 132}, "flags": ["irregular_rhythm"], "symptoms": "flutter"},
      {"urgency": "emergency", "protocol": "CARD-ECG-01", "has": ["sticker 1"]}),
+    ("racing heart and dizzy, no vitals", {"event": "alert", "who": "A", "vitals": {}, "symptoms": "heart racing, irregular rhythm, dizzy"},
+     {"urgency": "emergency", "protocol": "CARD-ECG-01", "decision": "onboard_now"}),
+    ("palpitations only", {"event": "symptom", "who": "A", "vitals": {}, "symptoms": "I keep feeling palpitations"},
+     {"urgency": "crew_medical_officer", "protocol": "CARD-ECG-01"}),
     ("low sugar", {"event": "symptom", "who": "A", "vitals": {}, "symptoms": "I feel shaky, maybe low blood sugar"},
      {"protocol": "GLU-01", "has": ["blood sugar", "wash and dry your hands"], "not": ["sticker"]}),
 ]
