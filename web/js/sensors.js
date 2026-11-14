@@ -130,3 +130,40 @@ export function rmssd(rr) {
   for (let i = 1; i < rr.length; i++) s += (rr[i] - rr[i - 1]) ** 2;
   return Math.sqrt(s / (rr.length - 1));
 }
+
+// Record N seconds and return a 16 kHz mono 16-bit WAV (for the voice check). onLevel(0..1) drives a meter.
+export async function recordWav(seconds = 15, onLevel) {
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: false } });
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const src = ctx.createMediaStreamSource(stream);
+  const an = ctx.createAnalyser(); an.fftSize = 1024; src.connect(an);
+  const buf = new Float32Array(an.fftSize);
+  const rec = new MediaRecorder(stream); const chunks = [];
+  rec.ondataavailable = (e) => chunks.push(e.data);
+  const stopped = new Promise((r) => { rec.onstop = r; });
+  rec.start();
+  const t0 = performance.now();
+  await new Promise((resolve) => {
+    const step = () => {
+      an.getFloatTimeDomainData(buf);
+      const rms = Math.sqrt(buf.reduce((a, v) => a + v * v, 0) / buf.length);
+      onLevel?.(Math.min(1, rms * 6), (performance.now() - t0) / 1000);
+      if (performance.now() - t0 < seconds * 1000) requestAnimationFrame(step); else resolve();
+    };
+    step();
+  });
+  rec.stop(); await stopped;
+  stream.getTracks().forEach((t) => t.stop());
+  const decoded = await ctx.decodeAudioData(await new Blob(chunks).arrayBuffer());
+  ctx.close();
+  const off = new OfflineAudioContext(1, Math.ceil(decoded.duration * 16000), 16000);
+  const s = off.createBufferSource(); s.buffer = decoded; s.connect(off.destination); s.start();
+  const pcm = (await off.startRendering()).getChannelData(0);
+  const out = new DataView(new ArrayBuffer(44 + pcm.length * 2));
+  const w = (o, str) => [...str].forEach((c, i) => out.setUint8(o + i, c.charCodeAt(0)));
+  w(0, 'RIFF'); out.setUint32(4, 36 + pcm.length * 2, true); w(8, 'WAVE'); w(12, 'fmt ');
+  out.setUint32(16, 16, true); out.setUint16(20, 1, true); out.setUint16(22, 1, true); out.setUint32(24, 16000, true);
+  out.setUint32(28, 32000, true); out.setUint16(32, 2, true); out.setUint16(34, 16, true); w(36, 'data'); out.setUint32(40, pcm.length * 2, true);
+  for (let i = 0; i < pcm.length; i++) out.setInt16(44 + i * 2, Math.max(-1, Math.min(1, pcm[i])) * 32767, true);
+  return new Blob([out], { type: 'audio/wav' });
+}

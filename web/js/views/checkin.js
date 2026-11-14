@@ -1,9 +1,9 @@
 import { api } from '../api.js';
 import { esc, icon, chip, toast, ring, animateRings, level, PARTS } from '../ui.js';
 import { startCamera, stopCamera, frameJpeg, fileToDataUrl, mediapipe, LEFT_EYE, RIGHT_EYE, speechAvailable, listenOnce,
-  recordAndTranscribe, bluetoothAvailable, connectHeartRate, rmssd } from '../sensors.js';
+  recordAndTranscribe, bluetoothAvailable, connectHeartRate, rmssd, recordWav } from '../sensors.js';
 
-const STEPS = ['Vitals', 'Face check', 'Eyes & skin', 'Symptoms & food'];
+const STEPS = ['Vitals', 'Face & voice', 'Eyes & skin', 'Symptoms & food'];
 const FIELDS = [
   ['hr', 'Heart rate', 'bpm', 'Holter / wrist'], ['sys', 'Blood pressure (top)', 'mmHg', 'BP cuff'], ['dia', 'Blood pressure (bottom)', 'mmHg', 'BP cuff'],
   ['spo2', 'Blood oxygen', '%', 'Pulse oximeter'], ['temp', 'Temperature', '°C', 'Thermometer'], ['glucose', 'Blood sugar', 'mg/dL', 'Glucose meter'],
@@ -67,6 +67,7 @@ export async function render(el, { params, state, go }) {
         st.textContent = `Connected to ${dev.name || 'heart-rate strap'}. Waiting for data…`;
       } catch (e) { st.textContent = `Not connected: ${e.message}`; }
     };
+    if (params[1]) { const f = el.querySelector(`#f-${params[1]}`) || el.querySelector('[data-mood]'); f?.focus(); f?.scrollIntoView({ block: 'center' }); }
     el.querySelector('#csv').onchange = async (e) => {
       const f = e.target.files[0]; if (!f) return;
       const fd = new FormData(); fd.append('who', who); fd.append('file', f);
@@ -77,13 +78,32 @@ export async function render(el, { params, state, go }) {
 
   // ------------------------------------------------ step 2: face fatigue
   if (step === 2) {
-    el.innerHTML = head('Face check', '20 seconds · measures how open your eyes are (PERCLOS) · video never leaves the tablet') + `
+    el.innerHTML = head('Face & voice', 'Face: how open your eyes are (PERCLOS). Voice: pace, pauses and pitch. Both compared with your own normal') + `
     <div class="row"><div class="card grow" style="max-width:720px"><div class="cam" id="cam"><video id="v" playsinline></video><canvas class="overlay" id="ov"></canvas>
       <div class="idle" id="idle">${icon('camera', 'var(--t2)', 40)}<span>Hold the tablet at arm's length, look at the screen and relax.</span><button class="btn" id="go">${icon('play', '#fff', 18)}Start face check</button></div>
       <div class="msg" id="msg" hidden></div></div></div>
-      <div class="col" style="width:360px;flex:none;max-width:100%"><div class="card" id="res"><h3>Result</h3><p class="muted small" style="margin:0">${d.readings.fatigue != null ? `Last result: eyes closed ${d.readings.fatigue}% of the time.` : 'Not done yet.'}</p></div>
-      <div class="note">Uses MediaPipe Face Mesh on the tablet. Only eye measurements (numbers) are sent to TRIX.</div></div></div>
+      <div class="col" style="width:380px;flex:none;max-width:100%"><div class="card" id="res"><h3>Face result</h3><p class="muted small" style="margin:0">${d.readings.fatigue != null ? `Last result: eyes closed ${d.readings.fatigue}% of the time.` : 'Not done yet.'}</p></div>
+      <div class="card" id="voicecard"><h3>${icon('mic', 'var(--bluet)', 18)} Voice check · 15 s</h3><p class="small muted" style="margin:0">Read this aloud in your normal voice:</p>
+        <div class="note" style="color:var(--t1);font-size:16px;line-height:1.5" id="passage">…</div>
+        <div style="height:10px;background:var(--bd)"><div id="vlevel" style="height:100%;width:0;background:var(--ok);transition:width .08s"></div></div>
+        <button class="btn" id="vrec">${icon('mic', '#fff', 18)}Record</button><div id="vres" class="small muted">How you speak (pace, pauses, pitch) is compared with your own normal. Audio is not kept.</div></div>
+      <div class="note small">Face: MediaPipe Face Mesh on the tablet; only eye measurements are sent. Voice: analysed on the onboard computer.</div></div></div>
     ${nav(1, 3)}`;
+    api.get('/api/voice/passage').then((r) => { el.querySelector('#passage').textContent = r.passage; });
+    el.querySelector('#vrec').onclick = async (e) => {
+      const btn = e.currentTarget, out = el.querySelector('#vres'), bar = el.querySelector('#vlevel');
+      btn.disabled = true;
+      try {
+        const wav = await recordWav(15, (lv, t) => { bar.style.width = `${Math.round(lv * 100)}%`; btn.textContent = `Recording… ${Math.max(0, Math.ceil(15 - t))} s`; });
+        btn.textContent = 'Analysing…'; bar.style.width = '0';
+        const fd = new FormData(); fd.append('who', who); fd.append('audio', wav, 'voice.wav');
+        const r = await api.form('/api/voice/biomarkers', fd);
+        out.innerHTML = r.ok ? `${chip(r.status, r.status === 'green' ? 'USUAL' : 'TIRED')}
+          <div class="kv" style="margin-top:8px"><span class="lbl">Pace</span><span class="mono">${r.features.rate} syll/s</span><span class="lbl">Pauses</span><span class="mono">${Math.round(r.features.pause * 100)}% · ${r.features.long_pauses} long</span><span class="lbl">Pitch</span><span class="mono">${r.features.pitch} Hz · ±${r.features.pitch_var} st</span></div>
+          <p style="margin:8px 0 0;color:var(--t1)">${esc(r.message)}</p><span class="dim">Compared with: ${esc(r.baseline)}</span>` : esc(r.message);
+      } catch (er) { out.textContent = `Microphone not available: ${er.message}`; }
+      btn.disabled = false; btn.innerHTML = `${icon('mic', '#fff', 18)}Record again`;
+    };
     el.querySelector('#go').onclick = async () => {
       const v = el.querySelector('#v'), ov = el.querySelector('#ov'), msg = el.querySelector('#msg');
       msg.hidden = false; msg.textContent = 'Starting camera…';
@@ -236,6 +256,6 @@ async function showResult(el, out, who) {
     <div class="col" style="width:400px;flex:none;max-width:100%"><div class="card"><h2>What to do</h2>${(out.coach?.messages || []).map((m) => `<div class="note" style="color:var(--t1)">${esc(m)}</div>`).join('')}
       ${(out.coach?.learn || []).length ? `<div class="small muted">Learn more: ${out.coach.learn.slice(0, 3).map((l) => `<a href="#/body/${esc(l.indicator)}">${esc(NAME[l.indicator] || l.indicator)}</a>`).join(' · ')}</div>` : ''}
       <div class="small dim">Next check-in reminder: ${esc(out.reminder?.next_checkin || '')}</div></div>
-      <a class="btn ghost" href="#/today">${icon('today')}Back to Today</a></div>
+      <a class="btn ghost" href="#/today">${icon('today')}Back to Health</a></div>
   </div>`;
 }

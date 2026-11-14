@@ -43,7 +43,7 @@ export function hydrateIcons(root = document) {
   root.querySelectorAll('[data-icon]').forEach((el) => { el.outerHTML = icon(el.dataset.icon, el.dataset.color || 'currentColor', +(el.dataset.size || 24)); });
 }
 
-export const STATUS_WORD = { green: 'Normal', amber: 'Watch', red: 'Alert', none: 'No data' };
+export const STATUS_WORD = { green: 'GO', amber: 'WATCH', red: 'NO-GO', none: 'NO DATA', due: 'DUE' };
 export const chip = (status, text) => `<span class="chip ${esc(status)}">${esc(text ?? STATUS_WORD[status] ?? status)}</span>`;
 export const level = (l) => ({ normal: 'Normal', self_care: 'Self-care', crew_medical_officer: 'Tell the crew medical officer',
   flight_surgeon: 'Flight surgeon', flight_surgeon_private: 'Flight surgeon (private)', emergency: 'Emergency' }[l] || l || '');
@@ -55,6 +55,14 @@ export function toast(msg, ms = 4200) {
   d.innerHTML = msg;
   t.appendChild(d);
   setTimeout(() => d.remove(), ms);
+}
+
+// Agent results in plain words: {"urgency":"emergency","route":"cardiac"} -> "urgency: emergency · route: cardiac"
+export function plain(r) {
+  if (r == null) return '';
+  if (typeof r !== 'object') return String(r);
+  return Object.entries(r).filter(([, v]) => v !== null && v !== '' && !(Array.isArray(v) && !v.length))
+    .map(([k, v]) => `${k.replace(/_/g, ' ')}: ${Array.isArray(v) ? v.join(', ') : typeof v === 'object' ? JSON.stringify(v) : String(v).replace(/_/g, ' ')}`).join(' · ');
 }
 
 export function fmtTime(ts) {
@@ -77,11 +85,11 @@ export const PARTS = [
 export function figure(bodyMap, selected) {
   const svg = `<svg width="300" height="560" viewBox="0 0 300 560" role="img" aria-label="Body map coloured by health status">
 <defs><linearGradient id="scang" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#60A5FA" stop-opacity="0"/><stop offset=".85" stop-color="#60A5FA" stop-opacity=".2"/><stop offset="1" stop-color="#93C5FD" stop-opacity=".85"/></linearGradient></defs>
-<g stroke="#2B3954" stroke-width="34" stroke-linecap="round" fill="none"><path d="M92 132 Q66 150 62 212 L56 330"/><path d="M208 132 Q234 150 238 212 L244 330"/><path d="M126 336 L120 450 L116 536"/><path d="M174 336 L180 450 L184 536"/></g>
-<g stroke="#1A2438" stroke-width="30" stroke-linecap="round" fill="none"><path d="M92 132 Q66 150 62 212 L56 330"/><path d="M208 132 Q234 150 238 212 L244 330"/><path d="M126 336 L120 450 L116 536"/><path d="M174 336 L180 450 L184 536"/></g>
-<path d="M96 118 Q150 102 204 118 Q224 126 226 160 L218 300 Q214 334 194 344 L106 344 Q86 334 82 300 L74 160 Q76 126 96 118 Z" fill="#1A2438" stroke="#2B3954" stroke-width="2"/>
-<rect x="136" y="88" width="28" height="26" fill="#1A2438"/><ellipse cx="150" cy="54" rx="34" ry="40" fill="#1A2438" stroke="#2B3954" stroke-width="2"/>
-<g stroke="#2E3B57" stroke-width="2" fill="none"><path d="M150 140 V300"/><path d="M112 200 Q150 214 188 200"/><path d="M114 226 Q150 240 186 226"/><path d="M120 420 L118 470 M180 420 L182 470"/></g>
+<g stroke="#2A4682" stroke-width="34" stroke-linecap="round" fill="none"><path d="M92 132 Q66 150 62 212 L56 330"/><path d="M208 132 Q234 150 238 212 L244 330"/><path d="M126 336 L120 450 L116 536"/><path d="M174 336 L180 450 L184 536"/></g>
+<g stroke="#0E1F40" stroke-width="30" stroke-linecap="round" fill="none"><path d="M92 132 Q66 150 62 212 L56 330"/><path d="M208 132 Q234 150 238 212 L244 330"/><path d="M126 336 L120 450 L116 536"/><path d="M174 336 L180 450 L184 536"/></g>
+<path d="M96 118 Q150 102 204 118 Q224 126 226 160 L218 300 Q214 334 194 344 L106 344 Q86 334 82 300 L74 160 Q76 126 96 118 Z" fill="#0E1F40" stroke="#2A4682" stroke-width="2"/>
+<rect x="136" y="88" width="28" height="26" fill="#0E1F40"/><ellipse cx="150" cy="54" rx="34" ry="40" fill="#0E1F40" stroke="#2A4682" stroke-width="2"/>
+<g stroke="#24407A" stroke-width="2" fill="none"><path d="M150 140 V300"/><path d="M112 200 Q150 214 188 200"/><path d="M114 226 Q150 240 186 226"/><path d="M120 420 L118 470 M180 420 L182 470"/></g>
 <rect class="scanline" x="20" y="0" width="260" height="60" fill="url(#scang)"/></svg>`;
   const hs = PARTS.map((p) => {
     const st = (bodyMap[p.id] || {}).status || 'none';

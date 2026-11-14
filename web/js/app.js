@@ -13,8 +13,8 @@ import * as earth from './views/earth.js';
 import * as office from './views/office.js';
 
 const NAV = [
-  ['today', 'Today', 'today'], ['checkin', 'Check-in', 'checkin'], ['body', 'Body', 'body'], ['care', 'Care', 'care'],
-  ['crew', 'Crew', 'crew'], ['earth', 'Earth link', 'earth'], ['office', 'Agent office', 'office'],
+  ['today', 'Health', 'today'], ['checkin', 'Check-in', 'checkin'], ['body', 'Trends', 'body'], ['care', 'Procedures', 'care'],
+  ['crew', 'Crew', 'crew'], ['earth', 'Earth link', 'earth'], ['office', 'Agent log', 'office'],
 ];
 const ROUTES = { today, checkin, body, care, procedure, ultrasound, emergency, crew, earth, office };
 const CALM = new Set(['emergency', 'procedure']);
@@ -33,31 +33,40 @@ export async function refreshMission() {
   renderTop();
 }
 
+function met() {
+  // mission elapsed time: mission day + ship clock (UTC)
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, '0');
+  const doy = Math.floor((Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) - Date.UTC(d.getUTCFullYear(), 0, 0)) / 864e5);
+  return { met: `${state.mission.day}:${p(d.getUTCHours())}:${p(d.getUTCMinutes())}:${p(d.getUTCSeconds())}`, gmt: `${doy}/${p(d.getUTCHours())}:${p(d.getUTCMinutes())}` };
+}
+
 function renderTop() {
   const m = state.mission;
   if (!m) return;
   const link = m.link;
   const sw = m.space_weather;
-  const swc = { green: 'var(--teal)', amber: 'var(--ambt)', red: 'var(--redt)' }[sw.status];
+  const swc = { green: 'var(--ok)', amber: 'var(--watch)', red: 'var(--redt)' }[sw.status];
+  const roles = { A: 'FE', B: 'CDR', C: 'PLT' };
   document.getElementById('topbar').innerHTML = `
-    <span style="font-weight:600">Day ${m.day} · ${esc(link.label === 'Mars' ? 'Mars transit' : link.label)}</span>
-    <span class="it"><span class="${link.live ? '' : 'pulse-dot'}" style="width:9px;height:9px;border-radius:99px;background:${link.live ? 'var(--teal)' : 'var(--amb)'}"></span>Earth delay <strong class="mono">${esc(link.delay)}</strong></span>
-    <span class="it">${icon('clock', 'var(--t2)', 18)}<strong class="mono" id="clock">--:--:--</strong> ship time</span>
-    <span class="it">${icon('chip', 'var(--teal)', 18)}Onboard AI · works offline</span>
-    <a class="it" href="#/earth" style="text-decoration:none">${icon('rad', swc, 18)}<span style="color:${swc}">${sw.status === 'green' ? 'Space weather calm' : sw.status === 'amber' ? 'Solar flare watch' : 'Solar storm'}</span></a>
-    <span class="who"><span class="avatar">${esc(state.who)}</span>
-      <label class="sr" for="whosel">I am</label>
-      <select id="whosel">${Object.entries(m.crew).map(([k, c]) => `<option value="${k}" ${k === state.who ? 'selected' : ''}>${esc(c.name)} · ${esc(c.role.split(' · ')[0])}</option>`).join('')}</select></span>`;
+    <span class="brand">TRI<span>X</span></span><span class="sub">Crew health system · ${esc(link.label === 'Mars' ? 'Mars transit' : link.label)} · offline</span>
+    <span class="tm push"><b>MET</b><span id="met">--</span></span>
+    <span class="tm"><b>GMT</b><span id="gmt">--</span></span>
+    <span class="tm"><span class="${link.live ? '' : 'blink'}" style="width:9px;height:9px;border-radius:99px;background:${link.live ? 'var(--ok)' : 'var(--watch)'}"></span>${link.live ? 'AOS' : 'LOS'} · Earth delay ${esc(link.delay)}</span>
+    <a class="tm" href="#/earth" style="text-decoration:none;color:${swc}">${icon('rad', swc, 16)}${sw.status === 'green' ? 'SWX calm' : sw.status === 'amber' ? 'SWX watch' : 'SWX storm'}</a>
+    <span class="who"><label class="sr" for="whosel">I am</label>
+      <select id="whosel">${Object.entries(m.crew).map(([k, c]) => `<option value="${k}" ${k === state.who ? 'selected' : ''}>${roles[k] || ''} · Astronaut ${k}</option>`).join('')}</select></span>`;
   document.getElementById('whosel').onchange = (e) => state.setWho(e.target.value);
   clearInterval(clockTimer);
-  const tick = () => { const el = document.getElementById('clock'); if (el) el.textContent = new Date().toUTCString().slice(17, 25); };
+  const tick = () => { const t = met(); const a = document.getElementById('met'), b = document.getElementById('gmt'); if (a) a.textContent = t.met; if (b) b.textContent = t.gmt; };
   tick();
   clockTimer = setInterval(tick, 1000);
 }
 
 function renderNav(active) {
   document.getElementById('nav').innerHTML = NAV.map(([k, label, ic]) =>
-    `<a class="nav ${k === active ? 'on' : ''}" href="#/${k}" ${k === active ? 'aria-current="page"' : ''}>${icon(ic, 'currentColor', 26)}${label}</a>`).join('');
+    `<a class="${k === active ? 'on' : ''}" href="#/${k}" ${k === active ? 'aria-current="page"' : ''}>${icon(ic, 'currentColor', 18)}${label}</a>`).join('') +
+    `<a class="sos" href="#/emergency">${icon('alert', '#fff', 18, 2.2)}Medical emergency</a>`;
 }
 
 export function go(hash) { location.hash = hash; }
@@ -94,9 +103,36 @@ async function pollAlerts() {
   } catch (e) { /* server restarting */ }
 }
 
+// ---------------- check-in reminder at the time the Reminder agent learned ----------------
+let notified = '';
+async function checkReminder() {
+  try {
+    const t = await api.get(`/api/today/${state.who}`);
+    const box = document.getElementById('reminder');
+    const [h, m] = t.reminder.slot.split(':').map(Number);
+    const now = new Date(), nowMin = now.getUTCHours() * 60 + now.getUTCMinutes();
+    const key = `${state.who}-${t.day}`;
+    const snoozed = +(sessionStorage.getItem(`trix-snooze-${key}`) || 0) > Date.now();
+    const show = !t.checked_in_today && nowMin >= h * 60 + m && !snoozed && !location.hash.startsWith('#/checkin');
+    box.hidden = !show;
+    if (!show) return;
+    box.innerHTML = `${icon('clock', 'var(--nred)', 22)}<span><strong class="cond" style="letter-spacing:.07em;text-transform:uppercase">Check-in due</strong><br><span class="small muted">Reminder ${esc(t.reminder.slot)} · the time you answer most often</span></span>
+      <button class="btn sm due" id="remgo">Start check-in</button><button class="btn sm ghost" id="remsnooze">Snooze 15 min</button>`;
+    document.getElementById('remgo').onclick = () => { box.hidden = true; go('#/checkin'); };  // the check-in itself teaches the Reminder agent
+    document.getElementById('remsnooze').onclick = () => { sessionStorage.setItem(`trix-snooze-${key}`, Date.now() + 15 * 60e3); box.hidden = true; };
+    if (notified !== key && 'Notification' in window) {
+      notified = key;
+      if (Notification.permission === 'default') await Notification.requestPermission();
+      if (Notification.permission === 'granted') new Notification('TRIX · check-in due', { body: `Astronaut ${state.who}: your morning check-in is due (${t.reminder.slot}).` });
+    }
+  } catch (e) { /* server restarting */ }
+}
+setInterval(checkReminder, 60000);
+window.addEventListener('hashchange', () => setTimeout(checkReminder, 300));
+
 window.addEventListener('hashchange', route);
 hydrateIcons(document);
-refreshMission().then(route).catch((e) => {
+refreshMission().then(() => { route(); checkReminder(); }).catch((e) => {
   document.getElementById('view').innerHTML = `<div class="card"><h2>TRIX server not reachable</h2><p class="muted">Start it with <span class="mono">python app.py</span>. ${esc(e.message)}</p></div>`;
 });
 pollAlerts();

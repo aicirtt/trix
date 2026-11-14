@@ -34,7 +34,7 @@ export async function render(el, { params, state, go }) {
         <svg width="110" height="110" viewBox="0 0 120 120" class="pop" aria-hidden="true"><circle cx="60" cy="60" r="52" fill="none" stroke="#2DD4BF" stroke-width="8"/><path d="m40 62 14 14 28-30" fill="none" stroke="#2DD4BF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <h1>${esc(p.title)} complete</h1>
         ${v.practice && sc ? `<div class="row" style="justify-content:center;gap:12px"><span class="chip blue" style="font-size:18px">Score ${sc.score}/100</span>${chip('none', `${sc.retries} retries`)}${chip('none', `${sc.seconds} s`)}</div>` : '<p class="muted">Every step was checked. The record is in the Earth report and the Agent office.</p>'}
-        <div class="row" style="justify-content:center"><a class="btn ghost" href="#/care">Back to Care</a><a class="btn" href="#/today">Today</a></div></div>`;
+        <div class="row" style="justify-content:center"><a class="btn ghost" href="#/care">Back to Care</a><a class="btn" href="#/today">Health</a></div></div>`;
       return;
     }
     const chk = cur.check;

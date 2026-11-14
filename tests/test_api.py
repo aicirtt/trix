@@ -245,3 +245,16 @@ def test_echonet_clip_preprocessing(tmp_path):
     w.release()
     clip = echonet.load_clip(path)
     assert clip.shape == (3, 32, 112, 112) and abs(float(clip.mean())) < 1e-3
+
+
+def test_voice_biomarkers_learn_then_flag_fatigue():
+    from tests_voice_synth import speech
+    assert "passage" in c.get("/api/voice/passage").json()
+    for i in range(3):
+        r = c.post("/api/voice/biomarkers", data={"who": "C"}, files={"audio": ("v.wav", io.BytesIO(speech(seed=i)), "audio/wav")}).json()
+        assert r["ok"] and r["status"] == "green"
+    tired = speech(rate=3.0, pause_every=3, pause_s=0.6, pitch_var=0.8, seed=9)
+    r = c.post("/api/voice/biomarkers", data={"who": "C"}, files={"audio": ("v.wav", io.BytesIO(tired), "audio/wav")}).json()
+    assert r["status"] == "amber" and len(r["signs"]) >= 2 and r["baseline"] == "personal"
+    r = c.post("/api/voice/biomarkers", data={"who": "C"}, files={"audio": ("v.wav", io.BytesIO(b"junk"), "audio/wav")}).json()
+    assert r["ok"] is False and r["message"]

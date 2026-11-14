@@ -8,14 +8,14 @@
 | 2 | One combined health record | ✅ | SQLite onboard record (`trix/store.py`): simulated history + everything logged in the app |
 | 3 | Voice logging | ✅ | Speak readings and symptoms; `trix/voice.py` parses numbers ("118 over 76", "six and a half hours"). Tablet speech recognition, or offline faster-whisper if installed |
 | 4 | Manual entry | ✅ | Check-in vitals form |
-| 5 | Clickable body map | ✅ | Today screen; colours from the agents; tap a part for its readings |
+| 5 | Clickable body map | ✅ | Health screen; colours from the agents; tap a part for its readings. The 6 measurements the NASA brief names are colour-coded tiles with mini charts, plain explanations and “Measure now” |
 | 6 | Learn cards | ✅ | Body screen: space effect, why we measure, what to do, NASA sources |
 | 7 | Trend charts | ✅ | Personal normal band, limits, logged points, bone forecast |
 | 8 | Daily vitals: BP, HR, blood sugar, temp, sleep, mood | ✅ | All checked against personal baselines and limits |
-| 9 | Reminders + how-to | ✅ | Learned reminder time on Today; how-to steps in every procedure (no OS push notification) |
+| 9 | Reminders + how-to | ✅ | At the learned time the app shows a “check-in due” banner and a browser notification (snooze 15 min); “Measure now” on each of the 6 tiles; how-to steps in every procedure |
 | 10 | RL reminder timing (bandit) | ✅ | Thompson sampling; every check-in updates it |
 | 11 | Facial fatigue | ✅ | MediaPipe Face Mesh on the tablet → PERCLOS, blink rate; only numbers leave the tablet |
-| 12 | Voice check-in biomarkers | ⬜ | Speech rate / pauses not analysed |
+| 12 | Voice check-in biomarkers | ✅ | 15 s read-aloud in the Face & voice step → pace, pauses and pitch variation vs the astronaut’s own normal (after 3 recordings); 2+ changes = signs of tiredness. Audio analysed on board, not kept. Tested on synthetic speech-like audio |
 | 13 | Vision check (Amsler grid) | ✅ | Per-eye grid in check-in → vision indicator → crew medical officer |
 | 14 | Symptom & illness diary | ✅ | Symptom text, quick chips, voice; stored with each case |
 | 15 | Skin photo | 🟡 | Redness map in Lab colour space + change vs last photo (built in). MedSigLIP screening hint as an optional add-on (`scripts/setup_addons.py --medsiglip`): written, not yet run, because it needs a gated Hugging Face download |
@@ -41,6 +41,6 @@
 | 35 | On-device AI | ✅ | Ollama if present, offline fallback; MediaPipe models served from the onboard computer |
 | 36 | Agent office | ✅ | Web screen: cases, timeline, tools, constellation |
 
-**Totals:** 33 ✅ · 2 🟡 · 1 ⬜ (of 36)
+**Totals:** 34 ✅ · 2 🟡 · 0 ⬜ (of 36)
 
-Tested by `tests/` (319 tests, including every API endpoint the app uses) and in a headless browser on every screen. Camera checks were tested on synthetic images, not real patients.
+Tested by `tests/` (320 tests, including every API endpoint the app uses) and in a headless browser on every screen. Camera checks were tested on synthetic images, not real patients.

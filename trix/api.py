@@ -19,7 +19,7 @@ from fastapi import Body, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
-from . import detect, escalation, feeds, game, insights, kb, llm, office, orchestrator, protocols, rag, safety, store, teams, vision, voice
+from . import detect, escalation, feeds, game, insights, voicebio, kb, llm, office, orchestrator, protocols, rag, safety, store, teams, vision, voice
 
 ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web"
@@ -176,13 +176,49 @@ def today(who: str):
     tasks = _tasks(who, res, reminder)
     alerts = [_clean({"case_id": c["case_id"], "who": c["who"], "summary": c["summary"], "urgency": c["urgency"], "ts": c["ts"]})
               for c in store.cases(30) if c["urgency"] == "emergency" and time.time() - c["ts"] < 6 * 3600]
+    pts = game.points(who)
     return _clean({"who": who, "crew": game.CREW[who], "day": store.today(), "body_map": res.get("body_map", {}),
+                   "six": _six(who, res, latest), "level": {"level": pts // 250 + 1, "xp": pts % 250, "next": 250, "points": pts},
                    "assessments": res.get("assessments", []), "coach": res.get("coach", {}), "latest": latest,
                    "reminder": reminder, "tasks": tasks, "streak": game.streak(who), "alerts": alerts,
                    "buddy": game.buddy_pairs()[who], "checked_in_today": store.today() in store.checkin_days(who)})
 
 
 _BASE_CACHE: dict = {}
+
+# the six measurements the NASA challenge names, in its order
+SIX = [("bp", "Blood pressure", "sys", "heart"), ("hr", "Heart rate", "hr", "heart"), ("glucose", "Blood sugar", "glucose", "drop"),
+       ("temp", "Body temperature", "temp", "shield"), ("sleep", "Sleep", "sleep", "brain"), ("mood", "Mood", "mood_raw", "brain")]
+
+
+def _six(who: str, view: dict, latest: dict) -> list[dict]:
+    today = store.today()
+    logged = {r["indicator"] for r in store.live_readings(who, since_day=today)}
+    ass = {a["indicator"]: a for a in view.get("assessments", [])}
+    out = []
+    for ind, name, col, icon in SIX:
+        k = kb.indicators()[ind]
+        lv = latest.get(col) or (latest.get("mood") if ind == "mood" else None)
+        value = None if lv is None else lv["value"]
+        if ind == "bp" and lv is not None:
+            dia = latest.get("dia", {}).get("value")
+            value = f"{round(lv['value'])}/{round(dia) if dia is not None else '—'}"
+        a = ass.get(ind)
+        if a is None and lv is not None and ind != "bp":
+            r = escalation.assess(ind, float(lv["value"]), location=location())
+            a = {"status": r.status, "reasons": r.reasons}
+        status = a["status"] if a else "none"
+        if status == "green":
+            why = "Inside your normal range."
+        elif a:
+            why = f"{(a.get('reasons') or [''])[0]}. {k['actions'][0]}."
+        else:
+            why = "Not measured yet."
+        spark = [p["value"] for p in store.series(who, col)][-7:]
+        out.append({"id": ind, "name": name, "icon": icon, "unit": k["unit"], "value": value, "status": status,
+                    "why": why, "spark": spark, "measured_today": (col in logged or ind in logged),
+                    "last_day": None if lv is None else lv["day"]})
+    return out
 
 
 def _merged_view(who: str) -> dict:
@@ -472,6 +508,19 @@ def food_labels():
 @app.post("/api/voice/parse")
 def voice_parse(body: dict = Body(...)):
     return voice.parse(body.get("text", ""))
+
+
+@app.get("/api/voice/passage")
+def voice_passage():
+    return {"passage": voicebio.PASSAGE}
+
+
+@app.post("/api/voice/biomarkers")
+async def voice_biomarkers(who: str = Form(...), audio: UploadFile = File(...)):
+    """16-bit WAV of the daily passage -> speech rate, pauses, pitch vs this astronaut's normal."""
+    if who not in game.CREW:
+        raise HTTPException(400, "who must be A, B or C")
+    return _clean(voicebio.analyse(who, await audio.read()))
 
 
 @app.post("/api/voice/transcribe")

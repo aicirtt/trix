@@ -1,5 +1,5 @@
 import { api } from '../api.js';
-import { esc, icon, chip, fmtTime } from '../ui.js';
+import { esc, icon, chip, fmtTime, plain } from '../ui.js';
 
 const TEAMC = { Mission: '#AAB6C8', 'Daily care': '#2DD4BF', Emergency: '#F87171', Operations: '#60A5FA' };
 
@@ -34,7 +34,7 @@ export async function render(el, { params, go }) {
 
   function detail() {
     const s = spans[sel] || {};
-    const res = typeof s.result === 'string' ? s.result : JSON.stringify(s.result);
+    const res = plain(s.result);
     return `<div class="head"><h2>${esc(s.agent)}</h2><span class="small" style="color:${TEAMC[s.team]}">${esc(s.team)}</span></div>
       <div class="kv"><span class="lbl">Triggered by</span><span>${esc(s.trigger)}</span><span class="lbl">Input</span><span class="mono small muted" style="word-break:break-word">${esc(JSON.stringify(s.inputs))}</span>
       <span class="lbl">Returned</span><strong style="word-break:break-word">${esc(res)}</strong><span class="lbl">Took</span><span class="mono">${s.ms} ms</span><span class="lbl">Status</span>${chip(s.status === 'ok' ? 'green' : 'red', s.status)}</div>
@@ -51,7 +51,7 @@ export async function render(el, { params, go }) {
     <section class="card grow" style="padding:0;overflow:hidden"><div class="orow" style="cursor:default;border-top:0"><span class="lbl">Time</span><span class="lbl">Team</span><span class="lbl">Agent · returned</span><span class="lbl" style="text-align:right">Took</span></div>
       ${spans.map((s, i) => `<button type="button" class="orow rowin ${i === sel ? 'on' : ''}" data-i="${i}" style="animation-delay:${100 + i * 90}ms;padding-left:${14 + s.depth * 18}px" aria-pressed="${i === sel}">
         <span class="mono small dim">${esc(s.started)}</span><span class="row small" style="gap:6px;align-items:center;color:var(--t2)"><span class="tdot" style="background:${TEAMC[s.team]}"></span>${esc(s.team)}</span>
-        <span style="min-width:0"><span style="display:block;font-weight:700">${esc(s.agent)}</span><span class="small muted" style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(typeof s.result === 'string' ? s.result : JSON.stringify(s.result))}</span></span>
+        <span style="min-width:0"><span style="display:block;font-weight:700">${esc(s.agent)}</span><span class="small muted" style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(plain(s.result))}</span></span>
         <span class="mono small dim" style="text-align:right">${s.ms} ms</span></button>`).join('')}</section>
     <div class="col" style="width:400px;flex:none;max-width:100%"><div class="card" id="detail">${detail()}</div>
       <div class="card"><h3>Who called whom</h3>${CONSTELLATION(teams)}<div class="small dim">Logged to logs/agent_office.jsonl · included in the Earth report</div></div></div>

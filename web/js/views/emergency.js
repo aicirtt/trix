@@ -1,5 +1,5 @@
 import { api } from '../api.js';
-import { esc, icon, chip, level, fmtTime } from '../ui.js';
+import { esc, icon, chip, level, fmtTime, plain } from '../ui.js';
 import { speechAvailable, listenOnce } from '../sensors.js';
 
 const QUICK = [
@@ -73,7 +73,7 @@ async function caseView(el, cid, state, go) {
     <div class="col" style="flex:1;min-width:300px">
       ${(c.findings || []).length ? `<div class="card"><h3>Why TRIX is worried</h3>${c.findings.map((f) => `<div class="note" style="color:var(--t1)">${esc(f)}</div>`).join('')}</div>` : ''}
       <div class="card"><div class="head"><h3>Virtual medical team</h3><span class="small dim">Logged for Earth</span></div>
-        <div class="list">${team.map((s, i) => `<div class="li rowin" style="animation-delay:${i * 120}ms;align-items:flex-start"><span class="mono dim small" style="width:64px;flex:none">${esc(s.started)}</span><span style="flex:1"><strong>${esc(s.agent)}</strong><br><span class="small muted">${esc(typeof s.result === 'string' ? s.result : JSON.stringify(s.result))}</span></span>${chip(s.status === 'ok' ? 'green' : 'red', s.status === 'ok' ? 'Done' : s.status)}</div>`).join('')}</div></div>
+        <div class="list">${team.map((s, i) => `<div class="li rowin" style="animation-delay:${i * 120}ms;align-items:flex-start"><span class="mono dim small" style="width:64px;flex:none">${esc(s.started)}</span><span style="flex:1"><strong>${esc(s.agent)}</strong><br><span class="small muted">${esc(plain(s.result))}</span></span>${chip(s.status === 'ok' ? 'green' : 'red', s.status === 'ok' ? 'Done' : s.status)}</div>`).join('')}</div></div>
     </div>
   </div>`;
   const sp = el.querySelector('#startp');

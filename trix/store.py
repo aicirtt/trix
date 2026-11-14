@@ -168,7 +168,10 @@ def series(who: str, column: str) -> list[dict]:
 
 
 def checkin_days(who: str) -> set[int]:
-    days = {r["day"] for r in q("select distinct day from readings where who=? and source != 'history'", (who,))}
+    # a check-in day is a day with vitals logged; voice, camera and food logs alone do not count
+    side = ("voice check", "tablet camera", "food log", "history")
+    days = {r["day"] for r in q(f"select distinct day from readings where who=? and source not in ({','.join('?' * len(side))})",
+                                (who, *side))}
     h = history_csv()
     if len(h):
         days |= set(int(d) for d in h[h.who == who]["day"])
