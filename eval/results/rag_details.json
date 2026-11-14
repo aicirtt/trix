@@ -1,0 +1,302 @@
+[
+  {
+    "q": "How fast do astronauts lose bone density?",
+    "top3": [
+      "bone",
+      "ind:bone",
+      "ind:calcium"
+    ],
+    "hit3": true,
+    "citations_correct": true
+  },
+  {
+    "q": "What exercise protects my bones in space?",
+    "top3": [
+      "ind:bone",
+      "hazards",
+      "bone"
+    ],
+    "hit3": true,
+    "citations_correct": true
+  },
+  {
+    "q": "Why do I keep getting headaches on the station?",
+    "top3": [
+      "co2",
+      "ind:co2",
+      "behavioral"
+    ],
+    "hit3": true,
+    "citations_correct": true
+  },
+  {
+    "q": "What is the CO2 limit in the cabin?",
+    "top3": [
+      "ind:co2",
+      "ind:spo2",
+      "co2"
+    ],
+    "hit3": true,
+    "citations_correct": true
+  },
+  {
+    "q": "How much sleep do astronauts usually get?",
+    "top3": [
+      "sleep",
+      "ind:sleep",
+      "immune"
+    ],
+    "hit3": true,
+    "citations_correct": true
+  },
+  {
+    "q": "I only slept 5 hours, what should I do?",
+    "top3": [
+      "sleep",
+      "radiation",
+      "proto:CARD-ECG-01"
+    ],
+    "hit3": true,
+    "citations_correct": true
+  },
+  {
+    "q": "What is SANS and how do I check my eyes?",
+    "top3": [
+      "ind:vision",
+      "sans",
+      "proto:LAND-01"
+    ],
+    "hit3": true,
+    "citations_correct": true
+  },
+  {
+    "q": "The lines on the grid look wavy, is that bad?",
+    "top3": [
+      "ind:vision",
+      "sans",
+      "ind:co2"
+    ],
+    "hit3": true,
+    "citations_correct": true
+  },
+  {
+    "q": "What is the career radiation limit?",
+    "top3": [
+      "ind:rad_career",
+      "radiation",
+      "ind:rad_daily"
+    ],
+    "hit3": true,
+    "citations_correct": true
+  },
+  {
+    "q": "A solar storm is coming, what do I do?",
+    "top3": [
+      "radiation",
+      "ind:rad_daily",
+      "ind:rad_career"
+    ],
+    "hit3": true,
+    "citations_correct": true
+  },
+  {
+    "q": "I have a cold sore, why does that happen in space?",
+    "top3": [
+      "nutrition",
+      "immune",
+      "ind:skin"
+    ],
+    "hit3": true,
+    "citations_correct": false
+  },
+  {
+    "q": "I have a fever and a rash",
+    "top3": [
+      "immune",
+      "ind:temp",
+      "behavioral"
+    ],
+    "hit3": true,
+    "citations_correct": true
+  },
+  {
+    "q": "How much water should I drink per day?",
+    "top3": [
+      "ind:fluid",
+      "nutrition",
+      "iss_medical"
+    ],
+    "hit3": true,
+    "citations_correct": true
+  },
+  {
+    "q": "How much calcium do I need?",
+    "top3": [
+      "nutrition",
+      "cardio",
+      "ind:calcium"
+    ],
+    "hit3": true,
+    "citations_correct": false
+  },
+  {
+    "q": "Why do I need vitamin D supplements?",
+    "top3": [
+      "nutrition",
+      "bone",
+      "cardio"
+    ],
+    "hit3": true,
+    "citations_correct": true
+  },
+  {
+    "q": "Why do astronauts faint after landing?",
+    "top3": [
+      "ind:orthostatic",
+      "cardio",
+      "proto:LAND-01"
+    ],
+    "hit3": true,
+    "citations_correct": true
+  },
+  {
+    "q": "How do I do the stand-up test before landing?",
+    "top3": [
+      "ind:orthostatic",
+      "proto:LAND-01",
+      "cardio"
+    ],
+    "hit3": true,
+    "citations_correct": true
+  },
+  {
+    "q": "My heart is beating irregularly",
+    "top3": [
+      "ind:hr",
+      "proto:US-A4C-01",
+      "ind:hrv"
+    ],
+    "hit3": true,
+    "citations_correct": false
+  },
+  {
+    "q": "How do I place ECG electrodes?",
+    "top3": [
+      "proto:CARD-ECG-01",
+      "proto:US-A4C-01",
+      "iss_medical"
+    ],
+    "hit3": true,
+    "citations_correct": true
+  },
+  {
+    "q": "How do I do CPR in weightlessness?",
+    "top3": [
+      "proto:CPR-MG-01",
+      "hazards",
+      "bone"
+    ],
+    "hit3": true,
+    "citations_correct": true
+  },
+  {
+    "q": "How do I do an ultrasound of the heart?",
+    "top3": [
+      "proto:US-A4C-01",
+      "iss_medical",
+      "ind:hr"
+    ],
+    "hit3": true,
+    "citations_correct": true
+  },
+  {
+    "q": "How do I test my blood sugar?",
+    "top3": [
+      "proto:GLU-01",
+      "ind:glucose",
+      "cardio"
+    ],
+    "hit3": true,
+    "citations_correct": true
+  },
+  {
+    "q": "What should I check after a spacewalk?",
+    "top3": [
+      "proto:EVA-POST-01",
+      "proto:US-A4C-01",
+      "ind:spo2"
+    ],
+    "hit3": true,
+    "citations_correct": true
+  },
+  {
+    "q": "My oxygen saturation is 91 percent",
+    "top3": [
+      "ind:spo2",
+      "bone",
+      "behavioral"
+    ],
+    "hit3": true,
+    "citations_correct": true
+  },
+  {
+    "q": "What medicines are onboard?",
+    "top3": [
+      "formulary",
+      "bone",
+      "sleep"
+    ],
+    "hit3": true,
+    "citations_correct": true
+  },
+  {
+    "q": "Who is the crew medical officer?",
+    "top3": [
+      "iss_medical",
+      "formulary",
+      "behavioral"
+    ],
+    "hit3": true,
+    "citations_correct": true
+  },
+  {
+    "q": "What are the five hazards of spaceflight?",
+    "top3": [
+      "hazards",
+      "sans",
+      "bone"
+    ],
+    "hit3": true,
+    "citations_correct": true
+  },
+  {
+    "q": "When should the flight surgeon be told?",
+    "top3": [
+      "escalation",
+      "immune",
+      "formulary"
+    ],
+    "hit3": true,
+    "citations_correct": true
+  },
+  {
+    "q": "Why can't we just wait for Earth to answer?",
+    "top3": [
+      "escalation",
+      "proto:CARD-ECG-01",
+      "nutrition"
+    ],
+    "hit3": true,
+    "citations_correct": true
+  },
+  {
+    "q": "I feel lonely and stressed",
+    "top3": [
+      "behavioral",
+      "bone",
+      "cardio"
+    ],
+    "hit3": true,
+    "citations_correct": true
+  }
+]

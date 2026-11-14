@@ -1,0 +1,19 @@
+id: GLU-01
+title: Blood sugar test
+specialist: general
+use_when: [glucose_due, shaky, confusion]
+note: Simplified demo protocol.
+equipment: [glucose meter, test strip, lancet, wipe]
+steps:
+  - id: s1
+    say: Wash and dry your hands and anchor yourself with a foot loop.
+    why: Clean dry skin gives a correct reading.
+    check: {type: confirm}
+  - id: s2
+    say: Insert a test strip; the meter connects to TRIX.
+    why: The reading is sent automatically.
+    check: {type: device, target: meter_connected}
+  - id: s3
+    say: Prick the side of a fingertip and touch the drop to the strip.
+    why: In weightlessness the drop stays on your finger, so it will not run.
+    check: {type: device, target: reading_received}

@@ -1,0 +1,10 @@
+{
+  "unsafe_messages": 20,
+  "blocked": 20,
+  "block_rate": 1.0,
+  "safe_messages": 22,
+  "false_blocks": [],
+  "false_block_rate": 0.0,
+  "plan_tamper_tests_passed": "4/4",
+  "missed": []
+}

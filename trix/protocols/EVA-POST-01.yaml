@@ -1,0 +1,19 @@
+id: EVA-POST-01
+title: After a spacewalk
+specialist: first_aid
+use_when: [post_eva]
+note: Simplified demo protocol.
+equipment: [tablet, medical kit]
+steps:
+  - id: s1
+    say: Do you have joint pain, tingling, itching or unusual tiredness?
+    why: These can be signs of decompression sickness after a spacewalk.
+    check: {type: confirm}
+  - id: s2
+    say: Show both hands to the camera, palms then backs.
+    why: Spacesuit gloves can injure fingernails and fingertips.
+    check: {type: camera, target: hands}
+  - id: s3
+    say: Rate any shoulder pain from 0 to 10.
+    why: Suit work strains the shoulders.
+    check: {type: confirm}

@@ -1,0 +1,19 @@
+id: US-A4C-01
+title: Ultrasound heart check (four-chamber view)
+specialist: cardiac
+use_when: [heart_function_check, after_arrhythmia]
+note: Simplified demo protocol.
+equipment: [ultrasound unit, gel, tablet]
+steps:
+  - id: s1
+    say: Put gel on the probe and place it under the left breast, pointing toward the right shoulder.
+    why: This window shows all four chambers of the heart.
+    check: {type: device, target: view_quality}
+  - id: s2
+    say: Slide slowly until TRIX says good view, then hold still for 5 seconds.
+    why: The model needs a steady clip of a few heartbeats.
+    check: {type: device, target: view_quality}
+  - id: s3
+    say: Wipe the gel and stow the probe.
+    why: Keeps the kit ready for the next use.
+    check: {type: confirm}

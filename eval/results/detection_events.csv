@@ -1,0 +1,9 @@
+event,name,kind,trix_first_day,fixed_limits_first_day,trix_level,lead_days_vs_fixed
+E1,Irregular heart rhythm,acute,180,180.0,emergency,0
+E2,Fever and cold sore (viral reactivation),acute,95,95.0,crew_medical_officer,0
+E3,Fatigue run,acute,174,174.0,self_care,0
+E4,Accelerated bone loss after exercise drop,drift,175,,self_care,only TRIX
+E5,Rising blood pressure (persists),drift,126,141.0,self_care,15
+E6,Gradual mood decline,drift,204,,self_care,only TRIX
+E7,CO2 spikes with headaches,acute,176,176.0,crew_medical_officer,0
+E8,Solar particle event,acute,150,150.0,emergency,0

@@ -1,0 +1,22 @@
+{
+  "levels": [
+    {"id": 0, "key": "normal", "name": "Normal", "colour": "green", "who": "No one", "what": "Keep routine."},
+    {"id": 1, "key": "self_care", "name": "Self-care", "colour": "amber", "who": "Astronaut", "what": "TRIX suggests a fix and re-checks later."},
+    {"id": 2, "key": "crew_medical_officer", "name": "Crew medical officer", "colour": "amber", "who": "Crew medical officer", "what": "Medical officer reviews within the day; may run an exam or procedure."},
+    {"id": 3, "key": "flight_surgeon", "name": "Flight surgeon", "colour": "orange", "who": "Flight surgeon on Earth", "what": "Added to the Earth report with priority. Live consult only if the link delay allows."},
+    {"id": 3, "key": "flight_surgeon_private", "name": "Flight surgeon (private)", "colour": "orange", "who": "Behavioural health team on Earth", "what": "Private channel; content is not shared with the crew."},
+    {"id": 4, "key": "emergency", "name": "Emergency", "colour": "red", "who": "Whole crew + TRIX agents", "what": "Triage agents start immediately and a crewmate is guided through the procedure. Never waits for Earth."}
+  ],
+  "locations": {
+    "iss":  {"one_way_delay_s": 1,    "live_consult": true,  "evacuation": "hours"},
+    "moon": {"one_way_delay_s": 1.3,  "live_consult": true,  "evacuation": "days"},
+    "mars": {"one_way_delay_s": 1200, "live_consult": false, "evacuation": "not possible"}
+  },
+  "rules": [
+    "A red absolute limit always wins over personal baselines.",
+    "Two different indicators amber on the same day for the same body part escalate one level.",
+    "Persistent amber (see each indicator's escalation keys) escalates one level.",
+    "Emergency never waits for Earth. At Mars, flight-surgeon items are queued for the next link window; at ISS or Moon they may be consulted live.",
+    "Confidence below 0.5 (too little data) caps the level at self_care and asks for a re-measurement."
+  ]
+}

@@ -1,0 +1,97 @@
+[
+  {
+    "id": "E1",
+    "who": "A",
+    "kind": "acute",
+    "name": "Irregular heart rhythm",
+    "start": 180,
+    "end": 180,
+    "indicators": [
+      "hr",
+      "hrv"
+    ]
+  },
+  {
+    "id": "E2",
+    "who": "B",
+    "kind": "acute",
+    "name": "Fever and cold sore (viral reactivation)",
+    "start": 95,
+    "end": 98,
+    "indicators": [
+      "temp",
+      "hr",
+      "skin"
+    ]
+  },
+  {
+    "id": "E3",
+    "who": "C",
+    "kind": "acute",
+    "name": "Fatigue run",
+    "start": 174,
+    "end": 180,
+    "indicators": [
+      "sleep",
+      "fatigue",
+      "hrv",
+      "mood"
+    ]
+  },
+  {
+    "id": "E4",
+    "who": "C",
+    "kind": "drift",
+    "name": "Accelerated bone loss after exercise drop",
+    "start": 160,
+    "end": 239,
+    "indicators": [
+      "bone"
+    ]
+  },
+  {
+    "id": "E5",
+    "who": "B",
+    "kind": "drift",
+    "name": "Rising blood pressure (persists)",
+    "start": 118,
+    "end": 239,
+    "indicators": [
+      "bp"
+    ]
+  },
+  {
+    "id": "E6",
+    "who": "A",
+    "kind": "drift",
+    "name": "Gradual mood decline",
+    "start": 196,
+    "end": 225,
+    "indicators": [
+      "mood",
+      "hrv"
+    ]
+  },
+  {
+    "id": "E7",
+    "who": "*",
+    "kind": "acute",
+    "name": "CO2 spikes with headaches",
+    "start": 176,
+    "end": 180,
+    "indicators": [
+      "co2"
+    ]
+  },
+  {
+    "id": "E8",
+    "who": "*",
+    "kind": "acute",
+    "name": "Solar particle event",
+    "start": 150,
+    "end": 151,
+    "indicators": [
+      "rad_daily"
+    ]
+  }
+]

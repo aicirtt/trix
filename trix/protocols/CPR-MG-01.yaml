@@ -1,0 +1,23 @@
+id: CPR-MG-01
+title: CPR in microgravity
+specialist: cardiac
+use_when: [unresponsive, no_breathing, cardiac_arrest]
+note: Simplified demo protocol. Real use follows the mission medical checklist and the defibrillator's own prompts.
+equipment: [medical restraint, defibrillator (AED)]
+steps:
+  - id: s1
+    say: Call the whole crew and bring the defibrillator.
+    why: CPR and defibrillation work best together and need more than one person.
+    check: {type: confirm}
+  - id: s2
+    say: Strap the patient to the medical restraint so they cannot float away.
+    why: Without gravity, each push would move the patient instead of compressing the chest.
+    check: {type: camera, target: restraint}
+  - id: s3
+    say: Brace yourself against the wall or restraint and push hard and fast in the centre of the chest, 100 to 120 times a minute.
+    why: You need something to push against to compress the chest in weightlessness.
+    check: {type: camera, target: compression_rate}
+  - id: s4
+    say: Turn on the defibrillator and follow its voice prompts.
+    why: The device checks the rhythm and decides if a shock is needed.
+    check: {type: device, target: aed_on}

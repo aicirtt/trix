@@ -1,0 +1,19 @@
+id: LAND-01
+title: Landing-day readiness (stand test and balance)
+specialist: general
+use_when: [pre_landing]
+note: Simplified demo protocol; rehearse in the last week of the mission.
+equipment: [BP cuff, ECG, tablet camera]
+steps:
+  - id: s1
+    say: Lie still for 2 minutes while TRIX records heart rate and blood pressure.
+    why: This is your resting reference.
+    check: {type: device, target: vitals_baseline}
+  - id: s2
+    say: Stand up in the foot restraints (or pull into an upright position) and hold for 3 minutes.
+    why: Shows how your heart and blood pressure respond to standing.
+    check: {type: device, target: vitals_standing}
+  - id: s3
+    say: Close your eyes and stand still for 30 seconds while the camera measures sway.
+    why: Your balance system has to relearn which way is down.
+    check: {type: camera, target: sway}

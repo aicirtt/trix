@@ -1,0 +1,252 @@
+day,who,indicator,status,level,reasons,confidence,route,body_part,source
+24,A,sleep,amber,self_care,5.29 below 5.5 h,0.71,onboard,brain,rules
+90,A,multi_signal,amber,self_care,unusual combination: ,1.0,onboard,whole,iforest
+116,A,multi_signal,amber,self_care,unusual combination: ,1.0,onboard,whole,iforest
+125,A,multi_signal,amber,self_care,unusual combination: ,1.0,onboard,whole,iforest
+138,A,multi_signal,amber,self_care,unusual combination: ,1.0,onboard,whole,iforest
+150,A,rad_daily,red,emergency,solar particle event: shelter,1.0,start Triage agents now; do not wait for Earth,rad,rules
+151,A,rad_daily,red,emergency,solar particle event: shelter,1.0,start Triage agents now; do not wait for Earth,rad,rules
+176,A,co2,red,crew_medical_officer,1-h CO2 3.46 mmHg > 3.0 limit,1.0,onboard,lungs,rules
+178,A,co2,red,crew_medical_officer,1-h CO2 3.24 mmHg > 3.0 limit,1.0,onboard,lungs,rules
+178,A,multi_signal,amber,self_care,unusual combination: ,1.0,onboard,whole,iforest
+179,A,multi_signal,amber,self_care,unusual combination: ,1.0,onboard,whole,iforest
+180,A,hr,red,emergency,132.0 ≥ red limit 120 bpm; irregular rhythm,1.0,start Triage agents now; do not wait for Earth,heart,rules
+180,A,co2,red,crew_medical_officer,1-h CO2 3.35 mmHg > 3.0 limit,1.0,onboard,lungs,rules
+182,A,co2,amber,crew_medical_officer,7-day CO2 average 2.56 mmHg ≥ 2.5,1.0,onboard,lungs,rules
+204,A,mood,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,brain,rules
+205,A,mood,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,brain,rules
+206,A,mood,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,brain,rules
+207,A,mood,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,brain,rules
+208,A,mood,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,brain,rules
+209,A,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 5 days,1.0,onboard,brain,rules
+210,A,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 6 days,1.0,onboard,brain,rules
+211,A,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 7 days,1.0,onboard,brain,rules
+212,A,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 8 days,1.0,onboard,brain,rules
+212,A,multi_signal,amber,self_care,unusual combination: ,1.0,onboard,whole,iforest
+213,A,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 9 days,1.0,onboard,brain,rules
+214,A,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 10 days,1.0,onboard,brain,rules
+215,A,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 11 days,1.0,onboard,brain,rules
+216,A,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 12 days,1.0,onboard,brain,rules
+216,A,multi_signal,amber,self_care,unusual combination: ,1.0,onboard,whole,iforest
+217,A,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 13 days,1.0,onboard,brain,rules
+218,A,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 14 days,1.0,onboard,brain,rules
+219,A,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 15 days,1.0,onboard,brain,rules
+220,A,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 16 days,1.0,onboard,brain,rules
+221,A,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 17 days,1.0,onboard,brain,rules
+222,A,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 18 days,1.0,onboard,brain,rules
+222,A,multi_signal,amber,self_care,unusual combination: ,1.0,onboard,whole,iforest
+223,A,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 19 days,1.0,onboard,brain,rules
+223,A,multi_signal,amber,self_care,unusual combination: ,1.0,onboard,whole,iforest
+224,A,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 20 days,1.0,onboard,brain,rules
+224,A,multi_signal,amber,self_care,unusual combination: ,1.0,onboard,whole,iforest
+225,A,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 21 days,1.0,onboard,brain,rules
+226,A,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 22 days,1.0,onboard,brain,rules
+227,A,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 23 days,1.0,onboard,brain,rules
+228,A,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 24 days,1.0,onboard,brain,rules
+229,A,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 25 days,1.0,onboard,brain,rules
+230,A,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 26 days,1.0,onboard,brain,rules
+231,A,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 27 days,1.0,onboard,brain,rules
+232,A,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 28 days,1.0,onboard,brain,rules
+233,A,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 29 days,1.0,onboard,brain,rules
+234,A,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 30 days,1.0,onboard,brain,rules
+235,A,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 31 days,1.0,onboard,brain,rules
+236,A,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 32 days,1.0,onboard,brain,rules
+237,A,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 33 days,1.0,onboard,brain,rules
+238,A,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 34 days,1.0,onboard,brain,rules
+239,A,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 35 days,1.0,onboard,brain,rules
+42,B,multi_signal,amber,self_care,unusual combination: ,1.0,onboard,whole,iforest
+53,B,sleep,amber,self_care,5.26 below 5.5 h,1.0,onboard,brain,rules
+95,B,temp,red,crew_medical_officer,38.3 ≥ red limit 38.0 °C; 15.1 robust SDs above your normal,1.0,onboard,immune,rules
+95,B,multi_signal,amber,self_care,unusual combination: ,1.0,onboard,whole,iforest
+96,B,hr,amber,self_care,7.6 robust SDs above your normal,1.0,onboard,heart,rules
+96,B,temp,red,crew_medical_officer,38.6 ≥ red limit 38.0 °C; 15.6 robust SDs above your normal,1.0,onboard,immune,rules
+96,B,skin,amber,crew_medical_officer,new lesion logged (photo + symptom),1.0,onboard,immune,rules
+97,B,hr,amber,self_care,3.1 robust SDs above your normal,1.0,onboard,heart,rules
+97,B,temp,red,flight_surgeon,38.1 ≥ red limit 38.0 °C; 11.4 robust SDs above your normal,1.0,queued for next Earth link window (priority),immune,rules
+98,B,temp,amber,self_care,37.6 ≥ 37.5 °C; 6.7 robust SDs above your normal,1.0,onboard,immune,rules
+126,B,bp,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,heart,rules
+127,B,bp,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,heart,rules
+128,B,bp,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,heart,rules
+129,B,bp,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 3 days,1.0,onboard,heart,rules
+130,B,bp,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 4 days,1.0,onboard,heart,rules
+131,B,bp,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 5 days,1.0,onboard,heart,rules
+132,B,bp,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 6 days,1.0,onboard,heart,rules
+133,B,bp,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 7 days,1.0,onboard,heart,rules
+134,B,bp,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 8 days,1.0,onboard,heart,rules
+135,B,bp,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 9 days,1.0,onboard,heart,rules
+136,B,bp,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 10 days,1.0,onboard,heart,rules
+137,B,bp,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 11 days,1.0,onboard,heart,rules
+138,B,bp,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 12 days,1.0,onboard,heart,rules
+139,B,bp,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 13 days,1.0,onboard,heart,rules
+140,B,bp,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 14 days,1.0,onboard,heart,rules
+141,B,bp,amber,crew_medical_officer,dia 93 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 15 days,1.0,onboard,heart,rules
+141,B,multi_signal,amber,self_care,unusual combination: ,1.0,onboard,whole,iforest
+142,B,bp,amber,crew_medical_officer,sys 142 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 16 days,1.0,onboard,heart,rules
+143,B,bp,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 17 days,1.0,onboard,heart,rules
+144,B,bp,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 18 days,1.0,onboard,heart,rules
+145,B,bp,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 19 days,1.0,onboard,heart,rules
+146,B,bp,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 20 days,1.0,onboard,heart,rules
+147,B,bp,amber,crew_medical_officer,sys 146 ≥ 140 mmHg; dia 91 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 21 days,1.0,onboard,heart,rules
+148,B,bp,amber,crew_medical_officer,sys 141 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 22 days,1.0,onboard,heart,rules
+149,B,bp,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 23 days,1.0,onboard,heart,rules
+150,B,bp,amber,crew_medical_officer,dia 90 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 24 days,1.0,onboard,heart,rules
+150,B,rad_daily,red,emergency,solar particle event: shelter,1.0,start Triage agents now; do not wait for Earth,rad,rules
+151,B,bp,amber,crew_medical_officer,sys 142 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 25 days,1.0,onboard,heart,rules
+151,B,rad_daily,red,emergency,solar particle event: shelter,1.0,start Triage agents now; do not wait for Earth,rad,rules
+152,B,bp,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 26 days,1.0,onboard,heart,rules
+153,B,bp,amber,crew_medical_officer,dia 92 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 27 days,1.0,onboard,heart,rules
+154,B,bp,amber,crew_medical_officer,sys 147 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 28 days,1.0,onboard,heart,rules
+155,B,bp,amber,crew_medical_officer,sys 147 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 29 days,1.0,onboard,heart,rules
+156,B,bp,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 30 days,1.0,onboard,heart,rules
+157,B,bp,amber,crew_medical_officer,sys 147 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 31 days,1.0,onboard,heart,rules
+158,B,bp,amber,crew_medical_officer,sys 146 ≥ 140 mmHg; dia 91 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 32 days,1.0,onboard,heart,rules
+159,B,bp,amber,crew_medical_officer,sys 141 ≥ 140 mmHg; dia 93 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 33 days,1.0,onboard,heart,rules
+160,B,bp,amber,crew_medical_officer,sys 147 ≥ 140 mmHg; dia 91 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 34 days,1.0,onboard,heart,rules
+161,B,bp,amber,crew_medical_officer,dia 90 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 35 days,1.0,onboard,heart,rules
+162,B,bp,amber,crew_medical_officer,dia 90 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 36 days,1.0,onboard,heart,rules
+163,B,bp,amber,crew_medical_officer,dia 92 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 37 days,1.0,onboard,heart,rules
+164,B,bp,amber,crew_medical_officer,sys 140 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 38 days,1.0,onboard,heart,rules
+165,B,bp,amber,crew_medical_officer,sys 148 ≥ 140 mmHg; dia 91 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 39 days,1.0,onboard,heart,rules
+166,B,bp,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 40 days,1.0,onboard,heart,rules
+167,B,bp,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 41 days,1.0,onboard,heart,rules
+168,B,bp,amber,crew_medical_officer,sys 140 ≥ 140 mmHg; dia 90 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 42 days,1.0,onboard,heart,rules
+169,B,bp,amber,crew_medical_officer,sys 145 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 43 days,1.0,onboard,heart,rules
+170,B,bp,amber,crew_medical_officer,sys 143 ≥ 140 mmHg; dia 92 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 44 days,1.0,onboard,heart,rules
+171,B,bp,amber,crew_medical_officer,sys 147 ≥ 140 mmHg; dia 93 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 45 days,1.0,onboard,heart,rules
+171,B,mood,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,brain,rules
+172,B,bp,amber,crew_medical_officer,sys 141 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 46 days,1.0,onboard,heart,rules
+173,B,bp,amber,crew_medical_officer,dia 90 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 47 days,1.0,onboard,heart,rules
+174,B,bp,amber,crew_medical_officer,sys 142 ≥ 140 mmHg; dia 96 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 48 days,1.0,onboard,heart,rules
+175,B,bp,amber,crew_medical_officer,sys 144 ≥ 140 mmHg; dia 92 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 49 days,1.0,onboard,heart,rules
+176,B,bp,amber,crew_medical_officer,sys 140 ≥ 140 mmHg; dia 94 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 50 days,1.0,onboard,heart,rules
+176,B,co2,red,crew_medical_officer,1-h CO2 3.46 mmHg > 3.0 limit,1.0,onboard,lungs,rules
+177,B,bp,amber,crew_medical_officer,sys 145 ≥ 140 mmHg; dia 90 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 51 days,1.0,onboard,heart,rules
+178,B,bp,amber,crew_medical_officer,sys 151 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 52 days,1.0,onboard,heart,rules
+178,B,co2,red,crew_medical_officer,1-h CO2 3.24 mmHg > 3.0 limit,1.0,onboard,lungs,rules
+179,B,bp,amber,crew_medical_officer,sys 142 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 53 days,1.0,onboard,heart,rules
+180,B,bp,amber,crew_medical_officer,sys 144 ≥ 140 mmHg; dia 92 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 54 days,1.0,onboard,heart,rules
+180,B,co2,red,crew_medical_officer,1-h CO2 3.35 mmHg > 3.0 limit,1.0,onboard,lungs,rules
+181,B,bp,amber,crew_medical_officer,sys 149 ≥ 140 mmHg; dia 93 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 55 days,1.0,onboard,heart,rules
+182,B,bp,amber,crew_medical_officer,sys 141 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 56 days,1.0,onboard,heart,rules
+182,B,co2,amber,crew_medical_officer,7-day CO2 average 2.56 mmHg ≥ 2.5,1.0,onboard,lungs,rules
+183,B,bp,amber,crew_medical_officer,sys 141 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 57 days,1.0,onboard,heart,rules
+184,B,bp,amber,crew_medical_officer,sys 140 ≥ 140 mmHg; dia 91 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 58 days,1.0,onboard,heart,rules
+185,B,bp,amber,crew_medical_officer,sys 146 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 59 days,1.0,onboard,heart,rules
+186,B,bp,amber,crew_medical_officer,sys 146 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 60 days,1.0,onboard,heart,rules
+187,B,bp,amber,crew_medical_officer,sys 143 ≥ 140 mmHg; dia 95 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 61 days,1.0,onboard,heart,rules
+188,B,bp,amber,crew_medical_officer,sys 144 ≥ 140 mmHg; dia 96 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 62 days,1.0,onboard,heart,rules
+189,B,bp,amber,crew_medical_officer,sys 149 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 63 days,1.0,onboard,heart,rules
+190,B,bp,amber,crew_medical_officer,sys 147 ≥ 140 mmHg; dia 95 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 64 days,1.0,onboard,heart,rules
+191,B,bp,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 65 days,1.0,onboard,heart,rules
+192,B,bp,amber,crew_medical_officer,sys 144 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 66 days,1.0,onboard,heart,rules
+193,B,bp,amber,crew_medical_officer,sys 144 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 67 days,1.0,onboard,heart,rules
+194,B,bp,amber,crew_medical_officer,sys 147 ≥ 140 mmHg; dia 93 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 68 days,1.0,onboard,heart,rules
+195,B,bp,amber,crew_medical_officer,sys 143 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 69 days,1.0,onboard,heart,rules
+196,B,bp,amber,crew_medical_officer,sys 141 ≥ 140 mmHg; dia 97 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 70 days,1.0,onboard,heart,rules
+197,B,bp,amber,crew_medical_officer,sys 142 ≥ 140 mmHg; dia 91 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 71 days,1.0,onboard,heart,rules
+198,B,bp,amber,crew_medical_officer,dia 90 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 72 days,1.0,onboard,heart,rules
+199,B,bp,amber,crew_medical_officer,sys 144 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 73 days,1.0,onboard,heart,rules
+200,B,bp,amber,crew_medical_officer,sys 142 ≥ 140 mmHg; dia 94 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 74 days,1.0,onboard,heart,rules
+201,B,bp,amber,crew_medical_officer,sys 146 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 75 days,1.0,onboard,heart,rules
+202,B,bp,amber,crew_medical_officer,sys 140 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 76 days,1.0,onboard,heart,rules
+203,B,bp,amber,crew_medical_officer,sys 142 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 77 days,1.0,onboard,heart,rules
+204,B,bp,amber,crew_medical_officer,sys 140 ≥ 140 mmHg; dia 93 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 78 days,1.0,onboard,heart,rules
+205,B,bp,amber,crew_medical_officer,sys 140 ≥ 140 mmHg; dia 93 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 79 days,1.0,onboard,heart,rules
+206,B,bp,amber,crew_medical_officer,sys 147 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 80 days,1.0,onboard,heart,rules
+207,B,bp,amber,crew_medical_officer,sys 142 ≥ 140 mmHg; dia 90 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 81 days,1.0,onboard,heart,rules
+208,B,bp,amber,crew_medical_officer,sys 146 ≥ 140 mmHg; dia 91 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 82 days,1.0,onboard,heart,rules
+209,B,bp,amber,crew_medical_officer,dia 93 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 83 days,1.0,onboard,heart,rules
+210,B,bp,amber,crew_medical_officer,sys 144 ≥ 140 mmHg; dia 90 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 84 days,1.0,onboard,heart,rules
+211,B,bp,amber,crew_medical_officer,dia 95 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 85 days,1.0,onboard,heart,rules
+212,B,bp,amber,crew_medical_officer,sys 142 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 86 days,1.0,onboard,heart,rules
+213,B,bp,amber,crew_medical_officer,sys 142 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 87 days,1.0,onboard,heart,rules
+214,B,bp,amber,crew_medical_officer,sys 146 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 88 days,1.0,onboard,heart,rules
+215,B,bp,amber,crew_medical_officer,sys 145 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 89 days,1.0,onboard,heart,rules
+216,B,bp,amber,crew_medical_officer,sys 143 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 90 days,1.0,onboard,heart,rules
+217,B,bp,amber,crew_medical_officer,sys 147 ≥ 140 mmHg; dia 93 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 91 days,1.0,onboard,heart,rules
+218,B,bp,amber,crew_medical_officer,sys 145 ≥ 140 mmHg; dia 91 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 92 days,1.0,onboard,heart,rules
+219,B,bp,amber,crew_medical_officer,sys 146 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 93 days,1.0,onboard,heart,rules
+220,B,bp,amber,crew_medical_officer,sys 147 ≥ 140 mmHg; dia 91 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 94 days,1.0,onboard,heart,rules
+221,B,bp,amber,crew_medical_officer,sys 144 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 95 days,1.0,onboard,heart,rules
+222,B,bp,amber,crew_medical_officer,sys 143 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 96 days,1.0,onboard,heart,rules
+223,B,bp,amber,crew_medical_officer,sys 145 ≥ 140 mmHg; dia 91 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 97 days,1.0,onboard,heart,rules
+224,B,bp,amber,crew_medical_officer,sys 142 ≥ 140 mmHg; dia 92 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 98 days,1.0,onboard,heart,rules
+225,B,bp,amber,crew_medical_officer,sys 145 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 99 days,1.0,onboard,heart,rules
+226,B,bp,amber,crew_medical_officer,sys 148 ≥ 140 mmHg; dia 93 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 100 days,1.0,onboard,heart,rules
+227,B,bp,amber,crew_medical_officer,sys 147 ≥ 140 mmHg; dia 95 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 101 days,1.0,onboard,heart,rules
+228,B,bp,amber,crew_medical_officer,sys 142 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 102 days,1.0,onboard,heart,rules
+229,B,bp,amber,crew_medical_officer,dia 92 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 103 days,1.0,onboard,heart,rules
+230,B,bp,amber,crew_medical_officer,sys 144 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 104 days,1.0,onboard,heart,rules
+231,B,bp,amber,crew_medical_officer,sys 143 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 105 days,1.0,onboard,heart,rules
+232,B,bp,amber,crew_medical_officer,sys 148 ≥ 140 mmHg; dia 92 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 106 days,1.0,onboard,heart,rules
+233,B,bp,amber,crew_medical_officer,sys 142 ≥ 140 mmHg; dia 90 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 107 days,1.0,onboard,heart,rules
+234,B,bp,amber,crew_medical_officer,sys 143 ≥ 140 mmHg; dia 90 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 108 days,1.0,onboard,heart,rules
+235,B,bp,amber,crew_medical_officer,sys 147 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 109 days,1.0,onboard,heart,rules
+236,B,bp,amber,crew_medical_officer,sys 142 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 110 days,1.0,onboard,heart,rules
+237,B,bp,amber,crew_medical_officer,sys 143 ≥ 140 mmHg; dia 92 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 111 days,1.0,onboard,heart,rules
+238,B,bp,amber,crew_medical_officer,sys 151 ≥ 140 mmHg; dia 95 ≥ 90 mmHg; slow downward drift detected (CUSUM); amber for 112 days,1.0,onboard,heart,rules
+239,B,bp,amber,crew_medical_officer,sys 150 ≥ 140 mmHg; slow downward drift detected (CUSUM); amber for 113 days,1.0,onboard,heart,rules
+84,C,multi_signal,amber,self_care,unusual combination: ,1.0,onboard,whole,iforest
+99,C,spo2,amber,crew_medical_officer,3.1 robust SDs below your normal,1.0,onboard,lungs,rules
+145,C,multi_signal,amber,self_care,unusual combination: ,1.0,onboard,whole,iforest
+150,C,rad_daily,red,emergency,solar particle event: shelter,1.0,start Triage agents now; do not wait for Earth,rad,rules
+151,C,rad_daily,red,emergency,solar particle event: shelter,1.0,start Triage agents now; do not wait for Earth,rad,rules
+156,C,multi_signal,amber,self_care,unusual combination: ,1.0,onboard,whole,iforest
+174,C,fatigue,amber,self_care,18.3 ≥ 15 % eyes mostly closed,1.0,onboard,brain,rules
+175,C,fatigue,amber,self_care,22.9 ≥ 15 % eyes mostly closed; 12.5 robust SDs above your normal,1.0,onboard,brain,rules
+175,C,bone,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,bones,rules
+175,C,multi_signal,amber,self_care,unusual combination: ,1.0,onboard,whole,iforest
+176,C,sleep,amber,self_care,4.87 below 5.5 h,1.0,onboard,brain,rules
+176,C,fatigue,amber,self_care,18.4 ≥ 15 % eyes mostly closed; 8.6 robust SDs above your normal,1.0,onboard,brain,rules
+176,C,co2,red,crew_medical_officer,1-h CO2 3.46 mmHg > 3.0 limit,1.0,onboard,lungs,rules
+176,C,multi_signal,amber,self_care,unusual combination: ,1.0,onboard,whole,iforest
+177,C,temp,amber,self_care,3.2 robust SDs above your normal,1.0,onboard,immune,rules
+177,C,sleep,amber,self_care,4.92 below 5.5 h,1.0,onboard,brain,rules
+177,C,mood,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,brain,rules
+177,C,fatigue,amber,self_care,17.7 ≥ 15 % eyes mostly closed; 8.0 robust SDs above your normal,1.0,onboard,brain,rules
+177,C,multi_signal,amber,self_care,unusual combination: ,1.0,onboard,whole,iforest
+178,C,sleep,amber,self_care,5.01 below 5.5 h,1.0,onboard,brain,rules
+178,C,mood,amber,self_care,3.7 robust SDs below your normal; slow downward drift detected (CUSUM),1.0,onboard,brain,rules
+178,C,fatigue,amber,self_care,18.6 ≥ 15 % eyes mostly closed; 8.2 robust SDs above your normal,1.0,onboard,brain,rules
+178,C,co2,red,crew_medical_officer,1-h CO2 3.24 mmHg > 3.0 limit,1.0,onboard,lungs,rules
+178,C,multi_signal,amber,self_care,unusual combination: ,1.0,onboard,whole,iforest
+179,C,sleep,amber,self_care,4.74 below 5.5 h,1.0,onboard,brain,rules
+179,C,mood,amber,self_care,2.9 robust SDs below your normal; slow downward drift detected (CUSUM),1.0,onboard,brain,rules
+179,C,fatigue,amber,self_care,20.4 ≥ 15 % eyes mostly closed; 9.1 robust SDs above your normal,1.0,onboard,brain,rules
+179,C,multi_signal,amber,self_care,unusual combination: ,1.0,onboard,whole,iforest
+180,C,sleep,amber,self_care,5.02 below 5.5 h,1.0,onboard,brain,rules
+180,C,mood,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,brain,rules
+180,C,fatigue,amber,self_care,19.7 ≥ 15 % eyes mostly closed; 8.9 robust SDs above your normal,1.0,onboard,brain,rules
+180,C,co2,red,crew_medical_officer,1-h CO2 3.35 mmHg > 3.0 limit,1.0,onboard,lungs,rules
+180,C,multi_signal,amber,self_care,unusual combination: ,1.0,onboard,whole,iforest
+181,C,mood,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,brain,rules
+181,C,fatigue,amber,self_care,2.9 robust SDs above your normal,1.0,onboard,brain,rules
+181,C,multi_signal,amber,self_care,unusual combination: ,1.0,onboard,whole,iforest
+182,C,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 5 days,1.0,onboard,brain,rules
+182,C,bone,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,bones,rules
+182,C,co2,amber,crew_medical_officer,7-day CO2 average 2.56 mmHg ≥ 2.5,1.0,onboard,lungs,rules
+183,C,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 6 days,1.0,onboard,brain,rules
+184,C,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 7 days,1.0,onboard,brain,rules
+185,C,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 8 days,1.0,onboard,brain,rules
+186,C,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 9 days,1.0,onboard,brain,rules
+187,C,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 10 days,1.0,onboard,brain,rules
+188,C,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 11 days,1.0,onboard,brain,rules
+189,C,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 12 days,1.0,onboard,brain,rules
+189,C,bone,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,bones,rules
+190,C,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 13 days,1.0,onboard,brain,rules
+191,C,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 14 days,1.0,onboard,brain,rules
+192,C,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 15 days,1.0,onboard,brain,rules
+193,C,mood,amber,crew_medical_officer,slow downward drift detected (CUSUM); amber for 16 days,1.0,onboard,brain,rules
+193,C,multi_signal,amber,self_care,unusual combination: ,1.0,onboard,whole,iforest
+196,C,mood,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,brain,rules
+196,C,bone,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,bones,rules
+203,C,bone,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,bones,rules
+209,C,multi_signal,amber,self_care,unusual combination: ,1.0,onboard,whole,iforest
+210,C,bone,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,bones,rules
+217,C,bone,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,bones,rules
+219,C,multi_signal,amber,self_care,unusual combination: ,1.0,onboard,whole,iforest
+224,C,bone,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,bones,rules
+225,C,temp,amber,self_care,4.1 robust SDs above your normal,1.0,onboard,immune,rules
+229,C,mood,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,brain,rules
+231,C,bone,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,bones,rules
+238,C,bone,amber,self_care,slow downward drift detected (CUSUM),1.0,onboard,bones,rules

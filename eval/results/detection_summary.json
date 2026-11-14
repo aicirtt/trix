@@ -1,0 +1,27 @@
+{
+  "trix": {
+    "recall": 1.0,
+    "false_alarm_days_per_astronaut_week": 0.227,
+    "alert_day_precision": 0.893,
+    "alert_days": 205
+  },
+  "fixed_limits_only": {
+    "recall": 0.75,
+    "false_alarm_days_per_astronaut_week": 0.021,
+    "alert_day_precision": 0.982,
+    "alert_days": 111
+  },
+  "drift_events_mean_lead_days": 15.0,
+  "drift_events_only_trix_caught": [
+    "E4",
+    "E6"
+  ],
+  "bone_watch_level_crossed_day": 210,
+  "bone_lead_days": 35,
+  "over_10_seeds": {
+    "trix_recall_mean": 1.0,
+    "fixed_recall_mean": 0.75,
+    "trix_false_alarms_per_astronaut_week_mean": 0.275,
+    "trix_precision_mean": 0.872
+  }
+}

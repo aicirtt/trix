@@ -1,0 +1,31 @@
+id: CARD-ECG-01
+title: ECG electrode placement (5 leads)
+specialist: cardiac
+use_when: [irregular_rhythm, tachycardia, chest_symptoms, palpitations]
+note: Simplified demo protocol. Real use follows the mission medical checklist.
+equipment: [ECG electrodes x5, Holter or LIFEPAK monitor, tablet on wall arm]
+steps:
+  - id: s1
+    say: Put sticker 1 just below her right collarbone.
+    why: Gives a view of the top-right of the heart.
+    check: {type: camera, target: E1}
+  - id: s2
+    say: Put sticker 2 just below her left collarbone.
+    why: Gives a view of the top-left of the heart.
+    check: {type: camera, target: E2}
+  - id: s3
+    say: Put sticker 3 on her lower left ribs.
+    why: Shows the lower-left heart, where rhythm problems are clearest.
+    check: {type: camera, target: E3}
+  - id: s4
+    say: Put sticker 4 on her lower right ribs.
+    why: Reference electrode that keeps the signal steady.
+    check: {type: camera, target: E4}
+  - id: s5
+    say: Put sticker 5 on the chest, just right of the breastbone.
+    why: Adds a front view of the heart.
+    check: {type: camera, target: E5}
+  - id: s6
+    say: Keep her still for 30 seconds while TRIX records.
+    why: Movement adds noise to the recording.
+    check: {type: device, target: ecg_signal_quality}
