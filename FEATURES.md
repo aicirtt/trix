@@ -23,15 +23,15 @@
 | 17 | Anomaly detection vs personal normal | ✅ | Robust baselines, CUSUM drift, Isolation Forest |
 | 18 | Plain-English explanations | ✅ | Alert reasons, SHAP drivers, cited answers |
 | 19 | Risk forecast | ✅ | `forecast_cross()`; bone flagged 35 days early |
-| 20 | Cabin air ↔ symptoms | 🟡 | CO₂ limits; headache correlation to compute |
-| 21 | Radiation (DONKI) | 🟡 | Solar-event rules; DONKI API client to add |
+| 20 | Cabin air ↔ symptoms | 🟡 | CO₂ 1-hour limit (3 mmHg) and watch level checked in every check-in; headache correlation to compute |
+| 21 | Radiation (DONKI) | 🟡 | Solar alert/storm and career-dose limits; storm → Radiation specialist → `RAD-SHELTER-01` shelter protocol; DONKI API client to add |
 | 22 | Crew cohesion | ⬜ | Simple log-sentiment score |
 | 23 | Countermeasure tips | ✅ | `actions` per indicator |
 | 24 | Medicines & pharmacy | ✅ | Pharmacy agent: runs-out day, label expiry, radiation-potency flags (`kb/pharmacy.json`, simulated stock) |
-| 25 | Multi-agent triage | ✅ | LangGraph: Triage → specialists → Flight Surgeon → Safety → Report |
+| 25 | Multi-agent triage | ✅ | LangGraph: Triage → specialists → Flight Surgeon → Safety → Report; protocols for ECG, CPR, ultrasound, blood sugar, spacewalk, landing, low oxygen (`O2-01`), solar storm (`RAD-SHELTER-01`) |
 | 26 | Guided ECG + camera check | 🟡 | Step-locked protocol engine; MediaPipe placement check to add |
 | 27 | Ultrasound check (EchoNet) | 🟡 | Protocol; EchoNet model hook to add |
-| 28 | Spacewalk checks | ✅ | `EVA-POST-01` protocol |
+| 28 | Spacewalk checks | ✅ | `EVA-POST-01` protocol; tingling/joint pain after a spacewalk escalates to the crew medical officer (possible decompression sickness) |
 | 29 | Landing readiness + Meteomatics | 🟡 | `LAND-01` protocol + stand-test limits; Meteomatics client to add |
 | 30 | Gamification | ⬜ | Streaks / team goals |
 | 31 | Buddy check | ⬜ | Daily pairing |
@@ -42,6 +42,8 @@
 | 36 | Agent office (new) | ✅ | Structured span log, timeline + call tree (`agent_office.py`), included in Earth reports; screen in mockup |
 
 **Totals:** 14 ✅ · 14 🟡 · 8 ⬜ (of 36, including the new Agent office)
+
+Every ✅ and the engine part of every 🟡 is covered by `tests/test_full.py` across ISS, Moon and Mars (see README → Testing).
 
 ## Orchestration
 

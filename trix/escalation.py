@@ -43,6 +43,42 @@ def _absolute(ind: dict, value) -> tuple[str, list]:
             status = s
         why.append(msg)
 
+    # indicators whose limits are not a plain high/low number
+    if "amber_hr_rise" in a and isinstance(value, dict):  # stand test: {"hr_rise": 32, "sys_drop": 12}
+        if value.get("hr_rise") is not None and value["hr_rise"] >= a["amber_hr_rise"]:
+            hit("amber", f"heart rate rose {value['hr_rise']} bpm on standing (≥ {a['amber_hr_rise']})")
+        if value.get("sys_drop") is not None and value["sys_drop"] >= a["amber_sys_drop"]:
+            hit("amber", f"systolic fell {value['sys_drop']} mmHg on standing (≥ {a['amber_sys_drop']})")
+        return status, why
+    if "red_1h_avg" in a and value is not None:  # cabin CO2, 1-hour average in mmHg
+        if value > a["red_1h_avg"]:
+            hit("red", f"CO2 {value} mmHg above the {a['red_1h_avg']} mmHg 1-hour limit (NASA-STD-3001)")
+        elif value >= a["amber_7d_avg"]:
+            hit("amber", f"CO2 {value} mmHg at or above the {a['amber_7d_avg']} mmHg watch level")
+        return status, why
+    if "forecast_watch_level" in a and value is not None:  # bone density, % of pre-flight
+        if value <= a["forecast_watch_level"]:
+            hit("amber", f"bone density {value}% of pre-flight, at or below the {a['forecast_watch_level']}% watch level")
+        return status, why
+    if "career_limit" in a and value is not None:  # career radiation dose, mSv
+        if value >= a["career_limit"]:
+            hit("red", f"{value} mSv reaches the {a['career_limit']} mSv career limit")
+        elif value >= a["amber_fraction_of_limit"] * a["career_limit"]:
+            hit("amber", f"{value} mSv is over {int(a['amber_fraction_of_limit'] * 100)}% of the career limit")
+        return status, why
+    if ("red_flag" in a or "amber_flag" in a or "red_solar_event" in a) and not isinstance(value, dict):
+        # yes/no or short-text reports: vision, skin, solar events
+        text = str(value).lower() if value not in (None, False, 0) else ""
+        red_words = {"vision": ("loss", "lost", "can't see", "cannot see"), "skin": ("fever",),
+                     "rad_daily": ("storm", "shelter", "in progress")}.get(ind.get("id", ""), ())
+        if text in ("", "none", "no", "false", "0"):
+            return status, why
+        if any(w in text for w in red_words):
+            hit("red", f"reported: {value}")
+        else:
+            hit("amber", f"reported: {value}")
+        return status, why
+
     if isinstance(value, dict):  # e.g. blood pressure
         for lim, s in (("red_high", "red"), ("amber_high", "amber")):
             for k, v in a.get(lim, {}).items():

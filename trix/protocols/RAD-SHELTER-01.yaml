@@ -1,0 +1,19 @@
+id: RAD-SHELTER-01
+title: Solar storm shelter
+specialist: radiation
+use_when: [solar_event]
+note: Simplified demo protocol. Real use follows the mission's space-weather procedure.
+equipment: [storm shelter area, personal dosimeter]
+steps:
+  - id: s1
+    say: Stop your task and move to the storm shelter now.
+    why: The shelter has the most shielding against solar particles.
+    check: {type: confirm}
+  - id: s2
+    say: Keep your personal dosimeter on you.
+    why: It records the dose you actually receive.
+    check: {type: confirm}
+  - id: s3
+    say: Stay in the shelter until TRIX or mission control gives the all-clear.
+    why: Particle storms can last hours; leaving early adds dose.
+    check: {type: confirm}

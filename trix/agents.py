@@ -28,52 +28,106 @@ def _log(state, agent, msg, **extra):
     state.setdefault("trace", []).append({"t": time.strftime("%H:%M:%S"), "agent": agent, "msg": msg} | extra)
 
 
+NEED_INFO = "Tell TRIX what's wrong, or start a quick check-in so TRIX can look at your readings."
+# words that say nothing medical on their own ("I just feel a bit off today")
+GENERIC = {"feel", "feeling", "feels", "just", "bit", "little", "today", "kind", "kinda", "sort", "weird", "strange", "general",
+           "cardiac", "aid", "mental", "health", "radiation", "maybe", "think", "really", "lot", "bad", "good", "right", "fine"}
+RANK = escalation.RANK
+
+
+def _max(a: str, b: str) -> str:
+    return a if RANK[a] >= RANK[b] else b
+
+
 @office.traced("Triage", TEAM)
 def triage(state: State) -> State:
-    flags, v, text = set(state.get("flags", [])), state.get("vitals", {}), state.get("symptoms", "").lower()
+    flags, v, text = set(state.get("flags", [])), state.get("vitals", {}) or {}, (state.get("symptoms") or "").lower()
     loc = state.get("location", "mars")
     assessments = []
-    for ind, key in (("hr", "hr"), ("spo2", "spo2"), ("temp", "temp")):
-        if key in v:
-            a = escalation.assess(ind, v[key], flags=flags & {"irregular_rhythm"} if ind == "hr" else set(), location=loc)
-            office.tool("escalation.assess", {ind: v[key]}, {"status": a.status, "level": a.level})
+    for ind in ("hr", "spo2", "temp"):
+        if v.get(ind) is not None:
+            a = escalation.assess(ind, v[ind], flags=flags & {"irregular_rhythm"} if ind == "hr" else set(), location=loc)
+            office.tool("escalation.assess", {ind: v[ind]}, {"status": a.status, "level": a.level})
             assessments.append(a)
-    top = max(assessments, key=lambda a: a.rank) if assessments else None
-    urgency = top.level if top else "self_care"
-    if any(k in text for k in ("unresponsive", "not breathing", "no pulse")):
+    findings = [kb.indicators()[a.indicator]["name"] for a in assessments if a.status != "green"]
+    if any(a.indicator == "spo2" and a.status != "green" for a in assessments):
+        flags.add("low_oxygen")
+    urgency = max((a.level for a in assessments), key=lambda k: RANK[k], default="self_care")
+    has = lambda *ws: any(w in text for w in ws)  # noqa: E731
+    if not text and not flags and not findings:
+        route = "general"
+        flags.add("need_info")
+    elif has("unresponsive", "not breathing", "no pulse"):
         urgency, route = "emergency", "cardiac"
-    elif "irregular_rhythm" in flags or any(k in text for k in ("chest", "flutter", "palpitation", "heart")):
+    elif has("chest pain", "chest tight", "chest pressure", "crushing"):
+        urgency, route = "emergency", "cardiac"
+        flags.add("chest_symptoms")
+    elif "irregular_rhythm" in flags or has("chest", "flutter", "palpitation", "heart"):
         route = "cardiac"
-    elif "solar_event" in flags:
-        route = "radiation"
-    elif any(k in text for k in ("cut", "burn", "bleed", "hit my", "spacewalk", "eva")):
+    elif "solar_event" in flags or has("solar storm", "flare", "radiation storm", "particle event"):
+        urgency, route = "emergency", "radiation"
+        flags.add("solar_event")
+    elif "low_oxygen" in flags or has("can't breathe", "short of breath", "breathless"):
+        route = "general"
+        flags.add("low_oxygen")
+        urgency = _max(urgency, "crew_medical_officer")
+    elif has("spacewalk", "eva"):
         route = "first_aid"
-    elif any(k in text for k in ("sad", "anxious", "can't cope", "hopeless", "lonely", "stress")):
+        if has("tingl", "joint", "numb", "itch", "pain"):
+            urgency = _max(urgency, "crew_medical_officer")  # possible decompression sickness
+            findings.append("Possible decompression sickness symptoms")
+    elif has("cut", "burn", "bleed", "hit my"):
+        route = "first_aid"
+    elif has("sad", "anxious", "can't cope", "hopeless", "lonely", "stress"):
         route = "mental"
     else:
         route = "general"
-    state["urgency"], state["route"] = urgency, route
-    office.current().result({"urgency": urgency, "route": route})
+    state["urgency"], state["route"], state["flags"], state["findings"] = urgency, route, sorted(flags), findings
+    office.current().result({"urgency": urgency, "route": route, "findings": findings})
     _log(state, "Triage", f"urgency={urgency}, route={route}", reasons=[r for a in assessments for r in a.reasons])
     return state
 
 
 def _specialist(state: State, name: str, condition_map: dict) -> State:
-    flags, text = set(state.get("flags", [])), state.get("symptoms", "").lower()
+    flags, text = set(state.get("flags", [])), (state.get("symptoms") or "").lower()
+    if "need_info" in flags:
+        state["specialist_plan"] = {"specialist": name, "condition": None, "protocol_id": None, "advice": NEED_INFO,
+                                    "citations": [], "uncited_ok": True}
+        office.current().result("asked for more information")
+        return state
     cond = next((c for c, keys in condition_map.items() if flags & keys or any(k in text for k in keys)), None)
     candidates = protocols.find(cond) if cond else []
+    pid = candidates[0]["id"] if candidates else None
     office.tool("protocols.find", cond, [p["id"] for p in candidates])
-    query = f"{name} {text} {' '.join(flags)}"
-    hits = retriever().search(query, k=4)
+    query = " ".join([name, (cond or "").replace("_", " "), *state.get("findings", []), text,
+                      *[f.replace("_", " ") for f in flags if f != "need_info"]]).strip()
+    hits = [h for h in retriever().search(query, k=8) if not h["doc_id"].startswith("proto:")][:3]
     office.tool("rag.search", query[:80], [h["doc_id"] for h in hits])
+    meaningful = set(rag.tok(query)) - GENERIC
+    best = set(rag.tok(hits[0]["title"] + " " + hits[0]["text"])) if hits else set()
     model = llm.get_llm()
-    answer = model.answer(f"What should the crew do for: {text or ', '.join(flags)}?", hits)
+    relevant = bool(meaningful & best)
+    if not relevant:
+        hits = []
+        office.tool("relevance.check", sorted(meaningful)[:6], "no medical match in knowledge base")
+        # no protocol either: ask for a check-in rather than guess; with a protocol: give the protocol only
+        answer = "" if pid else llm.NO_MATCH
+    else:
+        answer = model.answer(f"What should the crew do for: {query}?", hits)
+        if pid and answer.startswith(llm.NO_MATCH):
+            answer, hits = "", []
     office.tool(f"llm.answer ({model.name})", "cited sources", answer[:80])
-    plan = {"specialist": name, "condition": cond, "protocol_id": candidates[0]["id"] if candidates else None,
-            "advice": answer, "citations": [{"n": n, "title": h["title"], "url": h["url"]} for n, h in enumerate(hits, 1)]}
+    citations = [{"n": n, "title": h["title"], "url": h["url"]} for n, h in enumerate(hits, 1)]
+    if pid:  # the procedure's first step always comes from the approved protocol, never from the model
+        first = protocols.library()[pid]["steps"][0]["say"]
+        n = len(citations) + 1
+        answer = f"{answer} First step ({pid}): {first} [{n}]".strip()
+        citations.append({"n": n, "title": f"Protocol {pid}: {protocols.library()[pid]['title']}", "url": f"trix/protocols/{pid}.yaml"})
+    plan = {"specialist": name, "condition": cond, "protocol_id": pid, "advice": answer, "citations": citations,
+            "uncited_ok": answer.startswith(llm.NO_MATCH)}
     state["specialist_plan"] = plan
-    office.current().result({"protocol": plan["protocol_id"], "sources": len(hits)})
-    _log(state, name, f"condition={cond}, protocol={plan['protocol_id']}", citations=[c["title"] for c in plan["citations"][:2]])
+    office.current().result({"protocol": pid, "sources": len(citations)})
+    _log(state, name, f"condition={cond}, protocol={pid}", citations=[c["title"] for c in citations[:2]])
     return state
 
 
@@ -81,7 +135,7 @@ def _specialist(state: State, name: str, condition_map: dict) -> State:
 def cardiac(state):
     return _specialist(state, "Cardiac", {"cardiac_arrest": {"unresponsive", "no pulse", "not breathing"},
                                          "irregular_rhythm": {"irregular_rhythm", "flutter", "palpitation", "irregular"},
-                                         "chest_symptoms": {"chest"}})
+                                         "chest_symptoms": {"chest_symptoms", "chest"}})
 
 
 @office.traced("First aid", TEAM)
@@ -96,12 +150,12 @@ def mental(state):
 
 @office.traced("Radiation", TEAM)
 def radiation(state):
-    return _specialist(state, "Radiation", {})
+    return _specialist(state, "Radiation", {"solar_event": {"solar_event"}})
 
 
 @office.traced("General", TEAM)
 def general(state):
-    return _specialist(state, "General", {"glucose_due": {"sugar", "glucose", "shaky"}})
+    return _specialist(state, "General", {"low_oxygen": {"low_oxygen"}, "glucose_due": {"sugar", "glucose", "shaky"}})
 
 
 @office.traced("Flight Surgeon", TEAM)

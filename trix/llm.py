@@ -12,22 +12,42 @@ SYSTEM = ("You are TRIX, an onboard health assistant for astronauts far from Ear
           "If the sources do not answer the question, say so and refer to the crew medical officer.")
 
 
+NO_MATCH = ("I couldn't find specific guidance for that. Let's do a quick check-in so TRIX can look at your readings, "
+            "and tell the crew medical officer if it continues.")
+# words that appear in almost every source and say nothing about the topic
+GENERIC_Q = {"need", "space", "astronaut", "astronauts", "station", "happen", "feel", "keep", "usually", "just", "bad",
+             "does", "did", "doing"}
+MIN_RELEVANCE = 2.0   # raw BM25 score of the best hit; below this the sources don't really answer the question
+
+
 class FallbackLLM:
     """Extractive: picks the most relevant sentences from the retrieved chunks and cites them."""
     name = "extractive-fallback"
 
     def answer(self, question: str, hits: list[dict]) -> str:
-        q = set(w for w in question.lower().split() if len(w) > 3)
-        picks = []
-        top = hits[0]["score"] if hits else 0
+        if not hits or hits[0].get("raw", MIN_RELEVANCE) < MIN_RELEVANCE:
+            return NO_MATCH
+        from .rag import tok  # same stop-word list as retrieval
+        q = set(tok(question)) - GENERIC_Q
+        top = hits[0]["score"]
+        cands = []
         for n, h in enumerate(hits[:3], 1):
-            if n > 1 and h.get("score", 0) < 0.92 * top:  # only cite clearly relevant sources
-                break
+            if h.get("score", 0) < 0.5 * top:
+                continue
             sents = [s.strip() for s in h["text"].replace("\n", " ").split(". ")
                      if len(s.split()) >= 6 and "_" not in s and not s.strip().startswith(("Use when", "Equipment"))]
-            best = max(sents, key=lambda s: len(q & set(s.lower().split())), default="")
-            if best:
-                picks.append(f"{best.rstrip('.')}. [{n}]")
+            # a top-ranked protocol is matched by its title; its first step is the sentence to give
+            extra = set(tok(h.get("title", ""))) if n == 1 and str(h.get("doc_id", "")).startswith("proto:") else set()
+            scored = [(len(q & (set(tok(s)) | extra)), s) for s in sents]
+            ov, best = max(scored, key=lambda x: x[0], default=(0, ""))
+            if ov > 0:  # a sentence must share a meaningful word with the question to be cited
+                cands.append((ov, n == 1, -n, n, best, h.get("score", 0)))
+        cands.sort(reverse=True)  # most overlap first, ties go to the better-ranked source
+        picks = []
+        for ov, _, _, n, best, sc in cands[:2]:
+            if picks and (ov < cands[0][0] or sc < 0.92 * top):  # second source only if clearly as relevant
+                break
+            picks.append(f"{best.rstrip('.')}. [{n}]")
         return " ".join(picks[:2]) if picks else "I don't have an approved source for that. Please ask the crew medical officer."
 
 

@@ -34,7 +34,7 @@
     "top3": [
       "ind:co2",
       "ind:spo2",
-      "co2"
+      "proto:O2-01"
     ],
     "hit3": true,
     "citations_correct": true
@@ -92,9 +92,9 @@
   {
     "q": "A solar storm is coming, what do I do?",
     "top3": [
+      "proto:RAD-SHELTER-01",
       "radiation",
-      "ind:rad_daily",
-      "ind:rad_career"
+      "ind:rad_daily"
     ],
     "hit3": true,
     "citations_correct": true
@@ -107,7 +107,7 @@
       "ind:skin"
     ],
     "hit3": true,
-    "citations_correct": false
+    "citations_correct": true
   },
   {
     "q": "I have a fever and a rash",
@@ -137,7 +137,7 @@
       "ind:calcium"
     ],
     "hit3": true,
-    "citations_correct": false
+    "citations_correct": true
   },
   {
     "q": "Why do I need vitamin D supplements?",
@@ -222,9 +222,9 @@
   {
     "q": "What should I check after a spacewalk?",
     "top3": [
+      "eva",
       "proto:EVA-POST-01",
-      "proto:US-A4C-01",
-      "ind:spo2"
+      "proto:US-A4C-01"
     ],
     "hit3": true,
     "citations_correct": true
@@ -232,9 +232,9 @@
   {
     "q": "My oxygen saturation is 91 percent",
     "top3": [
+      "proto:O2-01",
       "ind:spo2",
-      "bone",
-      "behavioral"
+      "bone"
     ],
     "hit3": true,
     "citations_correct": true
@@ -254,7 +254,7 @@
     "top3": [
       "iss_medical",
       "formulary",
-      "behavioral"
+      "eva"
     ],
     "hit3": true,
     "citations_correct": true

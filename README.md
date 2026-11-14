@@ -110,22 +110,40 @@ time     team        agent                     triggered by              returne
 
 | | TRIX | Fixed limits only |
 |---|---|---|
-| Events caught | **100%** (8/8, stable over 10 seeds) | 75% |
+| Events caught | **100%** (8/8, stable over 10 seeds) | 88% |
 | False alarms | ~1 per astronaut per month | lower, but misses slow problems |
-| Rising blood pressure | flagged **15 days earlier** | — |
+| Rising blood pressure | flagged **25 days earlier** | — |
 | Faster-than-expected bone loss | flagged **35 days before** the watch level | missed |
 | Gradual mood decline | caught | missed |
 
 | Agentic RAG | Result |
 |---|---|
 | Correct source ranked first / in top 3 | 97% / 100% |
-| Answers citing only correct sources | 90% |
+| Answers citing only correct sources | 97% |
 | Unsafe messages blocked | 100% (20/20) |
 | Safe messages wrongly blocked | 0% |
 | Protocol tampering tests | 4/4 |
 | Reminder bandit: check-in response after 60 days | 72% vs 54% with a fixed 07:00 reminder |
 
 **Design lesson:** NASA measured an ISS average of about 6.1 h of sleep, so a fixed "under 6 h" alert would fire almost every week. TRIX uses runs of very short nights and personal baselines instead.
+
+## Testing: every flow, not just one
+
+`python -m pytest -q tests` runs **285 tests** (about 40 s). They cover:
+
+| Area | What is checked |
+|---|---|
+| Knowledge base | all 18 indicators have limits, actions, sources; every protocol loads; every source URL is listed |
+| Limits | boundary values for every indicator, including the special ones (CO₂ 1-hour limit, bone watch level, stand test, career radiation, vision, skin, solar alert) |
+| Flows | 26 events (normal, partial and empty check-ins, readings, alerts, symptoms, pharmacy, devices, privacy, report, unknown event, unknown or missing astronaut) × ISS / Moon / Mars |
+| Routing | each symptom reaches the right specialist and protocol; red readings hand off from Daily care to Emergency; a solar-storm reading goes to the shelter protocol |
+| Decisions | flight-surgeon decision changes with location (live consult at ISS/Moon, queued at Mars, onboard now in an emergency) |
+| Advice quality | no unrelated advice (e.g. no ECG steps for "I feel off", no vitamin advice after a spacewalk, no "let's do a check-in" when someone is unresponsive) |
+| Safety | the Safety agent blocks a deliberately bad LLM (doses, unknown drugs, invasive steps, diagnoses, skipped steps) |
+| Privacy | mood details withheld unless the astronaut allows sharing; emergencies always shared |
+| Load | 40 mixed events in parallel; agent-office log stays consistent |
+
+The coach is honest about what it checked: "No readings yet" for an empty check-in, and "still learning your personal normal" for a new crew member with no history.
 
 ## Data and grounding
 
