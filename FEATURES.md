@@ -4,7 +4,7 @@
 
 | # | Feature | Status | What exists / what's left |
 |---|---|---|---|
-| 1 | Device adapters + simulated feed | 🟡 | Simulated crew data (`trix/synth.py`); adapter layer per device still to write |
+| 1 | Device adapters + simulated feed | 🟡 | Simulated data + device registry (`kb/devices.json`) read by the Check-in agent; real adapters per device still to write |
 | 2 | One combined health record | 🟡 | One table per astronaut; no persistence/API yet |
 | 3 | Voice logging | ⬜ | Speech-to-text (e.g. faster-whisper) → parse numbers |
 | 4 | Manual entry (labs) | ⬜ | UI form |
@@ -13,7 +13,7 @@
 | 7 | Trend charts | 🟡 | Data ready; charts in UI |
 | 8 | Daily vitals: BP, HR, blood sugar, temp, sleep, mood | ✅ | Indicators, limits and escalation |
 | 9 | Reminders + how-to | 🟡 | How-to steps in protocols (e.g. `GLU-01`); scheduler to build |
-| 10 | RL reminder timing (bandit) | ⬜ | e.g. MABWiser Thompson sampling |
+| 10 | RL reminder timing (bandit) | ✅ | `trix/reminders.py` Thompson sampling; Reminder agent in Daily care (72% vs 54% response, simulated) |
 | 11 | Facial fatigue | 🟡 | Indicator + limits; MediaPipe eye-closure code to add |
 | 12 | Voice check-in biomarkers | ⬜ | Speech rate / pauses from audio |
 | 13 | Vision check (Amsler grid) | 🟡 | Indicator + escalation; UI test to build |
@@ -27,7 +27,7 @@
 | 21 | Radiation (DONKI) | 🟡 | Solar-event rules; DONKI API client to add |
 | 22 | Crew cohesion | ⬜ | Simple log-sentiment score |
 | 23 | Countermeasure tips | ✅ | `actions` per indicator |
-| 24 | Medicines & pharmacy | 🟡 | Formulary + safety checks; stock tracker to build |
+| 24 | Medicines & pharmacy | ✅ | Pharmacy agent: runs-out day, label expiry, radiation-potency flags (`kb/pharmacy.json`, simulated stock) |
 | 25 | Multi-agent triage | ✅ | LangGraph: Triage → specialists → Flight Surgeon → Safety → Report |
 | 26 | Guided ECG + camera check | 🟡 | Step-locked protocol engine; MediaPipe placement check to add |
 | 27 | Ultrasound check (EchoNet) | 🟡 | Protocol; EchoNet model hook to add |
@@ -35,14 +35,20 @@
 | 29 | Landing readiness + Meteomatics | 🟡 | `LAND-01` protocol + stand-test limits; Meteomatics client to add |
 | 30 | Gamification | ⬜ | Streaks / team goals |
 | 31 | Buddy check | ⬜ | Daily pairing |
-| 32 | Privacy controls | ⬜ | Share settings applied to reports |
+| 32 | Privacy controls | ✅ | Privacy agent + settings applied to every Earth report (`kb/privacy.json`); UI toggles in mockup |
 | 33 | Comms-delay toggle | ✅ | Location-aware routing (ISS / Moon / Mars) |
 | 34 | Report queue | ✅ | Report agent with priority and size |
 | 35 | On-device AI | ✅ | Ollama if present, offline fallback otherwise |
+| 36 | Agent office (new) | ✅ | Structured span log, timeline + call tree (`agent_office.py`), included in Earth reports; screen in mockup |
 
-**Totals:** 10 ✅ · 15 🟡 · 10 ⬜
+**Totals:** 14 ✅ · 14 🟡 · 8 ⬜ (of 36, including the new Agent office)
 
 ## Orchestration
-`trix/agents.py` uses a LangGraph `StateGraph` as the orchestrator. Triage is the router: conditional edges send each case to one of 5 specialist agents, then to Flight Surgeon → Safety → Report. Today the agents decide by rules + retrieval, and the LLM is used for wording.
 
-**Next upgrade:** let the LLM choose the route and tools (function calling), keeping the rules as a fallback and Safety as the final gate.
+Two levels, in `trix/orchestrator.py`:
+1. **Mission orchestrator:** routes each event to a team.
+2. **Team orchestrators:** Daily care, Emergency and Operations, each a LangGraph sub-graph.
+
+Daily care hands off to Emergency when a reading is red. One shared Safety agent gates every team. Independent events run in parallel.
+
+**Next upgrade:** let the LLM choose routes and tools (function calling), keeping the rules as a fallback and Safety as the final gate.

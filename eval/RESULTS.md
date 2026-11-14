@@ -32,6 +32,15 @@ All data is **synthetic** (see `trix/synth.py`), grounded in published spaceflig
 | Safe messages wrongly blocked | 0/22 (0%) |
 | Protocol tampering tests (skipped/invented steps) | 4/4 |
 
+## Reminder agent (Thompson-sampling bandit)
+
+| Days learning | Check-in response rate (bandit) | Fixed 07:00 reminder |
+|---|---|---|
+| 30 | 66% | 54% |
+| 60 | 72% | 54% |
+
+Response behaviour is simulated (`trix/reminders.py`, `TRUE_P`).
+
 ## Honest limits
 - Synthetic data; thresholds were tuned on seed 7 and checked on 10 other seeds.
 - The 30 retrieval questions and 40 safety messages were written by the team and used during tuning; write a fresh held-out set before quoting these as final.

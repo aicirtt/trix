@@ -7,8 +7,10 @@ This package is the engine behind the TRIX tablet app. It runs **fully offline**
 ```
 pip install -r requirements.txt
 python trix/synth.py        # make synthetic crew data -> data/
-python demo.py              # emergency walkthrough: agents + guided ECG + Earth report
+python demo.py              # 3 events in parallel: hand-off to Emergency, morning check-in, pharmacy
+python agent_office.py --last   # agent office: timeline + call tree of the last case
 python eval/run_all.py      # all evaluations -> eval/RESULTS.md
+python tests/test_smoke.py && python tests/test_orchestration.py
 ```
 Optional: run a local model with [Ollama](https://ollama.com) (`ollama pull llama3.2:3b`) and TRIX will use it for wording; otherwise a built-in extractive fallback answers from the cited sources.
 
@@ -61,17 +63,48 @@ The same file drives the body-map colours, Learn cards, reminders, alert thresho
 3. **Multi-signal anomaly detection:** an Isolation Forest on the daily vital-sign vector, with SHAP showing which signals drove each alert.
 4. **Forecast:** a linear trend estimates when a slow decline will cross its watch level.
 
-## Agents: multi-agent agentic RAG (`trix/agents.py`, LangGraph)
+## Agents: two-level multi-agent orchestration (`trix/orchestrator.py`, LangGraph)
 
-**Flow:** Triage → specialist (Cardiac, First aid, Mental health, Radiation or General) → Flight Surgeon → Safety → Report.
+```
+                    MISSION ORCHESTRATOR  (level 1: what kind of event is this?)
+          ┌────────────────────┼──────────────────────┐
+   DAILY CARE              EMERGENCY                OPERATIONS          (level 2: team orchestrators,
+   Check-in                Triage                   Ops router            each its own LangGraph sub-graph)
+   Detection               Cardiac / First aid /    Pharmacy
+   Coach                     Mental / Radiation /   Devices
+   Reminder (RL bandit)      General                Privacy
+        │                  Flight Surgeon
+        └── hand-off ────► Procedure
+                     SAFETY (one shared gate for every team)  →  REPORT (Earth queue, privacy applied)
+```
 
-- **Retrieval** (`trix/rag.py`): hybrid BM25 + TF-IDF search over NASA-sourced notes, the indicator database and the protocol library. Every answer cites its sources. You can plug in a dense embedding model as well.
-- **Protocol-locked procedures** (`trix/protocols/*.yaml`, `trix/protocols.py`):
-  - The protocols: ECG placement, CPR in microgravity, ultrasound heart check, blood sugar test, after a spacewalk, landing readiness.
-  - The engine moves to the next step only when the camera or device check passes, or the operator confirms.
-  - The LLM can explain a step but **cannot add, change or reorder steps**.
-  - **Practice mode** scores rehearsals using the same steps.
-- **Safety agent** (`trix/safety.py`): blocks off-formulary medicines, specific doses, invasive actions, statements of diagnosis, advice to skip or hide things, and uncited claims. Blocked answers fall back to the protocol or to "ask the crew medical officer."
+- **Mission orchestrator:** routes each event (reading, check-in, alert, symptom, pharmacy, devices, privacy) to a team. Emergency words always win.
+- **Escalation as a hand-off:** when Daily care detects a red reading (e.g. an irregular heartbeat), it passes the case to Emergency automatically.
+- **Parallel:** `run_many()` handles independent events at the same time, e.g. an emergency for one astronaut while others check in.
+- **Agentic RAG:** agents choose their own tools (escalation rules, personal baselines, retrieval, protocol library, reminder bandit, pharmacy forecast). Retrieval is hybrid BM25 + TF-IDF over NASA-sourced notes, and every answer is cited.
+- **Protocol-locked procedures:** the step-by-step protocols in `trix/protocols/*.yaml`. The LLM can explain a step but cannot add or reorder steps. Practice mode scores rehearsals.
+- **One Safety agent:** gates every team's output. It blocks off-formulary medicines, doses, invasive actions, statements of diagnosis, advice to skip or hide things, and uncited claims.
+- **Privacy:** applied in the Earth report. For example, mood details are withheld unless the astronaut allows them; emergencies are always shared.
+
+## Agent office (`trix/office.py`, `agent_office.py`)
+
+Every agent step is logged as a span with:
+- **Identity:** case ID, the agent and its team.
+- **Cause and inputs:** what triggered it, and its inputs.
+- **Work done:** the tools it called and what each returned.
+- **Outcome:** its result, status and duration.
+- **Link:** the step that triggered it.
+
+Spans are saved to `logs/agent_office.jsonl` and included in each Earth report, so flight surgeons can review every decision. View one case as a timeline or a call tree:
+
+```
+time     team        agent                     triggered by              returned
+22:27:25 Mission     Mission orchestrator      reading                   {"team": "daily"}
+22:27:25 Daily care  Detection                 Check-in                  {"flagged": {"heart": "red"}, "handoff_to_emergency": true}
+22:27:25 Emergency   Emergency orchestrator    Daily care (hand-off)     {"decision": "onboard_now", "protocol": "CARD-ECG-01"}
+22:27:25 Emergency   Cardiac                   Triage                    {"protocol": "CARD-ECG-01", "sources": 4} [protocols.find, rag.search, llm.answer]
+22:27:25 Emergency   Safety                    Procedure                 {"allowed": true, "checked": 9}
+```
 
 ## Results (synthetic data): see `eval/RESULTS.md`
 
@@ -90,6 +123,7 @@ The same file drives the body-map colours, Learn cards, reminders, alert thresho
 | Unsafe messages blocked | 100% (20/20) |
 | Safe messages wrongly blocked | 0% |
 | Protocol tampering tests | 4/4 |
+| Reminder bandit: check-in response after 60 days | 72% vs 54% with a fixed 07:00 reminder |
 
 **Design lesson:** NASA measured an ISS average of about 6.1 h of sleep, so a fixed "under 6 h" alert would fire almost every week. TRIX uses runs of very short nights and personal baselines instead.
 
