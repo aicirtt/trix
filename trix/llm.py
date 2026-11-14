@@ -23,7 +23,8 @@ class FallbackLLM:
         for n, h in enumerate(hits[:3], 1):
             if n > 1 and h.get("score", 0) < 0.92 * top:  # only cite clearly relevant sources
                 break
-            sents = [s.strip() for s in h["text"].replace("\n", " ").split(". ") if len(s.split()) >= 6]
+            sents = [s.strip() for s in h["text"].replace("\n", " ").split(". ")
+                     if len(s.split()) >= 6 and "_" not in s and not s.strip().startswith(("Use when", "Equipment"))]
             best = max(sents, key=lambda s: len(q & set(s.lower().split())), default="")
             if best:
                 picks.append(f"{best.rstrip('.')}. [{n}]")

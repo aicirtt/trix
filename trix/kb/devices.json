@@ -1,0 +1,15 @@
+{
+  "note": "Simulated device adapters for the demo; real missions would read from onboard equipment.",
+  "devices": [
+    {"id": "bp_cuff", "name": "BP cuff", "feeds": ["bp"], "status": "connected"},
+    {"id": "glucose_meter", "name": "Glucose meter", "feeds": ["glucose"], "status": "connected"},
+    {"id": "holter", "name": "Holter ECG", "feeds": ["hr", "hrv"], "status": "live"},
+    {"id": "actiwatch", "name": "Actiwatch x3", "feeds": ["sleep"], "status": "synced"},
+    {"id": "oximeter", "name": "Pulse oximeter", "feeds": ["spo2"], "status": "connected"},
+    {"id": "thermometer", "name": "Thermometer", "feeds": ["temp"], "status": "voice-logged"},
+    {"id": "ultrasound", "name": "Ultrasound 2", "feeds": ["ultrasound"], "status": "idle"},
+    {"id": "aed", "name": "LIFEPAK 1000", "feeds": ["ecg_3lead"], "status": "ready"},
+    {"id": "cabin_air", "name": "Cabin air sensors", "feeds": ["co2"], "status": "live"},
+    {"id": "tablet_cam", "name": "Tablet camera", "feeds": ["fatigue", "vision", "skin"], "status": "on-device only"}
+  ]
+}
