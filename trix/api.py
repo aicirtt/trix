@@ -7,6 +7,7 @@ and they fall back to the last cached reply when there is none.
 import json
 import math
 import os
+import re
 import shutil
 import tempfile
 import time
@@ -19,7 +20,7 @@ from fastapi import Body, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
-from . import detect, escalation, feeds, game, insights, voicebio, kb, llm, office, orchestrator, protocols, rag, safety, store, teams, vision, voice
+from . import detect, escalation, feeds, game, insights, routine, voicebio, kb, llm, office, orchestrator, protocols, rag, safety, store, teams, vision, voice
 
 ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web"
@@ -177,7 +178,9 @@ def today(who: str):
     alerts = [_clean({"case_id": c["case_id"], "who": c["who"], "summary": c["summary"], "urgency": c["urgency"], "ts": c["ts"]})
               for c in store.cases(30) if c["urgency"] == "emergency" and time.time() - c["ts"] < 6 * 3600]
     pts = game.points(who)
-    return _clean({"who": who, "crew": game.CREW[who], "day": store.today(), "body_map": res.get("body_map", {}),
+    utc = time.gmtime()
+    rt = routine.routine(who, res, reminder["slot"], utc.tm_hour * 60 + utc.tm_min)
+    return _clean({"routine": rt, "strain": routine.overview(who)["now"], "who": who, "crew": game.CREW[who], "day": store.today(), "body_map": res.get("body_map", {}),
                    "six": _six(who, res, latest), "level": {"level": pts // 250 + 1, "xp": pts % 250, "next": 250, "points": pts},
                    "assessments": res.get("assessments", []), "coach": res.get("coach", {}), "latest": latest,
                    "reminder": reminder, "tasks": tasks, "streak": game.streak(who), "alerts": alerts,
@@ -324,6 +327,157 @@ def trend(who: str, indicator: str, days: int = 90):
         out["forecast"] = [{"day": d, "value": float(a + b * d)} for d in range(end, end + 61, 5)]
         out["forecast_cross_day"] = cross
     return _clean(out)
+
+
+# ------------------------------------------------------------------ routine: guided capture, insight, overview
+@app.get("/api/capture/{who}/{ind}")
+def capture_info(who: str, ind: str):
+    if who not in game.CREW or ind not in routine.HOWTO:
+        raise HTTPException(404, "nothing to capture with that name")
+    k = kb.indicators()[ind]
+    last = store.latest(who).get(routine.COL.get(ind, ind))
+    src = [kb.sources()[s] for s in k.get("sources", []) if s in kb.sources()]
+    return _clean({"id": ind, "name": k["name"].split(" (")[0], "unit": k["unit"], "howto": routine.HOWTO[ind], "label": routine.ITEMS[ind][0],
+                   "minutes": routine.ITEMS[ind][1], "why": f"{k['space_effect']} {k['why_measure']}", "source": src[0] if src else None,
+                   "limits": k.get("absolute", {}), "last": last, "devices": k["devices"], "in_six": ind in routine.SIX,
+                   "sim_device": routine.DEVICE.get(ind),
+                   "ring": routine.routine(who, _merged_view(who), teams._BANDIT.best(who)["slot"])["ring"]})
+
+
+@app.post("/api/capture")
+def capture(body: dict = Body(...)):
+    who, ind = body.get("who"), body.get("indicator")
+    if who not in game.CREW or ind not in routine.HOWTO:
+        raise HTTPException(400, "unknown astronaut or measurement")
+    vals = {"sys": body.get("sys"), "dia": body.get("dia")} if ind == "bp" else {ind: body.get("value")}
+    readings = {}
+    for key, v in vals.items():
+        if v in (None, ""):
+            if key == "dia":
+                continue
+            raise HTTPException(400, "enter a value first")
+        try:
+            v = float(v)
+        except (TypeError, ValueError):
+            raise HTTPException(400, "that is not a number")
+        lo, hi = routine.RANGE[key]
+        if not lo <= v <= hi:
+            raise HTTPException(400, f"{v:g} is outside what is possible for this measurement ({lo} to {hi}). Check and enter it again.")
+        readings[key] = int(v) if v.is_integer() else v
+    before = routine.routine(who, _merged_view(who), teams._BANDIT.best(who)["slot"])
+    first_today = store.today() not in store.checkin_days(who)
+    store.add_readings(who, readings, body.get("source", "tablet"))
+    out = run({"event": "reading", "who": who, "readings": readings | {"day": store.today()}})
+    if first_today:
+        teams._BANDIT.update(who, teams._BANDIT.best(who)["slot"], True)
+    view = _merged_view(who)
+    after = routine.routine(who, view, teams._BANDIT.best(who)["slot"])
+    value = readings if ind == "bp" else readings[ind]
+    pts = game.points(who)
+    return _clean({"case_id": out["case_id"], "handoff": out.get("handoff"), "indicator": ind, "value": value,
+                   "meaning": routine.meaning(who, ind, value), "insight": routine.insight(who, ind, view),
+                   "ring": after["ring"], "ring_before": before["ring"], "readiness": after["readiness"], "readiness_before": before["readiness"],
+                   "streak": game.streak(who), "team_goal": game.team_goal(), "xp": 20, "level": {"level": pts // 250 + 1, "xp": pts % 250, "next": 250},
+                   "next": routine.next_item(who, ind), "agents": [s["agent"] for s in office.spans(out["case_id"]) if "orchestrator" not in s["agent"]]})
+
+
+@app.post("/api/devices/read")
+def device_read(body: dict = Body(...)):
+    """One reading from a (simulated) onboard device, to fill the capture screen. Not saved until the astronaut confirms."""
+    r = routine.device_read(body.get("who"), body.get("indicator")) if body.get("who") in game.CREW else None
+    if r is None:
+        raise HTTPException(404, "no device for that measurement")
+    return _clean(r)
+
+
+@app.post("/api/devices/sync")
+def device_sync(body: dict = Body(...)):
+    """Pull every device-fed morning reading that is still missing today (simulated devices) and send them to the agents."""
+    who = body.get("who")
+    if who not in game.CREW:
+        raise HTTPException(400, "who must be A, B or C")
+    done = routine._done_today(who)
+    readings, devices = {}, []
+    for ind in ("sleep", "hr", "bp", "temp", "glucose", "spo2", "co2"):
+        if ind in done or (ind == "co2" and "co2" in done):
+            continue
+        r = routine.device_read(who, ind)
+        readings |= r["values"]
+        devices.append(r["device"])
+    if not readings:
+        return {"synced": 0, "message": "All device readings are already in for today."}
+    first_today = store.today() not in store.checkin_days(who)
+    store.add_readings(who, readings, "simulated device")
+    out = run({"event": "reading", "who": who, "readings": readings | {"day": store.today()}})
+    if first_today:
+        teams._BANDIT.update(who, teams._BANDIT.best(who)["slot"], True)
+    flagged = [a["indicator"] for a in out.get("assessments", []) if a["status"] != "green"]
+    return _clean({"synced": len(readings), "devices": devices, "readings": readings, "case_id": out["case_id"], "flagged": flagged,
+                   "handoff": out.get("handoff"), "simulated": True,
+                   "message": f"{len(devices)} simulated devices synced. " + ("All GO." if not flagged else f"{len(flagged)} to watch.")})
+
+
+@app.get("/api/overview/{who}")
+def overview(who: str, days: int = 30):
+    return _clean(routine.overview(who, days))
+
+
+# ------------------------------------------------------------------ talk to TRIX
+@app.post("/api/assistant")
+def assistant(body: dict = Body(...)):
+    """Speech or text from the astronaut -> intent -> the right agents. Health events go through the mission orchestrator."""
+    who, text = body.get("who"), (body.get("text") or "")
+    if who not in game.CREW:
+        raise HTTPException(400, "who must be A, B or C")
+    it = routine.intent(text)
+    kind = it["kind"]
+    if kind == "empty":
+        return {"kind": kind, "say": "I didn't catch that. Try: log heart rate 70, start my check-in, or ask a question."}
+    if kind == "emergency":
+        patient = body.get("patient") or who
+        flags = ["irregular_rhythm"] if re.search(r"irregular|flutter|skipping", text, re.I) else ["solar_event"] if "solar" in text.lower() else []
+        out = run({"event": "alert", "who": patient, "vitals": {}, "flags": flags, "symptoms": text, "helper": who})
+        first = (out.get("procedure") or {}).get("first_step") or (out.get("specialist_plan") or {}).get("advice", "")
+        return _clean({"kind": kind, "case_id": out["case_id"], "go": f"#/emergency/{out['case_id']}", "say": f"Emergency team started. {first}",
+                       "route": ["Mission orchestrator", "Emergency team", (out.get("specialist_plan") or {}).get("specialist", "")]})
+    if kind == "log":
+        r = {k: v for k, v in it["readings"].items() if k not in routine.RANGE or routine.RANGE[k][0] <= float(v) <= routine.RANGE[k][1]}
+        if not r:
+            return {"kind": "ask", "say": "Those numbers look out of range, so I did not save them. Please say them again."}
+        store.add_readings(who, r, "voice")
+        ev = {"event": "reading", "who": who, "readings": r | {"day": store.today()}}
+        if it["symptoms"]:
+            ev["symptoms"] = it["symptoms"]
+        out = run(ev)
+        flagged = [a for a in out.get("assessments", []) if a["status"] != "green"]
+        names = ", ".join(f"{k.replace('sys', 'blood pressure').replace('spo2', 'oxygen').replace('hr', 'heart rate')} {v:g}" for k, v in r.items() if k != "dia")
+        say = f"Logged {names}. " + ("All GO." if not flagged else " ".join(out["coach"]["messages"][:2]))
+        return _clean({"kind": kind, "case_id": out["case_id"], "say": say, "readings": r, "route": ["Mission orchestrator", "Daily care team"],
+                       "go": f"#/emergency/{out['case_id']}" if out.get("handoff") else None})
+    if kind == "navigate":
+        return {"kind": kind, "say": it["say"], "go": it["go"], "route": ["Assistant"]}
+    if kind == "symptom":
+        out = run({"event": "symptom", "who": who, "symptoms": it["symptoms"], "vitals": {}})
+        return _clean({"kind": kind, "case_id": out["case_id"], "say": (out.get("specialist_plan") or {}).get("advice", ""),
+                       "route": ["Mission orchestrator", "Emergency team", (out.get("specialist_plan") or {}).get("specialist", "")]})
+    view = _merged_view(who)
+    if kind == "status":
+        ind = it["indicator"]
+        k = kb.indicators()[ind]
+        a = next((x for x in view.get("assessments", []) if x["indicator"] == ind), None)
+        word = {"green": "GO", "amber": "WATCH", "red": "NO-GO"}.get(a["status"] if a else "", "not checked today")
+        why = f" because {a['reasons'][0]}" if a and a.get("reasons") else ""
+        tip = f" {k['actions'][0]}." if a and a["status"] != "green" else ""
+        return _clean({"kind": kind, "say": f"Your {k['name'].split(' (')[0].lower()} is {word}{why}.{tip} In space: {k['space_effect']}",
+                       "go": f"#/body/{ind}", "route": ["Assistant", "Daily care record"]})
+    if kind == "summary":
+        bad = [x for x in view.get("assessments", []) if x["status"] != "green"]
+        rt = routine.routine(who, view, teams._BANDIT.best(who)["slot"])
+        say = (f"{len(bad)} to watch: " + ", ".join(kb.indicators()[x["indicator"]]["name"].split(" (")[0].lower() for x in bad[:3]) + "." if bad else "Everything checked is GO.") + \
+            f" Day ring {rt['ring']['done']} of {rt['ring']['of']}. Readiness {rt['readiness']}%."
+        return _clean({"kind": kind, "say": say, "route": ["Assistant", "Daily care record"]})
+    ans = ask({"question": it["question"]})
+    return _clean({"kind": "ask", "say": ans["answer"], "sources": [s for s in ans["sources"] if s["cited"]], "route": ["Assistant", "Knowledge (RAG)", "Safety"]})
 
 
 @app.get("/api/insights/co2-headache")

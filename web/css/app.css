@@ -274,3 +274,51 @@ h1{font-weight:700;font-size:28px;letter-spacing:0}
 .banner-reminder{position:fixed;left:24px;bottom:24px;max-width:calc(100vw - 48px);flex-wrap:wrap;z-index:40;display:flex;align-items:center;gap:14px;padding:12px 18px;background:var(--p1);border:1px solid var(--nred);box-shadow:0 10px 30px rgba(0,0,0,.5)}
 
 @media (max-width:760px){.mbar .sub{display:none}.banner-reminder{left:12px;right:12px;bottom:12px}}
+
+/* ===================== Mission deck, capture, agent tree, talk ===================== */
+.ribbon{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.stage{flex:1;min-width:190px;display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--p1);border:1px solid var(--bd);text-decoration:none;color:var(--t1)}
+.stage:hover{border-color:var(--blue)}
+.stage b{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--c);color:var(--c);font-family:"IBM Plex Mono",monospace;font-weight:600}
+.stage .n{display:block;font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:700;font-size:14px;letter-spacing:.08em;text-transform:uppercase}
+.stage .s{display:block;font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--c)}
+.stage.on{background:var(--p2);border-color:var(--blue);animation:glowp 2.4s ease-in-out infinite}
+@keyframes glowp{50%{box-shadow:0 0 0 1px var(--blue),0 0 24px 2px rgba(76,125,217,.5)}}
+.flow{stroke-dasharray:6 8;animation:flow 1.2s linear infinite}@keyframes flow{to{stroke-dashoffset:-14}}
+.deck{display:grid;grid-template-columns:312px minmax(0,1fr) 330px;gap:14px;align-items:stretch}
+@media (max-width:1180px){.deck{grid-template-columns:1fr}}
+.srow{display:grid;grid-template-columns:22px 1fr auto auto;align-items:center;gap:10px;padding:9px 14px;border-top:1px solid var(--bd);text-decoration:none;color:var(--t1)}
+.srow:hover{background:rgba(76,125,217,.08)}
+.capgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.capgrid .btn{min-height:52px;font-size:13px;padding:0 8px}
+.holo{position:relative}
+.holo svg{display:block;width:100%;height:auto;max-height:560px}
+.holo .mk{cursor:pointer}.holo .mk:focus-visible circle{stroke:#fff}
+.spin{transform-box:view-box;transform-origin:320px 300px;animation:orbit 40s linear infinite}
+.spin2{transform-box:view-box;transform-origin:320px 300px;animation:orbit 70s linear infinite reverse}
+.holofig{animation:holo 4s ease-in-out infinite}@keyframes holo{50%{opacity:.82}}
+.act{flex-direction:row;align-items:center;gap:16px;border-color:var(--watch)}
+.act.due{border-color:var(--nred)}
+.bigin{font-family:"IBM Plex Mono",monospace;font-size:54px!important;min-height:88px!important;text-align:center}
+.hstep{display:flex;gap:12px;align-items:flex-start}
+.hstep b{width:30px;height:30px;flex:none;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--bd2);color:var(--t3);font-family:"IBM Plex Mono",monospace}
+.hstep.now b{border-color:var(--watch);color:var(--watch)}.hstep.now span{font-size:20px;font-weight:700;color:var(--t1)}
+.hstep.done b{border-color:var(--ok);color:var(--ok)}
+.hstep span{color:var(--t2);line-height:1.35}
+.lbar{display:flex;height:16px;margin-top:24px}.lbarwrap{position:relative;padding-bottom:4px}
+.lmark{position:absolute;top:0;display:flex;flex-direction:column;align-items:center;transform:translateX(-50%);font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:600}
+.lmark i{width:2px;height:26px;background:#fff}
+.rxpad{min-height:260px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;border:2px solid var(--bd2);background:var(--p2);cursor:pointer;user-select:none;font-size:22px;font-weight:700;width:100%;color:var(--t1)}
+.rxpad.go{background:#F4F7FC;color:#050B18;border-color:#fff}
+.rxpad.early{border-color:var(--nred)}
+.statrow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+@media (max-width:900px){.statrow{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tree svg{display:block;width:100%;height:auto}
+.tree .nd{cursor:pointer}.tree .nd:focus-visible rect{stroke:#fff}
+.talkbtn{position:fixed;right:24px;bottom:24px;z-index:45;display:flex;align-items:center;gap:10px;min-height:56px;padding:0 20px;border:1px solid #CFE0FF;background:var(--nasa);color:#fff;font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.talk{position:fixed;right:24px;bottom:92px;z-index:46;width:400px;max-width:calc(100vw - 32px);max-height:70vh;overflow:auto;background:var(--p1);border:1px solid var(--blue);box-shadow:0 16px 50px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:10px;padding:14px}
+.talk .me{align-self:flex-end;background:var(--btn);padding:8px 12px;max-width:90%}
+.talk .trix{background:var(--p2);border-left:3px solid var(--blue);padding:10px 12px;line-height:1.45}
+.toast{bottom:96px}
+main{padding-bottom:96px}
+.calm .talkbtn{opacity:.85}
