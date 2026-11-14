@@ -142,16 +142,17 @@ export function speak(text) {
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.rate = 0.95;
+    if (window.__trixSpeech) u.lang = window.__trixSpeech;
     speechSynthesis.speak(u);
   } catch (e) { /* no speech on this device */ }
 }
 
 // ---------- hologram body for the mission deck ----------
-const HOLO = { brain: [320, 75, 'R', 66, 'SLEEP · MOOD · ALERTNESS'], eyes: [320, 118, 'L', 112, 'VISION'], rad: [412, 131, 'R', 140, 'RADIATION'],
-  lungs: [295, 201, 'L', 196, 'LUNGS · CABIN AIR'], heart: [338, 208, 'R', 214, 'HEART'], gut: [320, 284, 'R', 292, 'FOOD · WATER · BLOOD SUGAR'],
+const HOLO = { brain: [320, 75, 'R', 66, 'BRAIN · SLEEP · MOOD'], eyes: [320, 118, 'L', 112, 'VISION'], rad: [412, 131, 'R', 140, 'RADIATION'],
+  lungs: [295, 201, 'L', 196, 'LUNGS · CABIN AIR'], heart: [338, 208, 'R', 214, 'HEART'], gut: [320, 284, 'R', 292, 'FOOD · WATER · SUGAR'],
   immune: [235, 291, 'L', 286, 'IMMUNE · SKIN'], bones: [293, 449, 'L', 444, 'BONES · MUSCLE'] };
 const HC = { green: '#2DD4BF', amber: '#FBBF24', red: '#FC3D21', none: '#5B6F96' };
-export function hologram(bodyMap, notes = {}, ring = null) {
+export function hologram(bodyMap, notes = {}, ring = null, outline = null) {
   const limb = '<path d="M92 132 Q66 150 62 212 L56 330"/><path d="M208 132 Q234 150 238 212 L244 330"/><path d="M126 336 L120 450 L116 536"/><path d="M174 336 L180 450 L184 536"/>';
   const calls = Object.entries(HOLO).map(([id, [x, y, side, ly, title]]) => {
     const st = (bodyMap[id] || {}).status || 'none', c = HC[st];
@@ -176,7 +177,9 @@ export function hologram(bodyMap, notes = {}, ring = null) {
   <g class="spin"><circle cx="320" cy="300" r="266" fill="none" stroke="#2A4682" stroke-width="2" stroke-dasharray="2 14"/><path d="M320 34 A266 266 0 0 1 586 300" fill="none" stroke="#4C7DD9" stroke-width="2.5"/></g>
   <g class="spin2"><circle cx="320" cy="300" r="228" fill="none" stroke="#1C3263" stroke-dasharray="40 10"/><circle cx="320" cy="72" r="4" fill="#FC3D21"/></g>
   <ellipse cx="320" cy="552" rx="150" ry="26" fill="url(#hbase)"/><ellipse cx="320" cy="552" rx="120" ry="18" fill="none" stroke="#4C7DD9" stroke-opacity=".7"/><ellipse cx="320" cy="552" rx="80" ry="11" fill="none" stroke="#7FB2FF" stroke-opacity=".6"/>
-  <g transform="translate(185,48) scale(0.9)" class="holofig"><g stroke="#4C7DD9" stroke-width="36" stroke-linecap="round" fill="none" opacity=".35" filter="url(#hblur)">${limb}</g>
+  ${outline ? `<g class="holofig"><polygon points="${outline.map(([x, y]) => `${(320 + x * 433).toFixed(1)},${(354 + y * 433).toFixed(1)}`).join(' ')}" fill="#4C7DD9" opacity=".3" filter="url(#hblur)"/><polygon points="${outline.map(([x, y]) => `${(320 + x * 433).toFixed(1)},${(354 + y * 433).toFixed(1)}`).join(' ')}" fill="url(#bodyg)" stroke="#7FB2FF" stroke-width="2" stroke-linejoin="round"/>
+  <rect x="200" y="60" width="240" height="46" fill="url(#hscan)"><animate attributeName="y" values="40;520;40" dur="7s" repeatCount="indefinite"/></rect></g>` : ''}
+  <g transform="translate(185,48) scale(0.9)" class="holofig" ${outline ? 'display="none"' : ''}><g stroke="#4C7DD9" stroke-width="36" stroke-linecap="round" fill="none" opacity=".35" filter="url(#hblur)">${limb}</g>
   <g stroke="#7FB2FF" stroke-width="32" stroke-linecap="round" fill="none">${limb}</g><g stroke="#0B1C3E" stroke-width="28" stroke-linecap="round" fill="none">${limb}</g>
   <path d="M96 118 Q150 102 204 118 Q224 126 226 160 L218 300 Q214 334 194 344 L106 344 Q86 334 82 300 L74 160 Q76 126 96 118 Z" fill="url(#bodyg)" stroke="#7FB2FF" stroke-width="2"/>
   <rect x="136" y="88" width="28" height="26" fill="#0B1C3E"/><ellipse cx="150" cy="54" rx="34" ry="40" fill="url(#bodyg)" stroke="#7FB2FF" stroke-width="2"/>

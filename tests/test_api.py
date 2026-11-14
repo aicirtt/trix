@@ -309,3 +309,89 @@ def test_simulated_devices_read_and_sync():
     assert all(six[k]["measured_today"] for k in ("bp", "hr", "glucose", "temp", "sleep"))
     assert any(x["source"] == "simulated device" for x in store.live_readings("A"))
     assert c.post("/api/devices/sync", json={"who": "A"}).json()["synced"] == 0
+
+
+def _person_mask(calf=20, head=34):
+    m = np.zeros((720, 480), np.uint8)
+    cv2.ellipse(m, (240, 110), (head, 44), 0, 0, 360, 255, -1)
+    cv2.rectangle(m, (190, 160), (290, 400), 255, -1)
+    for x in (212, 268):
+        cv2.line(m, (x, 400), (x, 520), 255, 44)
+        cv2.line(m, (x, 520), (x, 650), 255, calf * 2)
+    for x0, x1 in ((180, 130), (300, 350)):
+        cv2.line(m, (x0, 175), (x1, 380), 255, 26)
+    lm = {0: [240, 110], 7: [270, 108], 8: [210, 108], 11: [290, 170], 12: [190, 170], 23: [268, 400], 24: [212, 400], 25: [268, 520], 26: [212, 520], 27: [268, 650], 28: [212, 650]}
+    return m, {k: [x / 480, y / 720] for k, (x, y) in lm.items()}
+
+
+def b64png(img):
+    return "data:image/png;base64," + base64.b64encode(cv2.imencode(".png", img)[1]).decode()
+
+
+def test_body_mirror_scan_and_compare():
+    m, lm = _person_mask()
+    r = c.post("/api/scan", json={"who": "C", "mask": b64png(m), "landmarks": lm, "photo": b64(np.full((72, 48, 3), 90, np.uint8))}).json()
+    assert len(r["scans"]) == 1 and r["current"]["has_photo"] and len(r["current"]["outline"]) > 10
+    sid = r["current"]["id"]
+    assert c.get(f"/api/scan/C/photo/{sid}").status_code == 200
+    m2, lm2 = _person_mask(calf=18, head=37)                 # puffier face, thinner calves
+    r = c.post("/api/scan", json={"who": "C", "mask": b64png(m2), "landmarks": lm2}).json()
+    ch = {x["id"]: x for x in r["changes"]}
+    assert ch["face"]["pct"] > 4 and ch["calf"]["pct"] < -4 and ch["calf"]["status"] == "amber" and abs(ch["shoulders"]["pct"]) < 1
+    assert "calf" in r["message"]
+    assert c.post("/api/scan", json={"who": "C", "mask": b64png(np.zeros((100, 100), np.uint8)), "landmarks": lm}).status_code == 400
+    assert c.post("/api/scan", json={"who": "C", "mask": b64png(m), "landmarks": {}}).status_code == 400
+    assert c.post("/api/scan/simulate-day1", json={"who": "A"}).status_code == 400
+    c.post("/api/scan", json={"who": "A", "mask": b64png(m), "landmarks": lm})
+    r = c.post("/api/scan/simulate-day1", json={"who": "A"}).json()
+    assert r["baseline"]["simulated"] and {x["id"]: x for x in r["changes"]}["face"]["pct"] > 4
+
+
+def test_cut_the_link_changes_decisions_and_holds_reports():
+    c.post("/api/mission", json={"location": "iss", "link_cut": True})
+    assert c.get("/api/state").json()["link"]["cut"]
+    out = c.post("/api/event", json={"event": "alert", "who": "A", "symptoms": "chest pain"}).json()
+    assert out["decision"]["act"] == "onboard_now" and "No contact" in out["decision"]["why"]
+    assert c.post("/api/reports/send").status_code == 409 and c.post("/api/ground/message", json={"text": "hi"}).status_code == 409
+    c.post("/api/mission", json={"link_cut": False})
+    out = c.post("/api/event", json={"event": "symptom", "who": "A", "symptoms": "headache"}).json()
+    assert out["decision"]["act"] == "consult_live"
+    c.post("/api/mission", json={"location": "mars"})
+
+
+def test_ground_view_gets_reports_after_the_delay_and_can_reply():
+    c.post("/api/mission", json={"location": "iss"})
+    c.post("/api/event", json={"event": "symptom", "who": "B", "symptoms": "I feel lonely and stressed"})
+    c.post("/api/reports/send")
+    import time as _t
+    _t.sleep(0.7)
+    g = c.get("/api/ground").json()
+    got = [r for r in g["reports"] if r["arrived"]]
+    assert got and got[0]["body"]["case_id"] and any("withheld" in str(r["body"].get("symptoms", "")) for r in got)
+    assert c.post("/api/ground/message", json={"to": "B", "text": "Good work. Rest today."}).json()["ok"]
+    _t.sleep(0.7)
+    assert any("Rest today" in m["text"] for m in c.get("/api/inbox/B").json()["messages"])
+    assert not c.get("/api/inbox/A").json()["messages"]
+    c.post("/api/mission", json={"location": "mars"})
+
+
+@pytest.mark.parametrize("sid", ["irregular", "unresponsive", "low_oxygen", "fever", "bad_sleep", "co2", "solar_storm"])
+def test_what_if_scenarios(sid):
+    r = c.post("/api/sim", json={"scenario": sid, "who": "A"}).json()
+    assert r["results"] and all(x["case_id"] for x in r["results"])
+    if sid in ("co2", "solar_storm"):
+        assert len(r["results"]) == 3
+    if sid in ("irregular", "unresponsive", "low_oxygen", "solar_storm"):
+        assert r["results"][0]["urgency"] == "emergency" and r["results"][0]["protocol"]
+    else:
+        assert r["results"][0]["flagged"]
+
+
+def test_replay_and_language_and_reset():
+    r = c.get("/api/replay/C").json()
+    assert r["days"] == 240 and len(r["parts"]["bones"]) == 240 and any(r["parts"]["bones"])
+    bone = next(e for e in r["events"] if "bone" in e["name"].lower())
+    assert bone["trix_day"] is not None
+    assert c.post("/api/lang", json={"who": "B", "lang": "ja"}).json()["lang"] == "ja" and c.get("/api/state").json()["langs"]["B"] == "ja"
+    assert c.post("/api/lang", json={"who": "B", "lang": "xx"}).status_code == 400
+    assert c.post("/api/sim/reset").json()["ok"] and c.get("/api/office").json()["cases"] == []

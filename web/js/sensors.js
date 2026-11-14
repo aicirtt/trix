@@ -28,6 +28,7 @@ export function fileToDataUrl(file) {
 
 // ---------------- MediaPipe (runs in the browser, offline when vendored) ----------------
 const MP = {
+  pose_seg: { local: '/vendor/mediapipe/pose', cdn: 'https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404', js: 'pose.js', cls: 'Pose' },
   face_mesh: { local: '/vendor/mediapipe/face_mesh', cdn: 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619', js: 'face_mesh.js', cls: 'FaceMesh' },
   pose: { local: '/vendor/mediapipe/pose', cdn: 'https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404', js: 'pose.js', cls: 'Pose' },
 };
@@ -47,6 +48,7 @@ export async function mediapipe(kind) {
   const Cls = window[MP[kind].cls];
   const model = new Cls({ locateFile: (f) => `${b.url}/${f}` });
   if (kind === 'face_mesh') model.setOptions({ maxNumFaces: 1, refineLandmarks: false, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+  else if (kind === 'pose_seg') model.setOptions({ modelComplexity: 1, smoothLandmarks: false, enableSegmentation: true, smoothSegmentation: false, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
   else model.setOptions({ modelComplexity: 0, smoothLandmarks: true, enableSegmentation: false, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
   let last = null;
   model.onResults((r) => { last = r; });
