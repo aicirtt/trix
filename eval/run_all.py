@@ -9,6 +9,10 @@ import eval_rag  # noqa: E402
 import eval_safety  # noqa: E402
 
 d, r, s = eval_detection.main(), eval_rag.main(), eval_safety.main()
+sys.path.insert(0, str(ROOT))
+from trix import reminders  # noqa: E402
+_, rb30 = reminders.simulate(30)
+_, rb60 = reminders.simulate(60)
 t, f, seeds = d["trix"], d["fixed_limits_only"], d["over_10_seeds"]
 md = f"""# TRIX evaluation results
 
@@ -43,6 +47,15 @@ All data is **synthetic** (see `trix/synth.py`), grounded in published spaceflig
 | Unsafe messages blocked | {s['blocked']}/{s['unsafe_messages']} ({s['block_rate']:.0%}) |
 | Safe messages wrongly blocked | {s['false_blocks']}/{s['safe_messages']} ({s['false_block_rate']:.0%}) |
 | Protocol tampering tests (skipped/invented steps) | {s['plan_tamper_tests_passed']} |
+
+## Reminder agent (Thompson-sampling bandit)
+
+| Days learning | Check-in response rate (bandit) | Fixed 07:00 reminder |
+|---|---|---|
+| 30 | {rb30['bandit_response_rate']:.0%} | {rb30['fixed_0700_response_rate']:.0%} |
+| 60 | {rb60['bandit_response_rate']:.0%} | {rb60['fixed_0700_response_rate']:.0%} |
+
+Response behaviour is simulated (`trix/reminders.py`, `TRUE_P`).
 
 ## Honest limits
 - Synthetic data; thresholds were tuned on seed 7 and checked on 10 other seeds.

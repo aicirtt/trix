@@ -1,21 +1,19 @@
-"""Multi-agent agentic RAG with LangGraph.
-
-Triage -> (Cardiac | First aid | Mental health | Radiation | General) -> Flight Surgeon -> Safety -> Report
+"""Emergency team: Triage -> (Cardiac | First aid | Mental health | Radiation | General) -> Flight Surgeon
+-> Procedure -> Safety (shared) -> Report (shared, Operations).
 
 - Each specialist retrieves from the knowledge base (cited) and chooses a protocol from the approved library.
 - The Flight Surgeon agent decides: act onboard now, or consult Earth (depends on urgency and link delay).
-- The Safety agent checks the plan and every message; if anything fails it falls back to rules/protocol text.
-- The Report agent writes a compact summary queued for Earth.
-Agents decide which tools to call (vitals, retrieval, protocol library), which makes the RAG 'agentic'.
+- The Procedure agent opens a step-locked session for the helper (detail level depends on their training).
+- Every node is traced to the agent office (trigger, tools used, result, time).
 """
-import json
 import time
-from typing import TypedDict
 
 from langgraph.graph import END, StateGraph
 
-from . import escalation, kb, llm, protocols, rag, safety
+from . import escalation, kb, llm, office, protocols, rag
+from .state import State
 
+TEAM = "Emergency"
 _R = None
 
 
@@ -26,37 +24,20 @@ def retriever() -> rag.Retriever:
     return _R
 
 
-class Case(TypedDict, total=False):
-    who: str
-    location: str
-    vitals: dict           # e.g. {"hr": 132, "spo2": 96, "temp": 36.8}
-    flags: list            # e.g. ["irregular_rhythm"]
-    symptoms: str          # what the person said
-    helper: str            # crewmate chosen to help
-    helper_skill: str
-    # filled by agents
-    trace: list
-    urgency: str
-    route: str
-    specialist_plan: dict
-    decision: dict
-    safety: dict
-    report: dict
-
-
 def _log(state, agent, msg, **extra):
     state.setdefault("trace", []).append({"t": time.strftime("%H:%M:%S"), "agent": agent, "msg": msg} | extra)
 
 
-def triage(state: Case) -> Case:
+@office.traced("Triage", TEAM)
+def triage(state: State) -> State:
     flags, v, text = set(state.get("flags", [])), state.get("vitals", {}), state.get("symptoms", "").lower()
+    loc = state.get("location", "mars")
     assessments = []
-    if "hr" in v:
-        assessments.append(escalation.assess("hr", v["hr"], flags=flags & {"irregular_rhythm"}, location=state.get("location", "mars")))
-    if "spo2" in v:
-        assessments.append(escalation.assess("spo2", v["spo2"], location=state.get("location", "mars")))
-    if "temp" in v:
-        assessments.append(escalation.assess("temp", v["temp"], location=state.get("location", "mars")))
+    for ind, key in (("hr", "hr"), ("spo2", "spo2"), ("temp", "temp")):
+        if key in v:
+            a = escalation.assess(ind, v[key], flags=flags & {"irregular_rhythm"} if ind == "hr" else set(), location=loc)
+            office.tool("escalation.assess", {ind: v[key]}, {"status": a.status, "level": a.level})
+            assessments.append(a)
     top = max(assessments, key=lambda a: a.rank) if assessments else None
     urgency = top.level if top else "self_care"
     if any(k in text for k in ("unresponsive", "not breathing", "no pulse")):
@@ -72,49 +53,62 @@ def triage(state: Case) -> Case:
     else:
         route = "general"
     state["urgency"], state["route"] = urgency, route
+    office.current().result({"urgency": urgency, "route": route})
     _log(state, "Triage", f"urgency={urgency}, route={route}", reasons=[r for a in assessments for r in a.reasons])
     return state
 
 
-def _specialist(state: Case, name: str, condition_map: dict) -> Case:
+def _specialist(state: State, name: str, condition_map: dict) -> State:
     flags, text = set(state.get("flags", [])), state.get("symptoms", "").lower()
     cond = next((c for c, keys in condition_map.items() if flags & keys or any(k in text for k in keys)), None)
     candidates = protocols.find(cond) if cond else []
+    office.tool("protocols.find", cond, [p["id"] for p in candidates])
     query = f"{name} {text} {' '.join(flags)}"
     hits = retriever().search(query, k=4)
-    answer = llm.get_llm().answer(f"What should the crew do for: {text or ', '.join(flags)}?", hits)
+    office.tool("rag.search", query[:80], [h["doc_id"] for h in hits])
+    model = llm.get_llm()
+    answer = model.answer(f"What should the crew do for: {text or ', '.join(flags)}?", hits)
+    office.tool(f"llm.answer ({model.name})", "cited sources", answer[:80])
     plan = {"specialist": name, "condition": cond, "protocol_id": candidates[0]["id"] if candidates else None,
             "advice": answer, "citations": [{"n": n, "title": h["title"], "url": h["url"]} for n, h in enumerate(hits, 1)]}
     state["specialist_plan"] = plan
+    office.current().result({"protocol": plan["protocol_id"], "sources": len(hits)})
     _log(state, name, f"condition={cond}, protocol={plan['protocol_id']}", citations=[c["title"] for c in plan["citations"][:2]])
     return state
 
 
+@office.traced("Cardiac", TEAM)
 def cardiac(state):
     return _specialist(state, "Cardiac", {"cardiac_arrest": {"unresponsive", "no pulse", "not breathing"},
                                          "irregular_rhythm": {"irregular_rhythm", "flutter", "palpitation", "irregular"},
                                          "chest_symptoms": {"chest"}})
 
 
+@office.traced("First aid", TEAM)
 def first_aid(state):
     return _specialist(state, "First aid", {"post_eva": {"spacewalk", "eva"}})
 
 
+@office.traced("Mental health", TEAM)
 def mental(state):
     return _specialist(state, "Mental health", {})
 
 
+@office.traced("Radiation", TEAM)
 def radiation(state):
     return _specialist(state, "Radiation", {})
 
 
+@office.traced("General", TEAM)
 def general(state):
     return _specialist(state, "General", {"glucose_due": {"sugar", "glucose", "shaky"}})
 
 
-def flight_surgeon(state: Case) -> Case:
+@office.traced("Flight Surgeon", TEAM)
+def flight_surgeon(state: State) -> State:
     loc = kb.ladder()["locations"][state.get("location", "mars")]
-    urgent = state["urgency"] == "emergency" or state.get("route") == "cardiac" and "irregular_rhythm" in state.get("flags", [])
+    office.tool("ladder.location", state.get("location", "mars"), {"delay_s": loc["one_way_delay_s"], "live": loc["live_consult"]})
+    urgent = state["urgency"] == "emergency" or (state.get("route") == "cardiac" and "irregular_rhythm" in state.get("flags", []))
     rtt_min = 2 * loc["one_way_delay_s"] / 60
     if urgent:
         decision = {"act": "onboard_now", "why": f"High risk; Earth reply takes ~{rtt_min:.0f} min round trip." if not loc["live_consult"]
@@ -124,54 +118,46 @@ def flight_surgeon(state: Case) -> Case:
     else:
         decision = {"act": "self_care_and_queue", "why": "Not urgent; follow advice and send to Earth in the next window."}
     state["decision"] = decision
+    office.current().result(decision)
     _log(state, "Flight Surgeon", decision["act"], why=decision["why"])
     return state
 
 
-def safety_check(state: Case) -> Case:
-    plan = state["specialist_plan"]
-    pid = plan.get("protocol_id")
-    steps = [s["id"] for s in protocols.library()[pid]["steps"]] if pid else []
-    v_plan = safety.check_plan(pid, steps) if pid else safety.Verdict(True)
-    v_text = safety.check_text(plan["advice"], pid, cited="[" in plan["advice"])
-    ok = v_plan.allowed and v_text.allowed
-    if not v_text.allowed:
-        plan["advice"] = v_text.replacement
-    state["safety"] = {"allowed": ok, "reasons": v_plan.reasons + v_text.reasons, "checked_steps": len(steps)}
-    _log(state, "Safety", "all clear" if ok else "blocked and replaced", reasons=state["safety"]["reasons"])
-    return state
-
-
-def report(state: Case) -> Case:
-    plan = state["specialist_plan"]
-    rep = {"case_for": state.get("who"), "urgency": state["urgency"], "route": state["route"], "decision": state["decision"]["act"],
-           "protocol": plan.get("protocol_id"), "vitals": state.get("vitals", {}), "symptoms": state.get("symptoms", ""),
-           "agent_trace": [{"agent": t["agent"], "msg": t["msg"]} for t in state.get("trace", [])],
-           "sources": [c["title"] for c in plan["citations"][:3]]}
-    size = len(json.dumps(rep).encode())
-    rep["priority"] = "urgent" if state["urgency"] == "emergency" or state["decision"]["act"] == "onboard_now" else "normal"
-    rep["bytes"] = size
-    state["report"] = rep
-    _log(state, "Report", f"queued for Earth ({size} bytes, {rep['priority']})")
+@office.traced("Procedure", TEAM)
+def procedure(state: State) -> State:
+    pid = state["specialist_plan"].get("protocol_id")
+    if not pid:
+        state["procedure"] = {"protocol_id": None}
+        office.current().result("no procedure needed")
+        return state
+    sess = protocols.Session(pid, helper_skill=state.get("helper_skill", "crew"))
+    first = sess.current()
+    office.tool("protocols.Session", {"protocol": pid, "skill": sess.helper_skill}, {"steps": first["of"]})
+    state["procedure"] = {"protocol_id": pid, "helper": state.get("helper"), "steps": first["of"], "first_step": first["say"]}
+    office.current().result({"protocol": pid, "steps": first["of"], "helper": state.get("helper")})
+    _log(state, "Procedure", f"{pid} ready for {state.get('helper') or 'crewmate'}")
     return state
 
 
 def build():
-    g = StateGraph(Case)
+    from .shared import report_node, safety_node
+    g = StateGraph(State)
     for name, fn in [("triage", triage), ("cardiac", cardiac), ("first_aid", first_aid), ("mental", mental),
                      ("radiation", radiation), ("general", general), ("flight_surgeon", flight_surgeon),
-                     ("safety", safety_check), ("report", report)]:
+                     ("procedure", procedure), ("safety", safety_node(TEAM)), ("report", report_node(TEAM))]:
         g.add_node(name, fn)
     g.set_entry_point("triage")
-    g.add_conditional_edges("triage", lambda s: s["route"],
-                            {k: k for k in ("cardiac", "first_aid", "mental", "radiation", "general")})
+    g.add_conditional_edges("triage", lambda s: s["route"], {k: k for k in ("cardiac", "first_aid", "mental", "radiation", "general")})
     for k in ("cardiac", "first_aid", "mental", "radiation", "general"):
         g.add_edge(k, "flight_surgeon")
-    g.add_edge("flight_surgeon", "safety")
+    g.add_edge("flight_surgeon", "procedure")
+    g.add_edge("procedure", "safety")
     g.add_edge("safety", "report")
     g.add_edge("report", END)
     return g.compile()
 
 
-def run(case: Case) -> Case:
-    return build().invoke(case)
+def run(case: dict) -> dict:
+    """Run the emergency team directly (the orchestrator is the normal entry point)."""
+    from . import orchestrator
+    return orchestrator.run(case | {"event": case.get("event", "alert")})

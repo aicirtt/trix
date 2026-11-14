@@ -1,0 +1,12 @@
+{
+  "note": "SIMULATED demo stock for the TRIX prototype. Not a real mission formulary.",
+  "mission_end_day": 900,
+  "items": [
+    {"name": "Vitamin D3", "stock": 212, "daily_use": 3.0, "expiry_day": 700, "radiation_sensitive": false},
+    {"name": "Ibuprofen", "stock": 64, "daily_use": 0.12, "expiry_day": 950, "radiation_sensitive": false},
+    {"name": "Loratadine", "stock": 18, "daily_use": 0.09, "expiry_day": 820, "radiation_sensitive": false},
+    {"name": "Amoxicillin", "stock": 30, "daily_use": 0.0, "expiry_day": 640, "radiation_sensitive": true},
+    {"name": "Promethazine", "stock": 22, "daily_use": 0.03, "expiry_day": 990, "radiation_sensitive": true},
+    {"name": "Melatonin", "stock": 40, "daily_use": 0.55, "expiry_day": 880, "radiation_sensitive": false}
+  ]
+}
