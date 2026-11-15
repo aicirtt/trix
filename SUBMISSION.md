@@ -91,7 +91,7 @@ Open the **Sources and data** screen in the app (Earth link → Sources and data
 
 Space Apps asks teams to disclose AI use. Suggested text; **[YOU]** edit so it is accurate for your team:
 
-> **AI inside the product.** TRIX uses a multi-agent system (LangGraph), retrieval with citations over NASA sources, an optional local language model (Llama 3.2 through Ollama), Google's pretrained MediaPipe face and body models, classic machine learning (robust baselines, CUSUM drift detection, Isolation Forest), and a bandit algorithm for reminder timing. No model was trained on real astronaut data.
+> **AI inside the product.** TRIX uses a multi-agent system (LangGraph), retrieval with citations over NASA sources, a language model (Claude through the Anthropic API by default; each user adds their own key. Offline, it uses a local Llama 3.2 model through Ollama or a built-in extractive fallback), Google's pretrained MediaPipe face and body models, classic machine learning (robust baselines, CUSUM drift detection, Isolation Forest), and a bandit algorithm for reminder timing. No model was trained on real astronaut data.
 >
 > **AI used to build it.** We used an AI assistant (Claude, by Anthropic) to help write code, tests, interface designs, translations and documentation, under our direction. We reviewed and tested the result. All crew data shown is simulated and is labelled as such. No AI-generated images, video or audio of real people or of NASA branding are used.
 
