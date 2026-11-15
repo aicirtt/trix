@@ -17,7 +17,7 @@ export async function render(el, { state }) {
   const mine = c.buddy.find((b) => b.who === who);
   const g = c.team_goal;
   el.innerHTML = `
-  <div class="head"><div><h1>Crew</h1><div class="sub">Streaks, team goal, buddy check and your privacy</div></div></div>
+  <div class="head"><div><h1>Crew</h1><div class="sub">Streaks, team goal, buddy check and your privacy</div></div><a class="btn ghost sm" href="#/setup/0">Run setup again</a></div>
   <div class="grid3">${c.board.map((p, i) => `<div class="card rise" style="animation-delay:${i * 90}ms;${p.who === who ? 'border-color:var(--bluet)' : ''}">
     <div class="row" style="align-items:center;gap:12px"><span class="avatar" style="width:48px;height:48px;font-size:20px">${p.who}</span><div style="flex:1"><h3>${esc(p.name)}</h3><span class="small muted">${esc(p.role)}</span></div></div>
     <div class="row" style="gap:10px"><span class="chip amber">${icon('flame', 'var(--ambt)', 16)}${p.streak} days</span><span class="chip blue">${icon('star', 'var(--bluet)', 16)}${p.points} pts</span></div>

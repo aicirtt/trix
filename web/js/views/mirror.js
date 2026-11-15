@@ -58,6 +58,8 @@ export async function render(el, { state }) {
       </div>
     </div>
     <div id="homemsgs"></div>`;
+    const back = sessionStorage.getItem('trix-setup-return');
+    if (back !== null) { const b = document.createElement('a'); b.className = 'banner info'; b.href = `#/setup/${back}`; b.innerHTML = '<span style="flex:1"><strong>Setting up TRIX.</strong> Scan yourself, then go back to setup.</span><span class="cond" style="font-weight:700">BACK TO SETUP →</span>'; el.prepend(b); }
     homemsg.mount(el.querySelector('#homemsgs'), who, { manage: true });
     const m = el.querySelector('#mix');
     if (m) m.oninput = () => { mix = m.value / 100; const b = el.querySelector('#obase'), c = el.querySelector('#ocur'); if (b) b.style.opacity = 1 - mix * 0.85; if (c) c.style.opacity = 0.15 + mix * 0.85; };

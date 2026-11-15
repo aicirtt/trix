@@ -652,3 +652,20 @@ def test_messages_validation_privacy_delete_and_earth(tmp_path):
     # never in reports to Earth
     c.post("/api/reports/send", json={})
     assert "Grandma" not in str(c.get("/api/reports").json()) and "Kai" not in str(c.get("/api/reports").json())
+
+
+# ---------------------------------------------------------------- first-run setup
+def test_setup_wizard_saves_everything():
+    s = c.get("/api/setup/B").json()
+    assert s["done"] is False and s["morning"] in s["slots"] and set(s["locations"]) == {"iss", "moon", "rover", "mars"}
+    r = c.post("/api/setup/B", json={"name": "  Ana  ", "morning": "06:30", "location": "rover", "in_days": 21}).json()
+    assert r["name"] == "Ana" and r["morning"] == "06:30" and r["location"] == "rover" and r["days_to_landing"] == 21
+    assert c.get("/api/state").json()["env"]["id"] == "rover"
+    assert c.get("/api/homecoming/B").json()["days_to_landing"] == 21
+    assert c.post("/api/setup/B", json={"morning": "03:00"}).status_code == 400
+    assert c.post("/api/setup/B", json={"location": "venus"}).status_code == 400
+    assert c.post("/api/setup/B", json={"in_days": 999}).status_code == 400
+    assert c.post("/api/setup/B", json={"done": True}).json()["done"] is True
+    assert c.get("/api/setup/B").json()["name"] == "Ana"                     # kept across calls
+    assert c.get("/api/setup/Z").status_code == 404
+    c.post("/api/mission", json={"location": "mars"})

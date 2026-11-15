@@ -75,6 +75,52 @@ def science_list(indicator: str = ""):
     return {"about": science.KB["about"], "home": science.KB["home"], "paper": science.KB["paper"], "studies": science.bundled()}
 
 
+# ------------------------------------------------------------------ first-run setup
+@app.get("/api/setup/{who}")
+def setup_get(who: str):
+    """Where this astronaut is in the first-run setup, with what each step needs."""
+    if who not in game.CREW:
+        raise HTTPException(404, "no astronaut with that name")
+    from .reminders import SLOTS
+    from .shared import settings_for
+    st = store.get(f"setup_{who}", {})
+    return _clean({"who": who, "crew": game.CREW[who], "done": bool(st.get("done")), "name": st.get("name", ""),
+                   "morning": st.get("morning") or teams._BANDIT.best(who)["slot"], "slots": SLOTS, "evening": routine.EVENING_AT,
+                   "location": location(), "locations": {k: {"label": routine.ENV[k]["label"], "place": routine.ENV[k]["place"], "gravity": routine.ENV[k]["gravity"]} for k in routine.ENV},
+                   "days_to_landing": homecoming.landing_day() - store.today(),
+                   "scans": len(scan.compare(who).get("scans", [])), "messages": homemsg.listing(who)["total"], "privacy": settings_for(who)})
+
+
+@app.post("/api/setup/{who}")
+def setup_save(who: str, body: dict = Body(...)):
+    if who not in game.CREW:
+        raise HTTPException(404, "no astronaut with that name")
+    from .reminders import SLOTS
+    st = store.get(f"setup_{who}", {})
+    if "name" in body:
+        st["name"] = str(body["name"] or "").strip()[:30]
+    if body.get("morning"):
+        if body["morning"] not in SLOTS:
+            raise HTTPException(400, f"morning check must be one of {', '.join(SLOTS)}")
+        if body["morning"] != st.get("morning"):
+            for _ in range(3):                                    # a head start for the learned reminder time; it keeps learning
+                teams._BANDIT.update(who, body["morning"], True)
+        st["morning"] = body["morning"]
+    if body.get("location"):
+        if body["location"] not in LOCATIONS:
+            raise HTTPException(400, "location must be iss, moon, rover or mars")
+        store.put("location", body["location"])
+    if body.get("in_days") not in (None, ""):
+        try:
+            homecoming.set_landing(int(body["in_days"]))
+        except (TypeError, ValueError):
+            raise HTTPException(400, "landing must be between 0 and 400 days away")
+    if "done" in body:
+        st["done"] = bool(body["done"])
+    store.put(f"setup_{who}", st)
+    return setup_get(who)
+
+
 # ------------------------------------------------------------------ messages from home
 def _home_unlocks(who: str, readings: dict) -> list[dict]:
     """After a check: messages earned by effort, plus one for comfort when mood is very low."""

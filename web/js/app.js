@@ -18,6 +18,7 @@ import * as replay from './views/replay.js';
 import * as ground from './views/ground.js';
 import * as sources from './views/sources.js';
 import * as landing from './views/landing.js';
+import * as setup from './views/setup.js';
 import { speak } from './ui.js';
 import { t, setLang, translateDom, LANGS, SPEECH, getLang } from './i18n.js';
 import { speechAvailable, listenOnce } from './sensors.js';
@@ -26,7 +27,7 @@ const NAV = [
   ['today', 'Mission deck', 'today'], ['checkin', 'Check-in', 'checkin'], ['body', 'Trends', 'body'], ['care', 'Procedures', 'care'],
   ['mirror', 'Body mirror', 'body'], ['crew', 'Crew', 'crew'], ['earth', 'Earth link', 'earth'], ['landing', 'Coming home', 'land'], ['office', 'Agent tree', 'office'], ['sim', 'Simulator', 'play'],
 ];
-const ROUTES = { today, checkin, body, care, procedure, ultrasound, emergency, crew, earth, office, capture, mirror, sim, replay, ground, sources, landing };
+const ROUTES = { today, checkin, body, care, procedure, ultrasound, emergency, crew, earth, office, capture, mirror, sim, replay, ground, sources, landing, setup };
 const CALM = new Set(['emergency', 'procedure']);
 
 // Language is chosen per astronaut and kept on this tablet.
@@ -233,7 +234,14 @@ translateDom(document.body);
 new MutationObserver((muts) => muts.forEach((mu) => mu.addedNodes.forEach((n) => translateDom(n.nodeType === 1 ? n : n.parentNode)))).observe(document.body, { childList: true, subtree: true });
 window.addEventListener('hashchange', route);
 hydrateIcons(document);
-setLang(langOf(state.who)).then(refreshMission).then(() => { route(); checkReminder(); translateDom(document.body); }).catch((e) => {
+setLang(langOf(state.who)).then(refreshMission).then(async () => {
+  // first run on this tablet: start with setup unless a screen was asked for
+  try {
+    const su = await api.get(`/api/setup/${state.who}`);
+    if (!su.done && (!location.hash || location.hash === '#/' || location.hash === '#/today') && !sessionStorage.getItem('trix-setup-later')) location.hash = '#/setup';
+  } catch (e) { /* setup is optional */ }
+  route(); checkReminder(); translateDom(document.body);
+}).catch((e) => {
   document.getElementById('view').innerHTML = `<div class="card"><h2>TRIX server not reachable</h2><p class="muted">Start it with <span class="mono">python app.py</span>. ${esc(e.message)}</p></div>`;
 });
 pollAlerts();
