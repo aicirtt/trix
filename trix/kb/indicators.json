@@ -77,6 +77,18 @@
   "HRP_MUSCLE": {
    "title": "NASA HRP: Risk of impaired performance due to reduced muscle size, strength and endurance",
    "url": "https://humanresearchroadmap.nasa.gov/Risks/"
+  },
+  "CSA_RAD": {
+   "title": "Canadian Space Agency: Monitoring radiation for astronaut health (2026)",
+   "url": "https://www.asc-csa.gc.ca/eng/news/articles/2026/2026-02-26-monitoring-radiation-astronaut-health.asp"
+  },
+  "CSA_SCIENCE": {
+   "title": "Canadian Space Agency: Why do we conduct science experiments in space?",
+   "url": "https://www.asc-csa.gc.ca/eng/iss/science/why-do-we-conduct-science-experiments-in-space.asp"
+  },
+  "OSDR": {
+   "title": "NASA Open Science Data Repository (real spaceflight biology data)",
+   "url": "https://osdr.nasa.gov/bio/repo/"
   }
  },
  "hazards": [
@@ -252,7 +264,7 @@
   {
    "id": "temp",
    "name": "Body temperature",
-   "unit": "\u00b0C",
+   "unit": "°C",
    "body_part": "immune",
    "devices": [
     "Thermometer",
@@ -627,7 +639,8 @@
     "Move to storm shelter on red"
    ],
    "sources": [
-    "STD3001_RAD"
+    "STD3001_RAD",
+    "CSA_RAD"
    ]
   },
   {
@@ -656,7 +669,8 @@
     "Flight surgeon review of remaining exposure"
    ],
    "sources": [
-    "STD3001_RAD"
+    "STD3001_RAD",
+    "CSA_RAD"
    ]
   },
   {
@@ -689,7 +703,8 @@
    ],
    "sources": [
     "VIRUS_2019",
-    "VIRUS_2017"
+    "VIRUS_2017",
+    "OSDR"
    ]
   },
   {

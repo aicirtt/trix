@@ -61,6 +61,7 @@ export async function render(el, { state }) {
   const alerts = t.alerts.map((a) => `<a class="banner red rise" href="#/emergency/${a.case_id}">${icon('alert', '#fff', 28)}<span style="flex:1"><strong class="cond" style="font-size:17px;letter-spacing:.06em;text-transform:uppercase">Crew alert · Astronaut ${esc(a.who)}</strong><br><span style="opacity:.92">${esc(a.summary)}</span></span><span class="cond" style="font-weight:700">OPEN →</span></a>`).join('');
 
   el.innerHTML = `${alerts}
+  <a class="envbar" href="#/earth" title="Change the mission environment"><strong>${esc(m.env.place)}</strong><span>${esc(m.env.gravity)}</span><span>${esc(m.env.help)}</span><span class="w">Watch here: ${esc(m.env.watch[0])}</span></a>
   <div class="ribbon">${[stage(1, 'Sense', `${measured} of 6 measured${measured < 6 ? ` · ${6 - measured} due` : ''}`, 'var(--bluet)', '#/checkin', false),
     stage(2, 'Understand', agents.length ? `${agents.length} agents on your last check` : 'waiting for a reading', 'var(--ok)', '#/office', agents.length > 0 && mine && Date.now() / 1000 - mine.ts < 90),
     stage(3, 'Act', p ? '1 prompt due now' : watch ? `${watch} to watch` : 'nothing due', 'var(--watch)', act.go, !!p),

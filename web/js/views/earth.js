@@ -20,6 +20,8 @@ export async function render(el, { state, refreshMission }) {
   el.innerHTML = `
   <div class="head"><div><h1>Earth link</h1><div class="sub">What reaches Earth, when, and what runs on board without it</div></div>
     <div class="seg" role="group" aria-label="Mission location">${Object.entries(m.locations).map(([k, l]) => `<button type="button" data-loc="${k}" class="${k === loc ? 'on' : ''}" aria-pressed="${k === loc}">${esc(l.label)}</button>`).join('')}</div></div>
+  <div class="card"><div class="head"><h2>${esc(m.env.place)}</h2><span class="mono small dim">${esc(m.env.gravity)}</span></div><div class="muted">${esc(m.env.help)} The measuring steps on every guided measurement change with this setting.</div>
+    <ul style="margin:0;padding-left:20px;line-height:1.7">${m.env.watch.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>
   <div class="row">
     <div class="col grow">
       <div class="card" style="padding-bottom:8px;${m.link_cut ? 'opacity:.35' : ''}">${LINK_SVG(m.link.live)}</div>
