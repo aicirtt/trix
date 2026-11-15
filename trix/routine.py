@@ -204,14 +204,17 @@ def overview(who: str, days: int = 30) -> dict:
 # ------------------------------------------------------------------ talk to TRIX
 EMERGENCY = re.compile(r"unresponsive|not breathing|no pulse|chest\b.{0,20}(pain|tight|pressure|hurt|crush)|(pain|tight|pressure).{0,12}chest|can'?t breathe|short of breath|collapsed|passed out|"
                        r"bleeding|solar storm|heart (is )?(racing|flutter|skipping)|irregular|emergency|help me", re.I)
-NAV = [(r"\b(start|do|begin|open)\b.*\b(check[- ]?in|morning check|evening check)", "#/checkin", "Opening your check-in."),
+NAV = [(r"(?=.*\b(start|do|begin|open)\b)(?=.*\b(check[- ]?in|morning check|evening check))", "#/checkin", "Opening your check-in."),   # verb before or after the noun (Korean, Hindi)
        (r"reaction test|alertness test", "#/capture/reaction", "Opening the reaction test."),
        (r"\b(trend|chart|graph|overview)", "#/body", "Opening your trends."),
        (r"agent (tree|log|office)|who decided|what did the agents", "#/office", "Opening the agent tree."),
        (r"\b(ecg|procedure|cpr|ultrasound)", "#/care", "Opening procedures."),
        (r"\b(crew|buddy|streak|badge)", "#/crew", "Opening the crew screen."),
        (r"earth|report|space weather|delay", "#/earth", "Opening the Earth link."),
-       (r"\b(home|deck|dashboard)\b", "#/today", "Back to your deck.")]
+       (r"\b(home|deck|dashboard)\b", "#/today", "Back to your deck."),
+       (r"\b(sos|emergency screen)\b", "#/emergency", "Opening the emergency screen.")]
+MEASURE_VERB = re.compile(r"\b(measure|take|record|enter|log|capture)\b", re.I)
+SHOW_VERB = re.compile(r"\b(open|show|pull up|bring up|go to|display|see)\b", re.I)
 ALIAS = {"sleep": "sleep", "heart rate": "hr", "pulse": "hr", "blood pressure": "bp", "pressure": "bp", "sugar": "glucose", "glucose": "glucose",
          "temperature": "temp", "oxygen": "spo2", "mood": "mood", "bone": "bone", "co2": "co2", "air": "co2", "reaction": "reaction",
          "fatigue": "fatigue", "vision": "vision", "eyes": "vision", "radiation": "rad_daily", "water": "fluid", "calcium": "calcium"}
@@ -233,6 +236,11 @@ def intent(text: str) -> dict:
     for pat, go, say in NAV:
         if re.search(pat, low) and not question:
             return {"kind": "navigate", "go": go, "say": say}
+    if not question and (MEASURE_VERB.search(low) or SHOW_VERB.search(low)):
+        for word, ind in ALIAS.items():
+            if word in low:                                   # a measurement by name: its guided screen, or its trend
+                go = f"#/capture/{ind}" if ind in HOWTO and not SHOW_VERB.search(low) else f"#/body/{ind}"
+                return {"kind": "navigate", "go": go, "say": f"Opening {word}."}
     if question and re.search(r"\b(my|am i|i am|me)\b", low):
         for word, ind in ALIAS.items():
             if word in low:

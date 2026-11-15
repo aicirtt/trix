@@ -70,3 +70,19 @@ def get_llm():
         return OllamaLLM()
     except Exception:
         return FallbackLLM()
+
+
+def translate(text: str, language: str) -> str | None:
+    """Translate with the local Ollama model; None when only the extractive fallback is available."""
+    m = get_llm()
+    if not text or not isinstance(m, OllamaLLM):
+        return None
+    body = json.dumps({"model": MODEL, "stream": False, "options": {"temperature": 0},
+                       "messages": [{"role": "system", "content": f"Translate the user's message into {language}. Reply with the translation only, keep numbers and the word TRIX unchanged."},
+                                    {"role": "user", "content": text}]}).encode()
+    try:
+        req = urllib.request.Request(f"{OLLAMA}/api/chat", data=body, headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return json.loads(r.read())["message"]["content"].strip() or None
+    except Exception:
+        return None

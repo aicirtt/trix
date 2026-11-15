@@ -13,7 +13,7 @@ import * as earth from './views/earth.js';
 import * as office from './views/office.js';
 import * as capture from './views/capture.js';
 import { speak } from './ui.js';
-import { t, setLang, translateDom, LANGS } from './i18n.js';
+import { t, setLang, translateDom, LANGS, SPEECH, getLang } from './i18n.js';
 import { speechAvailable, listenOnce } from './sensors.js';
 
 const NAV = [
@@ -145,7 +145,9 @@ function setupTalk() {
   btn.innerHTML = `${icon('mic', '#fff', 20)}Talk to TRIX`;
   const panel = document.createElement('div');
   panel.className = 'talk'; panel.hidden = true; panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-label', 'Talk to TRIX');
-  panel.innerHTML = `<div class="row" style="justify-content:space-between;align-items:center"><strong class="cond" style="letter-spacing:.08em;text-transform:uppercase;color:#CFE0FF">Talk to TRIX</strong><button class="btn ghost sm" id="talkclose" aria-label="Close">Close</button></div>
+  panel.innerHTML = `<div class="row" style="justify-content:space-between;align-items:center;gap:8px"><strong class="cond" style="letter-spacing:.08em;text-transform:uppercase;color:#CFE0FF">Talk to TRIX</strong>
+      <label class="row small" style="gap:6px;align-items:center;margin-left:auto;cursor:pointer" title="Say “TRIX”, then your request."><span class="switch"><input type="checkbox" id="handsfree"><span></span></span>Hands-free</label><button class="btn ghost sm" id="talkclose" aria-label="Close">Close</button></div>
+    <div id="talkstate" class="small dim" hidden>Say “TRIX”, then your request.</div>
     <div id="talklog" class="col" style="gap:8px"><div class="trix small">Say or type anything: <em>“heart rate 68 and oxygen 98”</em>, <em>“I drank 500 mL of water”</em>, <em>“why is my sleep amber?”</em>, <em>“start my check-in”</em>, or <em>“my chest feels tight”</em>.</div></div>
     <form id="talkform" class="row" style="gap:8px"><label class="sr" for="talkin">Message</label><input class="input" id="talkin" style="flex:1;min-width:0;font-size:16px" placeholder="Type or press the mic" autocomplete="off">
       <button type="button" class="btn ghost" id="talkmic" aria-label="Speak" style="padding:0 14px">${icon('mic')}</button><button class="btn" style="padding:0 16px">Send</button></form>`;
@@ -159,7 +161,8 @@ function setupTalk() {
     log.insertAdjacentHTML('beforeend', `<div class="me">${esc(text)}</div>`);
     input.value = '';
     try {
-      const r = await api.post('/api/assistant', { who: state.who, text });
+      const r = await api.post('/api/assistant', { who: state.who, text, lang: getLang() });
+      r.say = t(r.say);
       log.insertAdjacentHTML('beforeend', `<div class="trix">${r.route ? `<div class="mono small dim" style="margin-bottom:4px">${r.route.filter(Boolean).map(esc).join(' → ')}</div>` : ''}${esc(r.say)}
         ${(r.sources || []).map((s) => `<div class="small"><a href="${esc(s.url)}" target="_blank" rel="noopener">[${s.n}] ${esc(s.title)}</a></div>`).join('')}
         ${r.case_id ? `<div class="small"><a href="#/office/${r.case_id}">See what the agents did</a></div>` : ''}</div>`);
@@ -172,8 +175,22 @@ function setupTalk() {
   panel.querySelector('#talkmic').onclick = () => {
     if (!speechAvailable()) { input.placeholder = 'Speech needs Chrome or Edge. Type instead.'; return; }
     input.placeholder = 'Listening…';
-    listenOnce({ onText: (t, fin) => { input.value = t; if (fin && t) send(t); }, onError: () => { input.placeholder = 'Could not hear you. Type instead.'; } });
+    listenOnce({ lang: SPEECH[getLang()], onText: (t, fin) => { input.value = t; if (fin && t) send(t); }, onError: () => { input.placeholder = 'Could not hear you. Type instead.'; } });
   };
+  // Hands-free: keep listening; a sentence that starts with "TRIX" (in any language) is a request, everything else is ignored.
+  const WAKE = /^(?:hey |ok |okay |эй |hé |oye )?(?:trix|трикс|トリックス|特里克斯|트릭스|ट्रिक्स)[\s,.!?、，。]*/i;
+  const hf = panel.querySelector('#handsfree'), hfState = panel.querySelector('#talkstate');
+  let hfRec = null;
+  const listenLoop = () => {
+    if (!hf.checked) return;
+    hfState.hidden = false; hfState.textContent = t('Listening…');
+    hfRec = listenOnce({ lang: SPEECH[getLang()], continuous: true,
+      onText: (heard, fin) => { if (!fin) return; const m = heard.match(WAKE) || heard.match(/\b(?:trix|трикс|트릭스)\b[\s,.!?]*/i); if (m) { const req = heard.slice(m.index + m[0].length).trim(); if (req) { open(true); send(req); } } },
+      onEnd: () => { if (hf.checked) setTimeout(listenLoop, 400); },
+      onError: (e) => { if (e?.error === 'not-allowed') { hf.checked = false; hfState.textContent = 'Microphone blocked.'; } } });
+  };
+  hf.onchange = () => { localStorage.setItem('trix-handsfree', hf.checked); btn.classList.toggle('live', hf.checked); if (hf.checked) { if (!speechAvailable()) { hf.checked = false; hfState.hidden = false; hfState.textContent = 'Speech needs Chrome or Edge.'; return; } listenLoop(); } else { hfRec?.stop?.(); hfState.hidden = true; } };
+  if (localStorage.getItem('trix-handsfree') === 'true' && speechAvailable()) { hf.checked = true; btn.classList.add('live'); setTimeout(listenLoop, 1500); }
 }
 setupTalk();
 translateDom(document.body);

@@ -63,11 +63,11 @@ export const RIGHT_EYE = [362, 385, 387, 263, 373, 380];
 
 // ---------------- speech ----------------
 export function speechAvailable() { return !!(window.SpeechRecognition || window.webkitSpeechRecognition); }
-export function listenOnce({ onText, onEnd, onError, continuous = false }) {
+export function listenOnce({ onText, onEnd, onError, continuous = false, lang = 'en-US' }) {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) { onError?.(new Error('no speech recognition')); return null; }
   const rec = new SR();
-  rec.lang = 'en-US';
+  rec.lang = lang;
   rec.interimResults = true;
   rec.continuous = continuous;
   let final = '';

@@ -309,3 +309,29 @@ def test_simulated_devices_read_and_sync():
     assert all(six[k]["measured_today"] for k in ("bp", "hr", "glucose", "temp", "sleep"))
     assert any(x["source"] == "simulated device" for x in store.live_readings("A"))
     assert c.post("/api/devices/sync", json={"who": "A"}).json()["synced"] == 0
+
+
+# ------------------------------------------------------------------ talk to TRIX in the astronaut's language
+@pytest.mark.parametrize("lang,text,kind,go", [
+    ("ru", "пульс 70 и кислород 97", "log", None), ("es", "presión arterial 118 sobre 76", "log", None), ("fr", "ouvre mes tendances", "navigate", "#/body"),
+    ("de", "starte meinen Check-in", "navigate", "#/checkin"), ("it", "apri l'equipaggio", "navigate", "#/crew"), ("ja", "心拍数 72", "log", None),
+    ("zh", "打开地球", "navigate", "#/earth"), ("ko", "체크인 시작", "navigate", "#/checkin"), ("hi", "मेरा चेक-इन शुरू करो", "navigate", "#/checkin"),
+    ("en", "measure my blood pressure", "navigate", "#/capture/bp"), ("en", "show my sleep", "navigate", "#/body/sleep"), ("es", "cómo está mi pulso", "status", "#/body/hr"),
+])
+def test_assistant_understands_other_languages(lang, text, kind, go):
+    r = c.post("/api/assistant", json={"who": "C", "text": text, "lang": lang}).json()
+    assert r["kind"] == kind, r
+    if go:
+        assert r["go"] == go
+    if kind == "log":
+        assert r["readings"]
+
+
+def test_wake_word_and_localize_helpers():
+    from trix import assistant_lang as al
+    assert al.strip_wake("Hey TRIX, log heart rate 70") == "log heart rate 70"
+    assert al.strip_wake("трикс открой экипаж") == "открой экипаж"
+    assert al.strip_wake("log heart rate 70") is None
+    assert al.localize("давление 120 на 80", "ru") == "blood pressure 120 over 80"
+    assert "over" not in al.localize("спал 7 часов", "ru")                  # "на" is "over" only between two numbers
+    assert al.localize("heart rate 70", "en") == "heart rate 70"

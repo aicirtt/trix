@@ -20,7 +20,7 @@ from fastapi import Body, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
-from . import detect, escalation, feeds, game, insights, routine, voicebio, kb, llm, office, orchestrator, protocols, rag, safety, store, teams, vision, voice
+from . import assistant_lang, detect, escalation, feeds, game, insights, routine, voicebio, kb, llm, office, orchestrator, protocols, rag, safety, store, teams, vision, voice
 
 ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web"
@@ -426,9 +426,18 @@ def overview(who: str, days: int = 30):
 @app.post("/api/assistant")
 def assistant(body: dict = Body(...)):
     """Speech or text from the astronaut -> intent -> the right agents. Health events go through the mission orchestrator."""
-    who, text = body.get("who"), (body.get("text") or "")
+    who, text, lang = body.get("who"), (body.get("text") or ""), body.get("lang") or "en"
     if who not in game.CREW:
         raise HTTPException(400, "who must be A, B or C")
+    if lang != "en":                                      # understand the astronaut's language: translate with the local model, else map the key words
+        text = llm.translate(text, "English") or assistant_lang.localize(text, lang)
+    out = _assistant(who, text, body)
+    if lang != "en" and out.get("say"):
+        out["say"] = llm.translate(out["say"], assistant_lang.NAMES.get(lang, "English")) or out["say"]
+    return out
+
+
+def _assistant(who: str, text: str, body: dict) -> dict:
     it = routine.intent(text)
     kind = it["kind"]
     if kind == "empty":
