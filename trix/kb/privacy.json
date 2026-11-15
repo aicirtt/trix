@@ -1,21 +1,5 @@
 {
- "default": {
-  "vitals_summary": true,
-  "mood_details": false,
-  "voice_recordings": false,
-  "face_video": false,
-  "photos": "medical_officer_only",
-  "crew_can_see_status": true,
-  "scan_photos": true
- },
- "A": {},
- "B": {},
- "C": {
-  "mood_details": false
- },
- "rules": [
-  "Emergencies are always shared with the crew medical officer and flight surgeon.",
-  "Raw face video is never stored or sent.",
-  "Body-scan photos stay on the onboard computer and are never sent to Earth."
- ]
+  "default": {"vitals_summary": true, "mood_details": false, "voice_recordings": false, "face_video": false, "photos": "medical_officer_only", "crew_can_see_status": true},
+  "A": {}, "B": {}, "C": {"mood_details": false},
+  "rules": ["Emergencies are always shared with the crew medical officer and flight surgeon.", "Raw face video is never stored or sent."]
 }

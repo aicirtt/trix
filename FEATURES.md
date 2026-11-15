@@ -46,14 +46,7 @@
 | 40 | Reaction test, exercise, body mass, back pain | ✅ | 8-round tap test (median reaction time vs limits), plus three simple entries; all go through the agents and have trends |
 | 41 | Alertness and strain trend | ✅ | 30-day overview of sleep, mood, alertness and strain from sleep, mood, HRV, eye closure and reaction time against your own normal. Not an emotion detector |
 | 42 | Talk to TRIX | ✅ | Voice or text on every screen: logs readings, answers status and knowledge questions with citations, opens screens, and starts the Emergency team. Health events go through the mission orchestrator |
-| 43 | Body mirror | 🟡 | Scan yourself (MediaPipe Pose with segmentation on the tablet): your outline becomes the body on the deck; a re-scan overlays day-1 and today outlines on your photo and reports face, waist, thigh and calf change. Measuring and comparing are tested on drawn figures; the camera capture has not been run on a real person. A simulated day-1 scan is available for the demo |
-| 44 | Cut the link | ✅ | One tap removes all contact with Earth: the Flight Surgeon agent decides on board, reports are held, the header shows NO LINK |
-| 45 | Crew alert takeover | ✅ | An emergency raised on one tablet takes over every other crew tablet within 3 s with a sound and “Open the guided response” |
-| 46 | What-if simulator | ✅ | Seven scenarios (irregular heartbeat, unresponsive, low oxygen, fever, bad sleep, CO₂ spike, solar storm) run through the real agents; reset demo data |
-| 47 | Mission replay | ✅ | Slider over the 240 simulated days: body map per day and when TRIX vs fixed limits first flagged each planted problem |
-| 48 | Flight surgeon view | ✅ | The Earth end of the link: reports arrive after the delay (demo clock for Mars) with privacy applied; Earth can message the crew |
-| 49 | Astronaut's language | 🟡 | English, Russian, Japanese, Chinese per astronaut for navigation, prompts, measurement steps and result labels, and for read-aloud. NASA explanations and agent advice stay in English. Translations not yet checked by native speakers |
 
-**Totals:** 45 ✅ · 4 🟡 · 0 ⬜ (of 49)
+**Totals:** 40 ✅ · 2 🟡 · 0 ⬜ (of 42)
 
-Tested by `tests/` (359 tests, including every API endpoint the app uses) and in a headless browser on every screen. Camera checks were tested on synthetic images, not real patients.
+Tested by `tests/` (348 tests, including every API endpoint the app uses) and in a headless browser on every screen. Camera checks were tested on synthetic images, not real patients.

@@ -7,7 +7,6 @@ const PRIV = [
   ['voice_recordings', 'Keep voice recordings', 'Off: only the words TRIX understood are kept'],
   ['face_video', 'Keep face-check video', 'Off: only eye measurements are kept'],
   ['crew_can_see_status', 'Crew can see my status colours', 'Used for buddy checks'],
-  ['scan_photos', 'Keep my body-scan photos', 'On board only, never sent to Earth. Off: outline only'],
 ];
 
 export async function render(el, { state }) {

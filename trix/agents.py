@@ -170,13 +170,6 @@ def flight_surgeon(state: State) -> State:
     office.tool("ladder.location", state.get("location", "mars"), {"delay_s": loc["one_way_delay_s"], "live": loc["live_consult"]})
     urgent = state["urgency"] == "emergency" or (state.get("route") == "cardiac" and "irregular_rhythm" in state.get("flags", []))
     rtt_min = 2 * loc["one_way_delay_s"] / 60
-    if state.get("link_cut"):
-        decision = ({"act": "onboard_now", "why": "No contact with Earth. Act on board now; the report is held until the link returns."} if urgent else
-                    {"act": "self_care_and_queue", "why": "No contact with Earth. Follow the advice; the report is held until the link returns."})
-        state["decision"] = decision
-        office.current().result(decision)
-        _log(state, "Flight Surgeon", decision["act"], why=decision["why"])
-        return state
     if urgent:
         decision = {"act": "onboard_now", "why": f"High risk; Earth reply takes ~{rtt_min:.0f} min round trip." if not loc["live_consult"]
                     else "High risk; act now and connect the flight surgeon live."}

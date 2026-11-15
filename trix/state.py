@@ -28,7 +28,6 @@ class State(TypedDict, total=False):
     coach: dict
     reminder: dict
     findings: list          # abnormal indicators found by Triage, e.g. ["Blood oxygen"]
-    link_cut: bool          # no contact with Earth at all (demo: "cut the link")
     baseline: str           # "personal" | "standard limits only" | "no readings"
     urgency: str
     route: str
