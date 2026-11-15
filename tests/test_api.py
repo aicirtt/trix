@@ -335,3 +335,26 @@ def test_wake_word_and_localize_helpers():
     assert al.localize("давление 120 на 80", "ru") == "blood pressure 120 over 80"
     assert "over" not in al.localize("спал 7 часов", "ru")                  # "на" is "over" only between two numbers
     assert al.localize("heart rate 70", "en") == "heart rate 70"
+
+
+def test_planner_only_runs_actions_that_exist():
+    from trix import assistant_plan as ap
+    v = ap.validate
+    assert v({"action": "navigate", "go": "#/body", "say": "Abro tus tendencias."}, "")["kind"] == "navigate"
+    assert v({"action": "navigate", "go": "#/capture/bp"}, "")["go"] == "#/capture/bp"
+    assert v({"action": "navigate", "go": "#/capture/nothing"}, "") is None and v({"action": "navigate", "go": "https://evil"}, "") is None
+    assert v({"action": "log", "readings": {"hr": "70", "spo2": 97, "foo": 1, "sys": 900}}, "pulse 70 oxygen 97 sys 900")["readings"] == {"hr": 70, "spo2": 97}
+    assert v({"action": "log", "readings": {"sys": 900}}, "900") is None
+    assert v({"action": "log", "readings": {"hr": 72, "sys": 118, "dia": 76}}, "and blood pressure 118 over 76")["readings"] == {"sys": 118, "dia": 76}   # no echo of earlier turns
+    assert v({"action": "status", "indicator": "hr"}, "")["kind"] == "status" and v({"action": "status", "indicator": "x"}, "") is None
+    assert v({"action": "procedure", "protocol_id": "CPR-MG-01"}, "")["kind"] == "procedure" and v({"action": "procedure", "protocol_id": "NOPE"}, "") is None
+    assert v({"action": "emergency"}, "he collapsed")["symptoms"] == "he collapsed"
+    assert v({"action": "clarify"}, "")["say"] and v({"action": "launch_missiles"}, "") is None and v("junk", "") is None
+    assert ap.plan("hello", "en", []) is None or isinstance(ap.plan("hello", "en", []), dict)   # no model in tests: falls back to None
+
+
+def test_assistant_can_start_a_procedure_and_clarify():
+    from trix import api as A
+    r = A._assistant("B", "", {}, {"kind": "procedure", "protocol_id": "GLU-01", "say": ""})
+    assert r["kind"] == "procedure" and r["go"].startswith("#/procedure/") and "Blood sugar" in r["say"]
+    assert A._assistant("B", "", {}, {"kind": "clarify", "say": "Which one?"})["say"] == "Which one?"

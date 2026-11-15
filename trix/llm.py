@@ -86,3 +86,16 @@ def translate(text: str, language: str) -> str | None:
             return json.loads(r.read())["message"]["content"].strip() or None
     except Exception:
         return None
+
+
+def chat_json(messages: list[dict]) -> str | None:
+    """One JSON-only reply from the local Ollama model; None when only the fallback is available or it fails."""
+    if not isinstance(get_llm(), OllamaLLM):
+        return None
+    body = json.dumps({"model": MODEL, "stream": False, "format": "json", "options": {"temperature": 0}, "messages": messages}).encode()
+    try:
+        req = urllib.request.Request(f"{OLLAMA}/api/chat", data=body, headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=90) as r:
+            return json.loads(r.read())["message"]["content"]
+    except Exception:
+        return None

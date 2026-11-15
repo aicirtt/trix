@@ -148,27 +148,34 @@ function setupTalk() {
   panel.innerHTML = `<div class="row" style="justify-content:space-between;align-items:center;gap:8px"><strong class="cond" style="letter-spacing:.08em;text-transform:uppercase;color:#CFE0FF">Talk to TRIX</strong>
       <label class="row small" style="gap:6px;align-items:center;margin-left:auto;cursor:pointer" title="Say “TRIX”, then your request."><span class="switch"><input type="checkbox" id="handsfree"><span></span></span>Hands-free</label><button class="btn ghost sm" id="talkclose" aria-label="Close">Close</button></div>
     <div id="talkstate" class="small dim" hidden>Say “TRIX”, then your request.</div>
+    <div class="small dim" id="talkbrain"></div>
     <div id="talklog" class="col" style="gap:8px"><div class="trix small">Say or type anything: <em>“heart rate 68 and oxygen 98”</em>, <em>“I drank 500 mL of water”</em>, <em>“why is my sleep amber?”</em>, <em>“start my check-in”</em>, or <em>“my chest feels tight”</em>.</div></div>
     <form id="talkform" class="row" style="gap:8px"><label class="sr" for="talkin">Message</label><input class="input" id="talkin" style="flex:1;min-width:0;font-size:16px" placeholder="Type or press the mic" autocomplete="off">
       <button type="button" class="btn ghost" id="talkmic" aria-label="Speak" style="padding:0 14px">${icon('mic')}</button><button class="btn" style="padding:0 16px">Send</button></form>`;
   document.body.append(btn, panel);
   const log = panel.querySelector('#talklog'), input = panel.querySelector('#talkin');
+  let history = [];                                                     // the last turns, so "and my oxygen?" makes sense
+  try { history = JSON.parse(sessionStorage.getItem('trix-talk') || '[]'); } catch (e) { history = []; }
+  history.forEach((h) => log.insertAdjacentHTML('beforeend', h.role === 'user' ? `<div class="me">${esc(h.text)}</div>` : `<div class="trix">${esc(h.text)}</div>`));
+  const remember = (role, text) => { history = [...history, { role, text }].slice(-8); sessionStorage.setItem('trix-talk', JSON.stringify(history)); };
   const open = (o) => { panel.hidden = !o; btn.setAttribute('aria-expanded', o); if (o) input.focus(); };
-  btn.onclick = () => open(panel.hidden);
+  btn.onclick = () => { open(panel.hidden); const b = panel.querySelector('#talkbrain'); const ai = state.mission?.ai?.llm || ''; b.textContent = ai.startsWith('ollama') ? `Local model: ${ai.slice(7)} · understands any sentence` : 'Offline rules · say it like the examples'; };
   panel.querySelector('#talkclose').onclick = () => open(false);
   const send = async (text) => {
     if (!text.trim()) return;
-    log.insertAdjacentHTML('beforeend', `<div class="me">${esc(text)}</div>`);
-    input.value = '';
+    log.insertAdjacentHTML('beforeend', `<div class="me">${esc(text)}</div><div class="trix small dim" id="talkwait">…</div>`);
+    input.value = ''; panel.scrollTop = panel.scrollHeight;
     try {
-      const r = await api.post('/api/assistant', { who: state.who, text, lang: getLang() });
+      const r = await api.post('/api/assistant', { who: state.who, text, lang: getLang(), history });
+      panel.querySelector('#talkwait')?.remove();
       r.say = t(r.say);
+      remember('user', text); remember('assistant', r.say);
       log.insertAdjacentHTML('beforeend', `<div class="trix">${r.route ? `<div class="mono small dim" style="margin-bottom:4px">${r.route.filter(Boolean).map(esc).join(' → ')}</div>` : ''}${esc(r.say)}
         ${(r.sources || []).map((s) => `<div class="small"><a href="${esc(s.url)}" target="_blank" rel="noopener">[${s.n}] ${esc(s.title)}</a></div>`).join('')}
         ${r.case_id ? `<div class="small"><a href="#/office/${r.case_id}">See what the agents did</a></div>` : ''}</div>`);
       speak(r.say);
       if (r.go) { if (r.kind === 'emergency' || r.kind === 'navigate') open(false); location.hash = r.go; } else if (r.kind === 'log' && (location.hash === '' || location.hash.startsWith('#/today'))) route();
-    } catch (e) { log.insertAdjacentHTML('beforeend', `<div class="trix">Could not reach TRIX: ${esc(e.message)}</div>`); }
+    } catch (e) { panel.querySelector('#talkwait')?.remove(); log.insertAdjacentHTML('beforeend', `<div class="trix">Could not reach TRIX: ${esc(e.message)}</div>`); }
     panel.scrollTop = panel.scrollHeight;
   };
   panel.querySelector('#talkform').onsubmit = (e) => { e.preventDefault(); send(input.value); };

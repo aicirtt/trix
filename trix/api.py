@@ -20,7 +20,7 @@ from fastapi import Body, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
-from . import assistant_lang, detect, escalation, feeds, game, insights, routine, voicebio, kb, llm, office, orchestrator, protocols, rag, safety, store, teams, vision, voice
+from . import assistant_lang, assistant_plan, detect, escalation, feeds, game, insights, routine, voicebio, kb, llm, office, orchestrator, protocols, rag, safety, store, teams, vision, voice
 
 ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web"
@@ -429,23 +429,25 @@ def assistant(body: dict = Body(...)):
     who, text, lang = body.get("who"), (body.get("text") or ""), body.get("lang") or "en"
     if who not in game.CREW:
         raise HTTPException(400, "who must be A, B or C")
-    if lang != "en":                                      # understand the astronaut's language: translate with the local model, else map the key words
-        text = llm.translate(text, "English") or assistant_lang.localize(text, lang)
-    out = _assistant(who, text, body)
-    if lang != "en" and out.get("say"):
+    it = assistant_plan.plan(text, lang, body.get("history")) if text.strip() else None   # local model: any sentence, with memory
+    if it is None and lang != "en":                       # no model: map the key words of the astronaut's language to English
+        text = assistant_lang.localize(text, lang)
+    out = _assistant(who, text, body, it)
+    out["brain"] = "model" if it is not None else "rules"
+    if lang != "en" and out.get("say") and it is not None and it["kind"] not in ("navigate", "clarify", "procedure"):
         out["say"] = llm.translate(out["say"], assistant_lang.NAMES.get(lang, "English")) or out["say"]
     return out
 
 
-def _assistant(who: str, text: str, body: dict) -> dict:
-    it = routine.intent(text)
+def _assistant(who: str, text: str, body: dict, it: dict | None = None) -> dict:
+    it = it or routine.intent(text)
     kind = it["kind"]
     if kind == "empty":
         return {"kind": kind, "say": "I didn't catch that. Try: log heart rate 70, start my check-in, or ask a question."}
     if kind == "emergency":
         patient = body.get("patient") or who
         flags = ["irregular_rhythm"] if re.search(r"irregular|flutter|skipping", text, re.I) else ["solar_event"] if "solar" in text.lower() else []
-        out = run({"event": "alert", "who": patient, "vitals": {}, "flags": flags, "symptoms": text, "helper": who})
+        out = run({"event": "alert", "who": patient, "vitals": {}, "flags": flags, "symptoms": it.get("symptoms") or text, "helper": who})
         first = (out.get("procedure") or {}).get("first_step") or (out.get("specialist_plan") or {}).get("advice", "")
         return _clean({"kind": kind, "case_id": out["case_id"], "go": f"#/emergency/{out['case_id']}", "say": f"Emergency team started. {first}",
                        "route": ["Mission orchestrator", "Emergency team", (out.get("specialist_plan") or {}).get("specialist", "")]})
@@ -465,6 +467,11 @@ def _assistant(who: str, text: str, body: dict) -> dict:
                        "go": f"#/emergency/{out['case_id']}" if out.get("handoff") else None})
     if kind == "navigate":
         return {"kind": kind, "say": it["say"], "go": it["go"], "route": ["Assistant"]}
+    if kind == "clarify":
+        return {"kind": kind, "say": it["say"], "route": ["Assistant"]}
+    if kind == "procedure":
+        p = proc_start({"protocol_id": it["protocol_id"], "who": who})
+        return _clean({"kind": kind, "say": it.get("say") or f"Starting {p['protocol']['title']}. {p['current']['say']}", "go": f"#/procedure/{p['sid']}", "route": ["Assistant", "Procedure"]})
     if kind == "symptom":
         out = run({"event": "symptom", "who": who, "symptoms": it["symptoms"], "vitals": {}})
         return _clean({"kind": kind, "case_id": out["case_id"], "say": (out.get("specialist_plan") or {}).get("advice", ""),
