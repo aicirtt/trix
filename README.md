@@ -2,11 +2,39 @@
 
 **TRIX** (Triage, Response & Intelligence eXpert) is our entry for NASA Space Apps 2026, *Create Health Monitoring Software for Astronauts on Space Missions*. Built by Tricia and Xavier.
 
-On long missions, an answer from Earth can take up to 40 minutes, so astronauts have to notice health changes in themselves. TRIX is an AI medical crew member that runs on the spacecraft's own computer. It gives each astronaut a two-minute daily check and compares the result with **their own normal**. If something goes wrong, a 3D guide shows what to do, and TRIX keeps working when the link to Earth is cut.
+## What TRIX does
 
-- **57 features:** 51 working fully and 6 in a simpler form. See [FEATURES.md](FEATURES.md).
-- **Submission write-up:** [SUBMISSION.md](SUBMISSION.md), with the challenge mapping, NASA data, results and the AI tools we used.
-- **Styled like mission software:** NASA blue and red, a mission clock, GO / WATCH / NO-GO status, and a live Earth-delay counter.
+On a long mission, a question to Earth can take up to 40 minutes to answer. There is one crew medical officer and no quick way home, so astronauts have to notice health changes in themselves. NASA names five hazards that cause them: radiation, isolation, distance from Earth, gravity changes and a closed environment.
+
+**TRIX is an AI medical crew member that runs on the spacecraft's own computer.** It:
+
+1. **Asks at the right time.** It learns when each astronaut actually responds and prompts a two-minute check then.
+2. **Helps measure correctly.** Readings come from devices, voice, typing or the camera, and each one shows how to measure, what the number means and why it matters in space.
+3. **Understands the reading.** A team of 13 AI agents compares it with *that astronaut's own normal* and with NASA limits, explains the result in plain words with NASA sources, and a Safety agent checks every answer.
+4. **Says what to do.** GO, WATCH or NO-GO, one clear next step, and when to tell the medical officer or a flight surgeon.
+5. **Shows how in an emergency.** A realistic 3D guide acts out the procedure, such as CPR in zero gravity, and the rest of the crew is alerted at once.
+6. **Reports to Earth.** Reports are privacy-filtered and sent with the real delay. TRIX keeps deciding on board when the link is cut.
+
+## How it helps
+
+| Who | How TRIX helps them |
+|---|---|
+| **Astronauts** | Know in two minutes whether they are OK; clear next steps; a 3D guide in a crisis; motivation from messages from home; ready for landing day. |
+| **Crew medical officer** | Sees the whole crew at a glance, is alerted at once, and is guided step by step through procedures they rarely practise. |
+| **Flight surgeons on Earth** | Get useful reports with the reasoning shown, despite the delay, instead of raw numbers. |
+| **The mission** | Problems are caught weeks earlier (bone loss 35 days, blood pressure 25 days in our simulation), fewer checks are missed, and decisions don't wait for Earth. |
+| **People on Earth** | The same approach fits anywhere help is far away: Antarctic stations, ships, oil rigs, rural clinics, older people living alone. |
+
+**What makes it different:**
+- It works without Earth.
+- It compares you with yourself, not with an average.
+- You can see what every AI agent did.
+- It shows you what to do, not just tells you.
+- It scans your own body.
+- It motivates with messages from home.
+- It covers the whole mission, from launch to landing.
+
+All **57 features** are explained in plain words in [FEATURES.md](FEATURES.md): what each does, how it helps, and how it works. 51 work fully, and 6 work in a simpler form, with what each can become. The app is styled like mission software: NASA blue and red, a mission clock, GO / WATCH / NO-GO and a live Earth-delay counter.
 
 ## What the astronaut sees, from launch to landing
 
@@ -298,15 +326,3 @@ Eight labelled events are injected:
 - mood decline,
 - CO₂ spikes,
 - a solar particle event.
-
-## Limits (say these to the judges)
-- **Camera checks are rule-based screening aids.** ECG placement, CPR rate, sway, skin redness, ultrasound view quality and food labels use MediaPipe landmarks plus OpenCV rules, tested on synthetic images. They have not been validated on real patients.
-- **Optional AI add-ons** (`python scripts/setup_addons.py --medsiglip` / `--echonet`): MedSigLIP skin screening and EchoNet-Dynamic pumping strength. Written and wired into the app, but not yet run end to end (they need PyTorch and large downloads). Without them the app uses the built-in checks and says so.
-- **Voice check** was tested on synthetic speech-like audio, not real voices; it needs 3 of your own recordings before it compares against you.
-- **Food is logged by the pouch label**, like NASA’s ISS FIT app, not by recognising food itself.
-- **Speech:** the tablet's speech recognition (Chrome sends audio to Google, so it is not offline). For offline use install `faster-whisper` on the onboard computer.
-- **Bluetooth:** any standard Bluetooth heart-rate strap or watch works (Web Bluetooth). Other ISS devices are simulated.
-- **Not a medical device.** Clinical cut-offs marked "general clinical reference" need review by a medical mentor.
-- **Small, team-written test sets.** The retrieval and safety sets were written by the team and used while tuning. Write fresh held-out questions before quoting final numbers.
-- **Simplified protocols.** The protocol YAMLs are simplified for the demo. Real missions follow the official medical checklist.
-- **Demo formulary.** The medicine list in `kb/docs/formulary.md` is a simulated example.
