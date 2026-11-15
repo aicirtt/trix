@@ -3,8 +3,8 @@
 Needs npm (comes with Node.js). Run once:  python scripts/setup_vendor.py
 Without this step the app loads the same files from public CDNs when online.
 
-Avatar models: Soldier.glb and Michelle.glb from the three.js examples (MIT-licensed repository; the characters
-come from Adobe Mixamo, free to use in projects). They are downloaded, not committed.
+Avatar model: readyplayer.me.glb from the three.js examples (a Ready Player Me avatar; the repository
+is MIT-licensed). It is downloaded, not committed.
 """
 import urllib.request
 import shutil
@@ -41,7 +41,7 @@ THREE = "three@0.170.0"
 THREE_FILES = {"build/three.module.min.js": "three.module.min.js", "examples/jsm/loaders/GLTFLoader.js": "addons/GLTFLoader.js",
                "examples/jsm/utils/BufferGeometryUtils.js": "utils/BufferGeometryUtils.js", "examples/jsm/utils/SkeletonUtils.js": "addons/SkeletonUtils.js",
                "examples/jsm/controls/OrbitControls.js": "addons/OrbitControls.js"}
-MODELS = ["Soldier", "Michelle"]
+MODELS = ["readyplayer.me"]
 MODEL_URL = "https://raw.githubusercontent.com/mrdoob/three.js/r170/examples/models/gltf/{}.glb"
 
 

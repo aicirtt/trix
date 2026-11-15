@@ -61,7 +61,7 @@ export async function render(el, { params, state, go }) {
       <div class="row" style="gap:12px;align-items:center"><strong class="muted">Step ${cur.n} of ${cur.of}</strong><div class="dots">${dots}</div></div></div>
     <div class="row">
       <div class="col" style="flex:1.3;min-width:320px">
-        ${av.HAS(pid) ? `<div class="card" style="padding:0;gap:0"><div class="tile"><div class="ptitle"><span>Show me how · step ${cur.n} of ${cur.of}</span><button class="btn ghost sm" id="avtoggle">${showAv ? 'Hide 3D guide' : 'Show 3D guide'}</button></div></div>${showAv ? '<div id="avslot"></div><div class="avcap"><span id="avlabel"></span><span class="dim">Drag to turn · 3D guide is a demonstration; follow the written step</span></div>' : ''}</div>` : ''}
+        ${av.HAS(pid) ? `<div class="card" style="padding:0;gap:0"><div class="tile"><div class="ptitle"><span>Show me how · step ${cur.n} of ${cur.of}</span><button class="btn ghost sm" id="avtoggle">${showAv ? 'Hide 3D guide' : 'Show 3D guide'}</button></div></div>${showAv ? '<div id="avslot"></div><div class="avcap"><span id="avlabel"></span><span class="dim">The 3D guide is a demonstration: follow the written step</span></div>' : ''}</div>` : ''}
         ${isCam ? `<div class="cam" id="cam"><video id="vid" playsinline></video><canvas class="overlay" id="ov"></canvas>
           <div class="idle" id="idle">${icon('camera', 'var(--t2)', 40)}<span>${isEcg ? 'Mount the tablet facing the patient\'s chest so the shoulders and hips are in view.' : 'Point the camera at the patient.'}</span><button class="btn" id="camon">${icon('camera', '#fff', 18)}Turn on camera</button></div>
           <div class="msg" id="msg" hidden></div></div>` : ''}
