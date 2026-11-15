@@ -28,10 +28,9 @@ const langOf = (who) => localStorage.getItem(`trix-lang-${who}`) || 'en';
 export const state = {
   who: localStorage.getItem('trix-who') || 'C',
   mission: null,
-  setWho(w) { this.who = w; localStorage.setItem('trix-who', w); setLang(langOf(w)); renderTop(); route(); },
-  setLang(l) { localStorage.setItem(`trix-lang-${this.who}`, l); setLang(l); renderTop(); route(); translateDom(document.body); },
+  setWho(w) { this.who = w; localStorage.setItem('trix-who', w); setLang(langOf(w)).then(() => { renderTop(); route(); translateDom(document.body); }); },
+  setLang(l) { localStorage.setItem(`trix-lang-${this.who}`, l); setLang(l).then(() => { renderTop(); route(); translateDom(document.body); }); },
 };
-setLang(langOf(state.who));
 
 let cleanup = null;
 let clockTimer = null;
@@ -182,7 +181,7 @@ translateDom(document.body);
 new MutationObserver((muts) => muts.forEach((mu) => mu.addedNodes.forEach((n) => translateDom(n.nodeType === 1 ? n : n.parentNode)))).observe(document.body, { childList: true, subtree: true });
 window.addEventListener('hashchange', route);
 hydrateIcons(document);
-refreshMission().then(() => { route(); checkReminder(); }).catch((e) => {
+setLang(langOf(state.who)).then(refreshMission).then(() => { route(); checkReminder(); translateDom(document.body); }).catch((e) => {
   document.getElementById('view').innerHTML = `<div class="card"><h2>TRIX server not reachable</h2><p class="muted">Start it with <span class="mono">python app.py</span>. ${esc(e.message)}</p></div>`;
 });
 pollAlerts();
