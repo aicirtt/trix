@@ -9,3 +9,4 @@ data/trix.db
 data/cache/
 web/vendor/
 data/scans/
+data/companion/

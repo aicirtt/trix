@@ -21,7 +21,7 @@ from fastapi import Body, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
-from . import assistant_lang, assistant_plan, detect, escalation, feeds, game, homecoming, insights, iss, routine, scan, science, voicebio, kb, llm, office, orchestrator, protocols, rag, safety, store, teams, vision, voice
+from . import assistant_lang, assistant_plan, detect, escalation, feeds, game, homecoming, homemsg, insights, iss, routine, scan, science, voicebio, kb, llm, office, orchestrator, protocols, rag, safety, store, teams, vision, voice
 
 ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web"
@@ -73,6 +73,89 @@ def science_list(indicator: str = ""):
             raise HTTPException(404, "no indicator with that name")
         return science.for_indicator(indicator)
     return {"about": science.KB["about"], "home": science.KB["home"], "paper": science.KB["paper"], "studies": science.bundled()}
+
+
+# ------------------------------------------------------------------ messages from home
+def _home_unlocks(who: str, readings: dict) -> list[dict]:
+    """After a check: messages earned by effort, plus one for comfort when mood is very low."""
+    new = homemsg.evaluate(who)
+    mood = readings.get("mood")
+    if isinstance(mood, (int, float)) and mood <= 2:
+        m = homemsg.comfort(who, "a hard day")
+        if m and m.get("new"):
+            new.append(m)
+    return new
+
+
+def _crew_or_404(who: str):
+    if who not in game.CREW:
+        raise HTTPException(404, "no astronaut with that name")
+
+
+@app.get("/api/messages/{who}")
+def messages_list(who: str):
+    _crew_or_404(who)
+    return homemsg.listing(who)
+
+
+@app.post("/api/messages/{who}")
+async def messages_add(who: str, sender: str = Form(""), relation: str = Form(""), rule: str = Form("first"), file: UploadFile = File(...)):
+    _crew_or_404(who)
+    try:
+        return homemsg.add(who, sender, relation, rule, await file.read(), file.content_type or "")
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+
+@app.post("/api/messages/{who}/demo")
+def messages_demo(who: str):
+    _crew_or_404(who)
+    return homemsg.add_demo(who)
+
+
+@app.post("/api/messages/{who}/comfort")
+def messages_comfort(who: str):
+    _crew_or_404(who)
+    m = homemsg.comfort(who)
+    if not m:
+        raise HTTPException(404, "No messages from home yet. Add some on the Body mirror screen.")
+    return m
+
+
+@app.get("/api/messages/{who}/{mid}/media")
+def messages_media(who: str, mid: int):
+    _crew_or_404(who)
+    f = homemsg.media(who, mid)
+    if not f or not f[0].exists():
+        raise HTTPException(404, "this message is still locked")
+    return FileResponse(f[0], media_type=f[1])
+
+
+@app.post("/api/messages/{who}/{mid}/played")
+def messages_played(who: str, mid: int):
+    _crew_or_404(who)
+    return {"ok": homemsg.played(who, mid)}
+
+
+@app.delete("/api/messages/{who}/{mid}")
+def messages_delete(who: str, mid: int):
+    _crew_or_404(who)
+    if not homemsg.delete(who, mid):
+        raise HTTPException(404, "no such message")
+    return {"ok": True}
+
+
+@app.post("/api/ground/home-message")
+async def ground_home_message(to: str = Form(...), sender: str = Form(""), relation: str = Form(""), file: UploadFile = File(...)):
+    """Family on Earth send a new message; it reaches the ship after the real delay and is ready to play."""
+    if store.get("link_cut", False):
+        raise HTTPException(409, "No contact with the ship.")
+    _crew_or_404(to)
+    try:
+        m = homemsg.add(to, sender, relation, "any", await file.read(), file.content_type or "", from_earth=True, delay_s=_delay_s())
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    return m | {"arrives_in": _delay_s()}
 
 
 # ------------------------------------------------------------------ coming home
@@ -267,7 +350,7 @@ def checkin(body: dict = Body(...)):
     # the Reminder agent learns: today's reminder slot got a response
     slot = body.get("reminder_slot") or teams._BANDIT.best(who)["slot"]
     teams._BANDIT.update(who, slot, True)
-    return out
+    return out | {"home_messages": _home_unlocks(who, readings)}
 
 
 @app.post("/api/event")
@@ -494,7 +577,8 @@ def capture(body: dict = Body(...)):
                    "meaning": routine.meaning(who, ind, value), "insight": routine.insight(who, ind, view),
                    "ring": after["ring"], "ring_before": before["ring"], "readiness": after["readiness"], "readiness_before": before["readiness"],
                    "streak": game.streak(who), "team_goal": game.team_goal(), "xp": 20, "level": {"level": pts // 250 + 1, "xp": pts % 250, "next": 250},
-                   "next": routine.next_item(who, ind), "agents": [s["agent"] for s in office.spans(out["case_id"]) if "orchestrator" not in s["agent"]]})
+                   "next": routine.next_item(who, ind), "agents": [s["agent"] for s in office.spans(out["case_id"]) if "orchestrator" not in s["agent"]],
+                   "home_messages": _home_unlocks(who, readings)})
 
 
 @app.post("/api/devices/read")

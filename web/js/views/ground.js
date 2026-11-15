@@ -22,11 +22,24 @@ export async function render(el) {
         <form id="gform" class="col" style="gap:10px"><label class="sr" for="gto">To</label><select class="input" id="gto" style="font-size:15px"><option value="crew">Whole crew</option><option value="A">Astronaut A</option><option value="B">Astronaut B</option><option value="C">Astronaut C</option></select>
           <label class="sr" for="gmsg">Message</label><textarea class="input" id="gmsg" rows="3" placeholder="Good work on the ECG. Repeat it in 2 hours and send the trace.">${esc(typing || '')}</textarea><button class="btn" ${cut ? 'disabled' : ''}>Send to the ship</button></form>
         <div id="gerr" class="small" style="color:var(--redt)"></div></div>
+        <div class="card"><h2>${icon('heart', 'var(--redt)', 20)} Message from family</h2><p class="small muted" style="margin:0">A recording from home. It reaches the astronaut after the delay and is ready to play straight away.</p>
+          <form id="hform" class="col" style="gap:8px"><label class="sr" for="hto">To</label><select class="input" id="hto"><option value="A">Astronaut A</option><option value="B">Astronaut B</option><option value="C">Astronaut C</option></select>
+            <input class="input" id="hsender" placeholder="From: Mum" maxlength="40" aria-label="From"><input class="input" id="hrel" placeholder="Relationship: Mother" maxlength="40" aria-label="Relationship">
+            <input class="input" id="hfile" type="file" accept="audio/*,video/*" aria-label="Recording"><button class="btn" ${cut ? 'disabled' : ''}>Send recording</button><div id="herr" class="small" style="color:var(--redt)"></div></form></div>
         <div class="card" style="flex:1"><h2>Sent messages</h2>${g.messages.slice().reverse().slice(0, 6).map((m) => `<div class="note small"><strong>To ${m.to === 'crew' ? 'the crew' : `Astronaut ${esc(m.to)}`}</strong> · ${m.deliver <= Date.now() / 1000 ? '<span style="color:var(--ok)">delivered</span>' : '<span style="color:var(--watch)">in transit</span>'}<br>${esc(m.text)}</div>`).join('') || '<span class="small muted">None yet.</span>'}</div></div>
     </div>`;
     el.querySelectorAll('[data-icon]').forEach((e) => { e.outerHTML = icon(e.dataset.icon, '#CFE0FF', +e.dataset.size); });
     el.querySelectorAll('[data-open]').forEach((b) => b.onclick = () => { open = open === +b.dataset.open ? null : +b.dataset.open; draw(); });
     el.querySelector('#gform').onsubmit = async (e) => { e.preventDefault(); try { await api.post('/api/ground/message', { to: el.querySelector('#gto').value, text: el.querySelector('#gmsg').value }); el.querySelector('#gmsg').value = ''; draw(); } catch (er) { el.querySelector('#gerr').textContent = er.message; } };
+    el.querySelector('#hform').onsubmit = async (e) => {
+      e.preventDefault();
+      const f = el.querySelector('#hfile').files[0], herr = el.querySelector('#herr');
+      if (!el.querySelector('#hsender').value.trim()) { herr.textContent = 'Enter who it is from.'; return; }
+      if (!f) { herr.textContent = 'Choose a recording.'; return; }
+      const fd = new FormData(); fd.append('to', el.querySelector('#hto').value); fd.append('sender', el.querySelector('#hsender').value); fd.append('relation', el.querySelector('#hrel').value); fd.append('file', f);
+      try { const r = await api.form('/api/ground/home-message', fd); el.querySelector('#hform').reset(); herr.style.color = 'var(--ok)'; herr.textContent = `Sent. Arrives in ${Math.round(r.arrives_in)} s.`; }
+      catch (err) { herr.style.color = 'var(--redt)'; herr.textContent = err.message; }
+    };
     if (typing !== null) { const t = el.querySelector('#gmsg'); t.focus(); t.setSelectionRange(t.value.length, t.value.length); }
   }
   const body = (b) => `<div class="kv" style="margin-top:10px;grid-template-columns:110px 1fr"><span class="lbl">Event</span><span>${esc(b.event)} · ${esc(b.team)}</span>
@@ -34,6 +47,9 @@ export async function render(el) {
     ${b.body_map ? `<span class="lbl">Body map</span><span>${esc(plain(b.body_map))}</span>` : ''}${b.vitals ? `<span class="lbl">Readings</span><span class="mono small">${esc(plain(b.vitals))}</span>` : '<span class="lbl">Readings</span><span class="muted">withheld by the astronaut\'s privacy setting</span>'}
     ${b.symptoms ? `<span class="lbl">Symptoms</span><span>${esc(b.symptoms)}</span>` : ''}<span class="lbl">Agent log</span><span class="small">${(b.agent_log || []).map((a) => `<strong>${esc(a.agent)}</strong> ${esc(plain(a.result).slice(0, 80))}`).join('<br>')}</span></div>`;
   await draw();
-  timer = setInterval(() => { if (document.activeElement?.id !== 'gmsg' || !document.activeElement.value) draw(); }, 2000);
+  timer = setInterval(() => {
+    const busy = document.activeElement?.closest?.('#hform') || el.querySelector('#hfile')?.files.length || el.querySelector('#hsender')?.value;
+    if (!busy && (document.activeElement?.id !== 'gmsg' || !document.activeElement.value)) draw();
+  }, 2000);
   return () => clearInterval(timer);
 }

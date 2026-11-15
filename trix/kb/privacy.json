@@ -16,6 +16,7 @@
  "rules": [
   "Emergencies are always shared with the crew medical officer and flight surgeon.",
   "Raw face video is never stored or sent.",
-  "Body-scan photos stay on the onboard computer and are never sent to Earth."
+  "Body-scan photos stay on the onboard computer and are never sent to Earth.",
+  "Messages from home stay on the onboard computer and are never sent to Earth."
  ]
 }

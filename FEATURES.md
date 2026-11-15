@@ -58,7 +58,8 @@
 | 52 | Real spaceflight data | ✅ | 10 Inspiration4 astronaut studies from NASA's Open Science Data Repository (live search, offline fallback) and 374 ISS human research experiments (NASA, ESA, Roscosmos, CSA, JAXA) linked to every measurement |
 | 53 | Sources and data screen | ✅ | Every NASA, CSA and research source, the open science studies, ISS experiment counts, what is simulated and an offline self-check |
 | 54 | Coming home | 🟡 | Landing-day readiness score from the readings TRIX already has (stand test, bone forecast to landing day, exercise and mass, reaction time, vision, mission radiation total, back pain, sleep and mood); risk areas on the body; stand test rehearsal; recovery plan before, on and after landing (Mars version: no ground crew). Planning aid, weights and score not clinically validated |
+| 55 | Messages from home | ✅ | Family and friends record messages before launch (or send them from Earth with the real delay); each unlocks after check-in days or the weekly routine, never for good numbers. A mood of 2 or lower, or "I need a message from home", unlocks one at once. Recordings stay on board, never in reports |
 
-**Totals:** 49 ✅ · 5 🟡 · 0 ⬜ (of 54)
+**Totals:** 50 ✅ · 5 🟡 · 0 ⬜ (of 55)
 
-Tested by `tests/` (388 tests, including every API endpoint the app uses) and in a headless browser on every screen. Camera checks were tested on synthetic images, not real patients.
+Tested by `tests/` (391 tests, including every API endpoint the app uses) and in a headless browser on every screen. Camera checks were tested on synthetic images, not real patients.

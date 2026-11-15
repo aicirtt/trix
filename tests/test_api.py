@@ -580,3 +580,75 @@ def test_coming_home_stand_test_and_landing_day():
     assert c.post("/api/homecoming/landing", json={"in_days": -1}).status_code == 400
     assert c.post("/api/homecoming/landing", json={"in_days": "soon"}).status_code == 400
     assert st in ("due", "green", "amber", "red")
+
+
+# ---------------------------------------------------------------- messages from home
+def _msg(who, sender, rule, data=b"ID3fake-audio", mime="audio/mpeg"):
+    return c.post(f"/api/messages/{who}", data={"sender": sender, "relation": "family", "rule": rule}, files={"file": ("m.mp3", data, mime)})
+
+
+def test_messages_unlock_by_effort_not_numbers():
+    who = "A"
+    for m in c.get(f"/api/messages/{who}").json()["messages"]:
+        c.delete(f"/api/messages/{who}/{m['id']}")
+    first = _msg(who, "Mum", "first").json()
+    three = _msg(who, "Sam", "streak3").json()
+    anytime = _msg(who, "Dad", "any").json()
+    assert not first["unlocked"] and not three["unlocked"] and anytime["unlocked"]
+    assert c.get(f"/api/messages/{who}/{first['id']}/media").status_code == 404          # locked: no file
+    lst = c.get(f"/api/messages/{who}").json()
+    assert lst["next"]["sender"] == "Mum" and "1 more check-in day" in lst["next"]["say"]
+    # a check-in (any numbers, even bad ones) unlocks "first"; a 3-day rule needs 3 days
+    r = c.post("/api/capture", json={"who": who, "indicator": "hr", "value": 118}).json()
+    assert [m["sender"] for m in r["home_messages"]] == ["Mum"]
+    got = c.get(f"/api/messages/{who}/{first['id']}/media")
+    assert got.status_code == 200 and got.content == b"ID3fake-audio"
+    lst = c.get(f"/api/messages/{who}").json()
+    assert lst["next"]["sender"] == "Sam" and lst["next"]["left"] == 2
+    assert c.post(f"/api/messages/{who}/{first['id']}/played").json()["ok"]
+    # voice or food logs alone are not a check-in
+    c.post("/api/capture", json={"who": who, "indicator": "mood", "value": 4, "source": "voice check"})
+    assert c.get(f"/api/messages/{who}").json()["next"]["left"] == 2
+
+
+def test_messages_comfort_and_low_mood():
+    who = "B"
+    for m in c.get(f"/api/messages/{who}").json()["messages"]:
+        c.delete(f"/api/messages/{who}/{m['id']}")
+    assert c.post(f"/api/messages/{who}/comfort").status_code == 404
+    a = _msg(who, "Ana", "streak30").json()
+    b = _msg(who, "Leo", "streak30").json()
+    m = c.post(f"/api/messages/{who}/comfort").json()
+    assert m["id"] == a["id"] and m["new"] and m["unlocked"] and m["reason"] == "you asked for one"
+    r = c.post("/api/capture", json={"who": who, "indicator": "mood", "value": 2}).json()
+    assert any(x["id"] == b["id"] and x["reason"] == "a hard day" for x in r["home_messages"])
+    again = c.post(f"/api/messages/{who}/comfort").json()                     # nothing locked: replay one
+    assert again["new"] is False and again["unlocked"]
+
+
+def test_messages_validation_privacy_delete_and_earth(tmp_path):
+    who = "C"
+    assert _msg(who, "", "first").status_code == 400
+    assert _msg(who, "Mum", "never").status_code == 400
+    assert _msg(who, "Mum", "first", b"x", "text/plain").status_code == 400
+    assert c.post("/api/messages/Z/demo").status_code == 404
+    demo = c.post(f"/api/messages/{who}/demo").json()
+    assert demo["demo"] and demo["kind"] == "demo"
+    m = _msg(who, "Kai", "any").json()
+    files = list((store.DB.parent / "companion").glob(f"{who}_{m['id']}"))
+    assert files
+    assert c.delete(f"/api/messages/{who}/{m['id']}").json()["ok"] and not files[0].exists()
+    assert c.delete(f"/api/messages/{who}/{m['id']}").status_code == 404
+    # family on Earth: arrives after the delay, then plays without any streak
+    c.post("/api/mission", json={"location": "moon"})
+    e = c.post("/api/ground/home-message", data={"to": who, "sender": "Grandma", "relation": "grandmother"},
+               files={"file": ("v.mp4", b"fake-video", "video/mp4")}).json()
+    assert e["from_earth"] and e["arrives_in"] > 0
+    lst = c.get(f"/api/messages/{who}").json()
+    assert any(x["sender"] == "Grandma" for x in lst["on_the_way"])
+    c.post("/api/mission", json={"link_cut": True})
+    assert c.post("/api/ground/home-message", data={"to": who, "sender": "X"}, files={"file": ("v.mp4", b"v", "video/mp4")}).status_code == 409
+    c.post("/api/mission", json={"link_cut": False, "location": "mars"})
+    # never in reports to Earth
+    c.post("/api/reports/send", json={})
+    assert "Grandma" not in str(c.get("/api/reports").json()) and "Kai" not in str(c.get("/api/reports").json())
