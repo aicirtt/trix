@@ -377,3 +377,16 @@ main{padding-bottom:96px}
 .avtip{position:absolute;left:0;top:0;max-width:240px;padding:6px 10px;background:rgba(251,191,36,.95);color:#1a1300;font-weight:700;font-size:14px;line-height:1.25;border-radius:2px;box-shadow:0 4px 14px rgba(0,0,0,.4)}
 .avbeat{position:absolute;left:10px;top:10px;padding:6px 10px;background:rgba(252,61,33,.92);color:#fff;font:700 16px/1 "IBM Plex Mono",monospace}
 @media (max-width:640px){.avtools{max-width:100%}.avhint{display:none}}
+
+/* first-run setup */
+.setdots{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.setdots button{display:flex;align-items:center;gap:8px;padding:6px 10px;background:transparent;border:1px solid var(--bd);color:var(--t2);font:600 13px "IBM Plex Sans Condensed",sans-serif;letter-spacing:.04em;cursor:pointer}
+.setdots button span{display:inline-grid;place-items:center;width:22px;height:22px;border:1px solid currentColor;font-family:"IBM Plex Mono",monospace;font-size:12px}
+.setdots button.done{color:var(--ok);border-color:rgba(45,212,191,.4)}.setdots button.now{color:#fff;border-color:var(--bluet);background:rgba(11,61,145,.45)}
+.setcard{max-width:980px;gap:14px}.setcard h2{font-size:26px;text-transform:none;letter-spacing:0}.setcard .lead{font-size:17px;line-height:1.55;margin:0;color:var(--t1)}
+.setgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}.setgrid.wide{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+.setpick{display:flex;flex-direction:column;gap:4px;align-items:flex-start;text-align:left;padding:14px;background:rgba(11,61,145,.15);border:1px solid var(--bd);color:var(--t1);font-size:16px;cursor:pointer;min-height:56px}
+.setpick:hover{border-color:var(--bluet)}.setpick.on{border-color:var(--watch);background:rgba(251,191,36,.1);box-shadow:inset 3px 0 0 var(--watch)}
+.rtline{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}.rtline>div{display:flex;flex-direction:column;gap:4px;padding:12px;border-top:3px solid var(--bluet);background:rgba(11,61,145,.12)}
+.setstatus{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:600;padding:10px 12px;border-left:3px solid var(--bd)}.setstatus.ok{border-left-color:var(--ok)}
+.rtline .seg{display:flex;flex-wrap:wrap;gap:4px}.rtline .seg button{min-width:62px;flex:1 0 62px}
