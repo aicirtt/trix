@@ -105,6 +105,50 @@ def system_status() -> dict:
             "vision": "OpenCV checks (onboard)", "reminders": "Thompson-sampling bandit (learning)"}
 
 
+@app.get("/api/sources")
+def sources():
+    """Every NASA and other source TRIX relies on, and what uses it (for the submission and for judges)."""
+    used: dict = {}
+    for i in kb.indicators().values():
+        for s in i.get("sources", []):
+            used.setdefault(s, []).append(i["name"].split(" (")[0])
+    refs = [{"id": k, "title": v["title"], "url": v["url"], "used_by": used.get(k, [])} for k, v in kb.sources().items()]
+    docs = []
+    for f in sorted((kb.KB_DIR / "docs").glob("*.md")):
+        head = f.read_text().split("---")[1]
+        meta = dict(line.split(":", 1) for line in head.strip().splitlines() if ":" in line)
+        docs.append({"id": meta.get("id", "").strip(), "title": meta.get("title", "").strip(), "url": meta.get("url", "").strip()})
+    data = [{"title": "NASA DONKI space weather (solar flares, particle events)", "url": "https://api.nasa.gov/", "used_by": ["Radiation alerts", "Solar-storm shelter procedure"]},
+            {"title": "Meteomatics weather API (Space Apps partner)", "url": "https://www.meteomatics.com/en/meteomatics-and-nasa-space-apps-challenge/", "used_by": ["Landing readiness"]},
+            {"title": insights.SOURCE["title"], "url": insights.SOURCE["url"], "used_by": ["Cabin air and headaches"]}]
+    models = [{"title": "MediaPipe Face Mesh and Pose (Google, Apache 2.0)", "used_by": ["Face fatigue", "ECG placement", "CPR rate", "Balance", "Body mirror"]},
+              {"title": "LangGraph (agent orchestration)", "used_by": ["Mission, Daily care, Emergency and Operations orchestrators"]},
+              {"title": "scikit-learn Isolation Forest, rank-bm25, TF-IDF", "used_by": ["Anomaly detection", "Cited answers"]},
+              {"title": "Ollama + Llama 3.2 (optional, local)", "used_by": ["Answer wording"]},
+              {"title": "IBM Plex fonts (SIL Open Font License)", "used_by": ["Interface"]}]
+    return {"references": refs, "knowledge_notes": docs, "live_data": data, "models_and_tools": models,
+            "simulated": ["Crew history (240 days, 3 astronauts)", "Onboard devices except Bluetooth heart-rate straps", "Medicine stock and menu", "Day-1 body scan in the demo"]}
+
+
+@app.get("/api/offline-check")
+def offline_check():
+    """What runs on the onboard computer with no internet."""
+    vend = WEB / "vendor" / "mediapipe"
+    m = llm.get_llm()
+    checks = [
+        ("Agents, safety checks and health record", True, "Python on this computer, SQLite file"),
+        ("Knowledge base and cited answers", True, f"{len(list((kb.KB_DIR / 'docs').glob('*.md')))} notes + {len(kb.indicators())} indicators on disk"),
+        ("Language model", True, f"{m.name} (local)"),
+        ("Face and body tracking models", (vend / "pose" / "pose.js").exists() and (vend / "face_mesh" / "face_mesh.js").exists(),
+         "served from this computer" if (vend / "pose" / "pose.js").exists() else "not copied yet: run python scripts/setup_vendor.py (otherwise loaded from the internet)"),
+        ("Fonts and interface", (WEB / "fonts").exists(), "bundled"),
+        ("Camera checks (ECG, skin, food label, ultrasound, body scan)", True, "OpenCV on this computer"),
+        ("Space weather and landing weather", True, "optional: last saved data is used with no internet"),
+        ("Speech-to-text", False if "faster" not in system_status()["speech"] else True, system_status()["speech"] + (" (Chrome sends audio to Google; install faster-whisper for offline)" if "faster" not in system_status()["speech"] else "")),
+    ]
+    return {"checks": [{"name": n, "offline": bool(ok), "detail": d} for n, ok, d in checks], "all_core_offline": all(ok for n, ok, _ in checks[:4])}
+
+
 @app.get("/api/system")
 def system():
     return system_status()
@@ -228,6 +272,7 @@ def _six(who: str, view: dict, latest: dict) -> list[dict]:
         spark = [p["value"] for p in store.series(who, col)][-7:]
         out.append({"id": ind, "name": name, "icon": icon, "unit": k["unit"], "value": value, "status": status,
                     "why": why, "spark": spark, "measured_today": (col in logged or ind in logged),
+                    "simulated": bool(lv) and lv.get("source") in ("simulated device", "what-if scenario", "history"),
                     "last_day": None if lv is None else lv["day"]})
     return out
 

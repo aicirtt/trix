@@ -4,7 +4,7 @@
     "top3": [
       "bone",
       "ind:bone",
-      "ind:calcium"
+      "ind:mass"
     ],
     "hit3": true,
     "citations_correct": true
@@ -12,12 +12,12 @@
   {
     "q": "What exercise protects my bones in space?",
     "top3": [
+      "ind:exercise",
       "ind:bone",
-      "hazards",
-      "bone"
+      "hazards"
     ],
     "hit3": true,
-    "citations_correct": true
+    "citations_correct": false
   },
   {
     "q": "Why do I keep getting headaches on the station?",
@@ -54,7 +54,7 @@
     "top3": [
       "sleep",
       "radiation",
-      "proto:CARD-ECG-01"
+      "ind:exercise"
     ],
     "hit3": true,
     "citations_correct": true
@@ -123,8 +123,8 @@
     "q": "How much water should I drink per day?",
     "top3": [
       "ind:fluid",
-      "nutrition",
-      "iss_medical"
+      "iss_medical",
+      "nutrition"
     ],
     "hit3": true,
     "citations_correct": true
@@ -152,9 +152,9 @@
   {
     "q": "Why do astronauts faint after landing?",
     "top3": [
-      "ind:orthostatic",
       "cardio",
-      "proto:LAND-01"
+      "ind:orthostatic",
+      "ind:bp"
     ],
     "hit3": true,
     "citations_correct": true
@@ -254,7 +254,7 @@
     "top3": [
       "iss_medical",
       "formulary",
-      "eva"
+      "ind:back_pain"
     ],
     "hit3": true,
     "citations_correct": true
@@ -264,7 +264,7 @@
     "top3": [
       "hazards",
       "sans",
-      "bone"
+      "ind:vision"
     ],
     "hit3": true,
     "citations_correct": true

@@ -20,9 +20,23 @@ All data is **synthetic** (see `trix/synth.py`), grounded in published spaceflig
 
 | Metric | Result |
 |---|---|
-| Correct source ranked first (hit@1) | 97% |
+| Correct source ranked first (hit@1) | 93% |
 | Correct source in top 3 (hit@3) | 100% |
-| Answers citing only correct sources | 97% |
+| Answers citing only correct sources | 93% |
+
+### Honest check on 30 new questions
+
+We wrote 30 new questions in everyday words after the system was finished (`eval/eval_rag_heldout.py`).
+
+| Metric | First run (truly unseen) | After adding everyday-word matching |
+|---|---|---|
+| Correct source ranked first | 63% | 93% |
+| Correct source in top 3 | 77% | 97% |
+| Answers citing only correct sources | 67% | 90% |
+
+The first-run column is the fair estimate for questions TRIX has never seen: retrieval is word-based, so unusual wording
+hurts it. The second column was measured after we fixed the misses, so those questions are no longer unseen. The same
+run also found that "fainted and won't wake up" and "stopped breathing" were not treated as emergencies; that is fixed and tested.
 
 ## Safety agent red-team
 

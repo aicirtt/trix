@@ -395,3 +395,25 @@ def test_replay_and_language_and_reset():
     assert c.post("/api/lang", json={"who": "B", "lang": "ja"}).json()["lang"] == "ja" and c.get("/api/state").json()["langs"]["B"] == "ja"
     assert c.post("/api/lang", json={"who": "B", "lang": "xx"}).status_code == 400
     assert c.post("/api/sim/reset").json()["ok"] and c.get("/api/office").json()["cases"] == []
+
+
+@pytest.mark.parametrize("words", ["she fainted and won't wake up", "he stopped breathing", "he is unconscious on the floor", "my crewmate collapsed and has no pulse"])
+def test_arrest_is_recognised_however_it_is_worded(words):
+    out = c.post("/api/event", json={"event": "alert", "who": "B", "vitals": {}, "symptoms": words}).json()
+    assert out["urgency"] == "emergency" and out["specialist_plan"]["protocol_id"] == "CPR-MG-01"
+    assert c.post("/api/assistant", json={"who": "A", "text": words}).json()["kind"] == "emergency"
+
+
+def test_sources_and_offline_check():
+    s = c.get("/api/sources").json()
+    assert len(s["references"]) >= 15 and sum(r["url"].startswith("http") for r in s["references"]) >= len(s["references"]) - 1 and s["simulated"]
+    assert len(s["knowledge_notes"]) >= 14 and all(n["title"] for n in s["knowledge_notes"])
+    o = c.get("/api/offline-check").json()
+    assert o["all_core_offline"] in (True, False) and len(o["checks"]) >= 7
+    assert "/js/views/sources.js" and c.get("/js/views/sources.js").status_code == 200
+
+
+def test_everyday_words_reach_the_right_source():
+    from trix import teams
+    hits = teams.retriever().search("the air feels stuffy and my head hurts", k=3)
+    assert hits[0]["doc_id"] in ("co2", "ind:co2")

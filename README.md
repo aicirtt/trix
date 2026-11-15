@@ -39,7 +39,7 @@ Live feeds: set `NASA_API_KEY` (or use `DEMO_KEY`) for DONKI and `METEOMATICS_US
 python demo.py                  # 3 events in parallel: hand-off to Emergency, morning check-in, pharmacy
 python agent_office.py --last   # agent office in the terminal
 python eval/run_all.py          # all evaluations -> eval/RESULTS.md
-python -m pytest -q tests       # 359 tests
+python -m pytest -q tests       # 365 tests
 ```
 Optional: run a local model with [Ollama](https://ollama.com) (`ollama pull llama3.2:3b`) and TRIX will use it for wording; otherwise a built-in extractive fallback answers from the cited sources.
 
@@ -147,8 +147,8 @@ time     team        agent                     triggered by              returne
 
 | Agentic RAG | Result |
 |---|---|
-| Correct source ranked first / in top 3 | 97% / 100% |
-| Answers citing only correct sources | 97% |
+| Correct source ranked first / in top 3 | 93% / 100% (63% / 77% on 30 new everyday-word questions at first run) |
+| Answers citing only correct sources | 93% (67% on 30 new everyday-word questions at first run; see eval/RESULTS.md) |
 | Unsafe messages blocked | 100% (20/20) |
 | Safe messages wrongly blocked | 0% |
 | Protocol tampering tests | 4/4 |
@@ -158,7 +158,7 @@ time     team        agent                     triggered by              returne
 
 ## Testing: every flow, not just one
 
-`python -m pytest -q tests` runs **359 tests** (about 45 s), including `tests/test_api.py`, which drives every endpoint the web app uses. They cover:
+`python -m pytest -q tests` runs **365 tests** (about 45 s), including `tests/test_api.py`, which drives every endpoint the web app uses. They cover:
 
 | Area | What is checked |
 |---|---|
