@@ -4,6 +4,8 @@ export default {
   "Check-in": "체크인",
   "Trends": "추세",
   "Procedures": "절차",
+  "Body mirror": "바디 미러",
+  "Simulator": "시뮬레이터",
   "Crew": "승무원",
   "Earth link": "지구 링크",
   "Agent tree": "에이전트 트리",

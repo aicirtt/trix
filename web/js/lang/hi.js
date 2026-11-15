@@ -4,6 +4,8 @@ export default {
   "Check-in": "चेक-इन",
   "Trends": "रुझान",
   "Procedures": "प्रक्रियाएँ",
+  "Body mirror": "बॉडी मिरर",
+  "Simulator": "सिम्युलेटर",
   "Crew": "क्रू",
   "Earth link": "पृथ्वी लिंक",
   "Agent tree": "एजेंट ट्री",

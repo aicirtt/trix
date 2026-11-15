@@ -4,6 +4,7 @@ Run:  python app.py   (then open http://localhost:8000)
 Everything runs on the onboard computer. Only the optional live feeds (NASA DONKI, Meteomatics) use the network,
 and they fall back to the last cached reply when there is none.
 """
+import base64
 import json
 import math
 import os
@@ -20,7 +21,7 @@ from fastapi import Body, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
-from . import assistant_lang, assistant_plan, detect, escalation, feeds, game, insights, routine, voicebio, kb, llm, office, orchestrator, protocols, rag, safety, store, teams, vision, voice
+from . import assistant_lang, assistant_plan, detect, escalation, feeds, game, insights, routine, scan, voicebio, kb, llm, office, orchestrator, protocols, rag, safety, store, teams, vision, voice
 
 ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web"
@@ -55,7 +56,7 @@ def location() -> str:
 
 def run(event: dict, save: bool = True) -> dict:
     """Run the agents. save=False for read-only views (no case, no Earth report)."""
-    ev = {"location": location()} | event
+    ev = {"location": location(), "link_cut": bool(store.get("link_cut", False))} | event
     out = orchestrator.run(ev)
     if save:
         store.save_case(out)
@@ -67,7 +68,12 @@ def run(event: dict, save: bool = True) -> dict:
 def state():
     loc = location()
     sw = feeds.space_weather()
-    return _clean({"location": loc, "link": LOCATIONS[loc], "locations": LOCATIONS, "day": store.today(),
+    link = dict(LOCATIONS[loc])
+    cut = bool(store.get("link_cut", False))
+    if cut:
+        link |= {"live": False, "delay": "no contact", "round": "unknown", "cut": True}
+    return _clean({"location": loc, "link": link, "link_cut": cut, "langs": {w: store.get(f"lang:{w}", "en") for w in game.CREW},
+                   "locations": LOCATIONS, "day": store.today(),
                    "crew": game.CREW, "space_weather": {k: sw[k] for k in ("status", "message", "source")},
                    "ai": system_status()})
 
@@ -80,6 +86,8 @@ def set_mission(body: dict = Body(...)):
         store.put("location", body["location"])
     if "day" in body:
         store.put("mission_day", int(body["day"]))
+    if "link_cut" in body:
+        store.put("link_cut", bool(body["link_cut"]))
     return state()
 
 
@@ -776,9 +784,188 @@ def report(rid: int):
 
 @app.post("/api/reports/send")
 def send_reports():
+    if store.get("link_cut", False):
+        raise HTTPException(409, "No contact with Earth. Reports are held on board until the link returns.")
     rows = [r for r in store.reports() if r["status"] == "queued"]
     store.mark_sent([r["id"] for r in rows])
+    sent = store.get("sent_at", {})
+    now = time.time()
+    store.put("sent_at", sent | {str(r["id"]): now for r in rows})
     return {"sent": len(rows), "link": LOCATIONS[location()]}
+
+
+# ------------------------------------------------------------------ language
+LANGS = {"en": "English", "ru": "Русский", "ja": "日本語", "zh": "中文"}
+
+
+@app.post("/api/lang")
+def set_lang(body: dict = Body(...)):
+    if body.get("who") not in game.CREW or body.get("lang") not in LANGS:
+        raise HTTPException(400, "unknown astronaut or language")
+    store.put(f"lang:{body['who']}", body["lang"])
+    return {"who": body["who"], "lang": body["lang"]}
+
+
+# ------------------------------------------------------------------ flight surgeon view (what Earth sees, after the delay)
+WARP = 60   # demo clock for the ground view: 1 minute of signal delay passes in 1 second
+
+
+def _delay_s() -> float:
+    return LOCATIONS[location()]["one_way_s"] / WARP if location() == "mars" else LOCATIONS[location()]["one_way_s"]
+
+
+@app.get("/api/ground")
+def ground():
+    sent, now, d = store.get("sent_at", {}), time.time(), _delay_s()
+    rows = []
+    for r in store.reports():
+        if r["status"] != "sent":
+            continue
+        t = sent.get(str(r["id"]), r["ts"])
+        arrived = now >= t + d
+        rows.append(r | {"sent_at": t, "arrives_in": max(0, round(t + d - now, 1)), "arrived": arrived,
+                         "body": store.report_body(r["id"]) if arrived else None})
+    rows.sort(key=lambda r: (r["priority"] != "urgent", -r["sent_at"]))
+    queued = sum(1 for r in store.reports() if r["status"] == "queued")
+    return _clean({"reports": rows, "held_on_ship": queued, "link": state()["link"], "delay_s": d, "warp": WARP if location() == "mars" else 1,
+                   "messages": store.get("earth_msgs", [])})
+
+
+@app.post("/api/ground/message")
+def ground_message(body: dict = Body(...)):
+    if store.get("link_cut", False):
+        raise HTTPException(409, "No contact with the ship.")
+    text = (body.get("text") or "").strip()
+    if not text:
+        raise HTTPException(400, "message is empty")
+    msgs = store.get("earth_msgs", [])
+    msgs.append({"id": len(msgs) + 1, "to": body.get("to") or "crew", "text": text[:500], "sent": time.time(), "deliver": time.time() + _delay_s()})
+    store.put("earth_msgs", msgs)
+    return {"ok": True, "arrives_in": _delay_s()}
+
+
+@app.get("/api/inbox/{who}")
+def inbox(who: str):
+    now = time.time()
+    return {"messages": [m for m in store.get("earth_msgs", []) if m["deliver"] <= now and m["to"] in (who, "crew")]}
+
+
+# ------------------------------------------------------------------ what-if simulator
+SCENARIOS = {
+    "irregular": ("Irregular heartbeat", "one", lambda w: {"event": "reading", "who": w, "readings": {"hr": 131, "irregular_rhythm": 1}}),
+    "unresponsive": ("Crewmate not responding", "one", lambda w: {"event": "alert", "who": w, "vitals": {}, "symptoms": "unresponsive and not breathing"}),
+    "low_oxygen": ("Low blood oxygen", "one", lambda w: {"event": "reading", "who": w, "readings": {"spo2": 89}}),
+    "fever": ("Fever with a rash", "one", lambda w: {"event": "checkin", "who": w, "readings": {"temp": 38.6, "skin": "rash with fever", "hr": 96}}),
+    "bad_sleep": ("Three nights of bad sleep", "one", lambda w: {"event": "checkin", "who": w, "readings": {"sleep": 3.8, "fatigue": 24, "mood": 2, "reaction": 430}, "symptoms": "very tired"}),
+    "co2": ("Cabin CO2 spike", "all", lambda w: {"event": "reading", "who": w, "readings": {"co2": 3.6}, "symptoms": "headache"}),
+    "solar_storm": ("Solar storm", "all", lambda w: {"event": "reading", "who": w, "readings": {"rad_daily": "storm in progress"}}),
+}
+
+
+@app.get("/api/sim")
+def sim_list():
+    return {"scenarios": [{"id": k, "name": v[0], "scope": v[1]} for k, v in SCENARIOS.items()], "link_cut": bool(store.get("link_cut", False))}
+
+
+@app.post("/api/sim")
+def sim_run(body: dict = Body(...)):
+    sc = SCENARIOS.get(body.get("scenario"))
+    who = body.get("who")
+    if not sc or who not in game.CREW:
+        raise HTTPException(400, "unknown scenario or astronaut")
+    outs = []
+    for w in (list(game.CREW) if sc[1] == "all" else [who]):
+        ev = sc[2](w)
+        if ev.get("readings"):
+            store.add_readings(w, {k: v for k, v in ev["readings"].items()}, "what-if scenario")
+            ev["readings"] = ev["readings"] | {"day": store.today()}
+        o = run(ev)
+        outs.append({"who": w, "case_id": o["case_id"], "urgency": o.get("urgency"), "handoff": o.get("handoff"),
+                     "decision": (o.get("decision") or {}).get("act"), "why": (o.get("decision") or {}).get("why"),
+                     "protocol": (o.get("specialist_plan") or {}).get("protocol_id"),
+                     "advice": (o.get("specialist_plan") or {}).get("advice") or " ".join((o.get("coach") or {}).get("messages", [])[:2]),
+                     "flagged": [a["indicator"] for a in o.get("assessments", []) if a["status"] != "green"]})
+    return _clean({"scenario": sc[0], "results": outs})
+
+
+@app.post("/api/sim/reset")
+def sim_reset():
+    """Start the demo again: clears everything logged in the app (the simulated 240-day history stays)."""
+    store.reset()
+    office.clear()
+    _BASE_CACHE.clear()
+    SESSIONS.clear()
+    return {"ok": True}
+
+
+# ------------------------------------------------------------------ mission replay
+_REPLAY: dict = {}
+
+
+@app.get("/api/replay/{who}")
+def replay(who: str):
+    """Day-by-day body map over the simulated mission, and when TRIX vs fixed limits first caught each planted problem."""
+    if who not in game.CREW:
+        raise HTTPException(404)
+    if who in _REPLAY:
+        return _REPLAY[who]
+    res = ROOT / "eval" / "results"
+    alerts = pd.read_csv(res / "alerts_trix.csv")
+    ev = pd.read_csv(res / "detection_events.csv").set_index("event")
+    planted = json.loads((ROOT / "data" / "events.json").read_text())
+    days = int(store.history_csv()["day"].max()) + 1
+    parts = ["brain", "eyes", "rad", "lungs", "heart", "gut", "immune", "bones"]
+    grid = {p: [0] * days for p in parts}
+    a = alerts[alerts.who == who]
+    for _, r in a.iterrows():
+        if r["body_part"] in grid and 0 <= r["day"] < days:
+            grid[r["body_part"]][int(r["day"])] = max(grid[r["body_part"]][int(r["day"])], 2 if r["status"] == "red" else 1)
+    events = []
+    for e in planted:
+        if e["who"] not in (who, "*"):
+            continue
+        row = ev.loc[e["id"]] if e["id"] in ev.index else None
+        fx = None if row is None or pd.isna(row["fixed_limits_first_day"]) else int(row["fixed_limits_first_day"])
+        tx = None if row is None or pd.isna(row["trix_first_day"]) else int(row["trix_first_day"])
+        events.append({"id": e["id"], "name": e["name"], "start": e["start"], "end": e["end"], "kind": e["kind"], "trix_day": tx, "fixed_day": fx,
+                       "lead": None if tx is None or fx is None else fx - tx})
+    _REPLAY[who] = _clean({"who": who, "days": days, "parts": grid, "events": events,
+                           "note": "Simulated mission data with 8 planted problems. Fixed limits = alerting only on standard cut-offs."})
+    return _REPLAY[who]
+
+
+# ------------------------------------------------------------------ body mirror
+@app.post("/api/scan")
+def scan_save(body: dict = Body(...)):
+    who = body.get("who")
+    if who not in game.CREW:
+        raise HTTPException(400, "who must be A, B or C")
+    from .shared import settings_for
+    res = scan.measure(vision.decode_image(body["mask"]), body.get("landmarks") or {})
+    keep = settings_for(who).get("scan_photos", True) and body.get("photo")
+    photo = base64.b64decode(body["photo"].split(",", 1)[-1]) if keep else None
+    scan.save(who, res, photo)
+    return _clean(scan.compare(who))
+
+
+@app.post("/api/scan/simulate-day1")
+def scan_sim(body: dict = Body(...)):
+    if scan.simulate_day1(body.get("who")) is None:
+        raise HTTPException(400, "Scan yourself first.")
+    return _clean(scan.compare(body["who"]))
+
+
+@app.get("/api/scan/{who}")
+def scan_get(who: str):
+    return _clean(scan.compare(who))
+
+
+@app.get("/api/scan/{who}/photo/{sid}")
+def scan_photo(who: str, sid: int):
+    p = scan.photo_path(who, sid)
+    if not p.exists():
+        raise HTTPException(404)
+    return FileResponse(p, media_type="image/jpeg")
 
 
 # ------------------------------------------------------------------ crew

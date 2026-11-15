@@ -4,6 +4,8 @@ export default {
   "Check-in": "Проверка",
   "Trends": "Тренды",
   "Procedures": "Процедуры",
+  "Body mirror": "Зеркало тела",
+  "Simulator": "Симулятор",
   "Crew": "Экипаж",
   "Earth link": "Связь с Землёй",
   "Agent tree": "Дерево агентов",
