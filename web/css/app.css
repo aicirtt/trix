@@ -353,3 +353,10 @@ main{padding-bottom:96px}
 @media (max-width:760px){.plan{grid-template-columns:1fr}}
 @media (max-width:1600px){.tabs a{padding:0 7px;gap:5px;font-size:12.5px;letter-spacing:.04em}.tabs a.sos{padding:0 10px}}
 .tabs{scrollbar-width:thin}.tabs a.sos{position:sticky;right:0;flex:none;box-shadow:-16px 0 14px var(--p1)}
+
+/* messages from home */
+#homeplayer{position:fixed;inset:0;z-index:60;background:rgba(3,8,20,.78);display:flex;align-items:center;justify-content:center;padding:20px}
+.hmbox{background:var(--p1);border:1px solid var(--bd);border-top:3px solid var(--redt);width:min(640px,100%);padding:20px;display:flex;flex-direction:column;gap:12px}
+.hmtext{font-size:19px;line-height:1.55;padding:14px;background:rgba(11,61,145,.25);border-left:3px solid var(--bluet)}
+.hmnew{position:fixed;right:20px;bottom:96px;z-index:55;display:flex;align-items:center;gap:12px;width:min(460px,calc(100% - 40px));padding:14px 16px;background:var(--p1);border:1px solid var(--bd);border-left:3px solid var(--redt);box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.hmnext{font-size:17px;font-weight:600;padding:8px 12px;border-left:3px solid var(--watch);background:rgba(251,191,36,.08)}

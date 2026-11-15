@@ -1,5 +1,6 @@
 import { api } from '../api.js';
 import { esc, icon, chip, ring, animateRings, toast } from '../ui.js';
+import * as homemsg from '../homemsg.js';
 
 const PRIV = [
   ['vitals_summary', 'Share daily vitals summary with Earth', 'Heart rate, blood pressure, sleep totals'],
@@ -34,9 +35,11 @@ export async function render(el, { state }) {
       <div class="list">${c.buddy.map((b) => `<div class="li"><span style="flex:1">Astronaut ${esc(b.who)} → Astronaut ${esc(b.buddy)}</span>${b.done ? chip(b.status === 'ok' ? 'green' : 'amber', b.status === 'ok' ? 'OK' : 'Concern') : chip('none', 'Not yet')}</div>`).join('')}</div>
       <div class="small dim">Pairs rotate every day. “I'm worried” sends a private note to the crew medical officer.</div></div>
   </div>
+  <div id="homemsgs"></div>
   <div class="card"><div class="head"><h2>${icon('lock', 'var(--bluet)', 22)} My privacy · Astronaut ${esc(who)}</h2><span class="small dim">${esc(pv.rules.join(' '))}</span></div>
     ${PRIV.map(([k, t, s]) => `<div class="toggle"><span><strong>${t}</strong><br><span class="small muted">${s}</span></span><span class="switch"><input type="checkbox" data-p="${k}" ${pv.settings[k] ? 'checked' : ''} aria-label="${esc(t)}"><span></span></span></div>`).join('')}</div>`;
   animateRings(el);
+  homemsg.mount(el.querySelector('#homemsgs'), who);
   el.querySelectorAll('[data-b]').forEach((b) => b.onclick = async () => {
     await api.post('/api/buddy', { who, buddy: mine.buddy, status: b.dataset.b, note: el.querySelector('#note')?.value || '' });
     toast(b.dataset.b === 'ok' ? 'Buddy check logged.' : 'Concern sent privately to the crew medical officer.');

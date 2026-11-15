@@ -15,4 +15,5 @@ export const api = {
   get: (u) => call('GET', u),
   post: (u, b) => call('POST', u, b ?? {}),
   form: (u, fd) => call('POST', u, fd, true),
+  del: (u) => call('DELETE', u),
 };

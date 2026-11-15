@@ -43,6 +43,7 @@ On the way to Mars a question to a doctor takes 40 minutes to come back. TRIX is
 - **Safe by design**: answers only from cited sources; procedures cannot be skipped or invented; doses and diagnoses are blocked.
 - **Guides the crewmate**, not only the patient.
 - **Respects the astronaut**: two minutes a day, something back every time, privacy switches, their own language.
+- **Rewards that mean something**: recorded messages from family unlock as the astronaut keeps up their checks, and a hard day unlocks one straight away (isolation is one of NASA's five hazards).
 - **Thinks about coming home**: a landing-day readiness score, risk areas on the body and a recovery plan for before, on and after landing (on Earth or on Mars, where there is no ground crew).
 
 ## 6. Results (on our simulated data)

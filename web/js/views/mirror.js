@@ -2,6 +2,7 @@
 import { api } from '../api.js';
 import { esc, icon, chip, toast } from '../ui.js';
 import { startCamera, stopCamera, frameJpeg, fileToDataUrl, mediapipe } from '../sensors.js';
+import * as homemsg from '../homemsg.js';
 
 const NEED = [0, 11, 12, 23, 24, 25, 26, 27, 28], SEND = [0, 7, 8, 11, 12, 23, 24, 25, 26, 27, 28];
 
@@ -55,7 +56,9 @@ export async function render(el, { state }) {
           <div class="small muted">Scans: ${cmp.scans.map((s) => `day ${s.day}${s.simulated ? ' (simulated)' : ''}`).join(' · ') || 'none yet'}</div>
           ${has && !cmp.scans.some((s) => s.simulated) ? `<button class="btn ghost sm" id="sim">Add a simulated day-1 scan (demo)</button><span class="small dim">For the demo only: builds a “day 1” from today's scan by undoing the typical spaceflight changes.</span>` : ''}</div>
       </div>
-    </div>`;
+    </div>
+    <div id="homemsgs"></div>`;
+    homemsg.mount(el.querySelector('#homemsgs'), who, { manage: true });
     const m = el.querySelector('#mix');
     if (m) m.oninput = () => { mix = m.value / 100; const b = el.querySelector('#obase'), c = el.querySelector('#ocur'); if (b) b.style.opacity = 1 - mix * 0.85; if (c) c.style.opacity = 0.15 + mix * 0.85; };
     el.querySelector('#sim')?.addEventListener('click', async () => { cmp = await api.post('/api/scan/simulate-day1', { who }); draw(); });

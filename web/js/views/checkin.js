@@ -1,3 +1,4 @@
+import { announce } from '../homemsg.js';
 import { api } from '../api.js';
 import { esc, icon, chip, toast, ring, animateRings, level, PARTS } from '../ui.js';
 import { startCamera, stopCamera, frameJpeg, fileToDataUrl, mediapipe, LEFT_EYE, RIGHT_EYE, speechAvailable, listenOnce,
@@ -235,6 +236,7 @@ export async function render(el, { params, state, go }) {
     sessionStorage.removeItem(`trix-draft-${who}`);
     cleanup();
     showResult(el, out, who);
+    announce(who, out.home_messages);
   };
   return cleanup;
 }

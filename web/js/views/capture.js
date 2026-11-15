@@ -1,6 +1,7 @@
 // Guided capture of one measurement: how to measure, what it means, why it matters. Then: what you get back.
 import { api } from '../api.js';
 import { t } from '../i18n.js';
+import { announce } from '../homemsg.js';
 import { esc, icon, chip, ring, animateRings, limitBar, lineChart, toast, speak } from '../ui.js';
 
 const WORD_ST = { GO: 'green', WATCH: 'amber', 'NO-GO': 'red' };
@@ -101,6 +102,7 @@ export async function render(el, { params, state, go }) {
           <a class="btn ghost" href="#/today">${esc(t('Back to my deck'))}</a></div></div>
     </div>`;
     if (r.ring.done > r.ring_before.done) toast(`Day ring ${r.ring.done} of ${r.ring.of} · +${r.xp} XP`);
+    announce(state.who, r.home_messages);
   }
   return cleanup;
 }
