@@ -1,6 +1,7 @@
 // Guided capture of one measurement: how to measure, what it means, why it matters. Then: what you get back.
 import { api } from '../api.js';
 import { esc, icon, chip, ring, animateRings, limitBar, lineChart, toast, speak } from '../ui.js';
+import { t } from '../i18n.js';
 
 const WORD_ST = { GO: 'green', WATCH: 'amber', 'NO-GO': 'red' };
 
@@ -36,7 +37,7 @@ export async function render(el, { params, state, go }) {
     </div>
   </div>`;
   animateRings(el);
-  el.querySelector('#read').onclick = () => speak(info.howto.join(' '));
+  el.querySelector('#read').onclick = () => speak(info.howto.map(t).join(' '));
   let picked = null, source = 'tablet';
   el.querySelectorAll('[data-pick]').forEach((b) => b.onclick = () => { picked = +b.dataset.pick; el.querySelectorAll('[data-pick]').forEach((x) => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', x === b); }); });
   const save = async (value) => {

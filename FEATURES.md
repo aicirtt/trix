@@ -47,6 +47,8 @@
 | 41 | Alertness and strain trend | ✅ | 30-day overview of sleep, mood, alertness and strain from sleep, mood, HRV, eye closure and reaction time against your own normal. Not an emotion detector |
 | 42 | Talk to TRIX | ✅ | Voice or text on every screen: logs readings, answers status and knowledge questions with citations, opens screens, and starts the Emergency team. Health events go through the mission orchestrator |
 
-**Totals:** 40 ✅ · 2 🟡 · 0 ⬜ (of 42)
+| 43 | Astronaut's language | 🟡 | English, Russian, Japanese or Chinese per astronaut from the top bar, kept on the tablet. Navigation, screen labels, buttons, measurement names, how-to steps and read-aloud follow the choice; NASA explanations, agent advice and anything the onboard record generates stay in English. Translations not yet checked by native speakers |
+
+**Totals:** 40 ✅ · 3 🟡 · 0 ⬜ (of 43)
 
 Tested by `tests/` (348 tests, including every API endpoint the app uses) and in a headless browser on every screen. Camera checks were tested on synthetic images, not real patients.

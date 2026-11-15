@@ -1,4 +1,5 @@
 // Shared UI helpers: icons, chips, body figure, charts, toasts.
+import { SPEECH, getLang } from './i18n.js';
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 const P = {
@@ -142,6 +143,7 @@ export function speak(text) {
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.rate = 0.95;
+    u.lang = getLang() !== 'en' && /[^ -]/.test(text) ? SPEECH[getLang()] : 'en-US';   // untranslated text stays an English voice
     speechSynthesis.speak(u);
   } catch (e) { /* no speech on this device */ }
 }

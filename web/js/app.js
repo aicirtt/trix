@@ -13,6 +13,7 @@ import * as earth from './views/earth.js';
 import * as office from './views/office.js';
 import * as capture from './views/capture.js';
 import { speak } from './ui.js';
+import { t, setLang, translateDom, LANGS } from './i18n.js';
 import { speechAvailable, listenOnce } from './sensors.js';
 
 const NAV = [
@@ -22,11 +23,15 @@ const NAV = [
 const ROUTES = { today, checkin, body, care, procedure, ultrasound, emergency, crew, earth, office, capture };
 const CALM = new Set(['emergency', 'procedure']);
 
+// Language is chosen per astronaut and kept on this tablet.
+const langOf = (who) => localStorage.getItem(`trix-lang-${who}`) || 'en';
 export const state = {
   who: localStorage.getItem('trix-who') || 'C',
   mission: null,
-  setWho(w) { this.who = w; localStorage.setItem('trix-who', w); renderTop(); route(); },
+  setWho(w) { this.who = w; localStorage.setItem('trix-who', w); setLang(langOf(w)); renderTop(); route(); },
+  setLang(l) { localStorage.setItem(`trix-lang-${this.who}`, l); setLang(l); renderTop(); route(); translateDom(document.body); },
 };
+setLang(langOf(state.who));
 
 let cleanup = null;
 let clockTimer = null;
@@ -58,8 +63,11 @@ function renderTop() {
     <span class="tm"><span class="${link.live ? '' : 'blink'}" style="width:9px;height:9px;border-radius:99px;background:${link.live ? 'var(--ok)' : 'var(--watch)'}"></span>${link.live ? 'AOS' : 'LOS'} · Earth delay ${esc(link.delay)}</span>
     <a class="tm" href="#/earth" style="text-decoration:none;color:${swc}">${icon('rad', swc, 16)}${sw.status === 'green' ? 'SWX calm' : sw.status === 'amber' ? 'SWX watch' : 'SWX storm'}</a>
     <span class="who"><label class="sr" for="whosel">I am</label>
-      <select id="whosel">${Object.entries(m.crew).map(([k, c]) => `<option value="${k}" ${k === state.who ? 'selected' : ''}>${roles[k] || ''} · Astronaut ${k}</option>`).join('')}</select></span>`;
+      <select id="whosel">${Object.entries(m.crew).map(([k, c]) => `<option value="${k}" ${k === state.who ? 'selected' : ''}>${roles[k] || ''} · Astronaut ${k}</option>`).join('')}</select>
+      <label class="sr" for="langsel">Language</label><select id="langsel" title="${esc(t('Language'))}">${Object.entries(LANGS).map(([k, n]) => `<option value="${k}" ${k === langOf(state.who) ? 'selected' : ''}>${n}</option>`).join('')}</select></span>`;
   document.getElementById('whosel').onchange = (e) => state.setWho(e.target.value);
+  document.getElementById('langsel').onchange = (e) => state.setLang(e.target.value);
+  translateDom(document.getElementById('topbar'));
   clearInterval(clockTimer);
   const tick = () => { const t = met(); const a = document.getElementById('met'), b = document.getElementById('gmt'); if (a) a.textContent = t.met; if (b) b.textContent = t.gmt; };
   tick();
@@ -169,7 +177,9 @@ function setupTalk() {
   };
 }
 setupTalk();
+translateDom(document.body);
 
+new MutationObserver((muts) => muts.forEach((mu) => mu.addedNodes.forEach((n) => translateDom(n.nodeType === 1 ? n : n.parentNode)))).observe(document.body, { childList: true, subtree: true });
 window.addEventListener('hashchange', route);
 hydrateIcons(document);
 refreshMission().then(() => { route(); checkReminder(); }).catch((e) => {
