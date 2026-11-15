@@ -1,6 +1,7 @@
 import { api } from '../api.js';
 import { esc, icon, chip, toast, speak } from '../ui.js';
 import { startCamera, stopCamera, frameJpeg, fileToDataUrl, mediapipe, speechAvailable, listenOnce } from '../sensors.js';
+import * as av from '../avatar3d.js';
 
 const DEVICE_INPUT = {
   spo2_recheck: [['spo2', 'Oxygen on the other finger', '%']],
@@ -15,7 +16,22 @@ export async function render(el, { params, state, go }) {
   let stream = null, timer = null, stopped = false, rec = null, voiceOn = false, talk = true;
   const placed = {};
   const values = {};
-  const cleanup = () => { stopped = true; clearInterval(timer); stopCamera(stream); rec?.stop?.(); speechSynthesis?.cancel?.(); };
+  // "Show me how": one 3D stage kept alive across steps and moved into each newly drawn step
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const pid = v.protocol.id;
+  let showAv = av.HAS(pid) && av.webglOk() && (() => { try { return localStorage.getItem('trix-avatar') !== 'off'; } catch (e) { return true; } })();
+  const avBox = document.createElement('div');
+  avBox.className = 'avbox';
+  avBox.innerHTML = '<div class="avmsg">Loading the 3D guide…</div>';
+  let stage = null, stageFailed = false;
+  const weightless = ['iss', 'mars'].includes(state.mission?.location || 'iss');
+  async function ensureStage() {
+    if (stage || stageFailed || !showAv) return stage;
+    try { stage = await av.createStage(avBox, { weightless, still: reduce }); avBox.querySelector('.avmsg')?.remove(); }
+    catch (e) { stageFailed = true; avBox.innerHTML = `<div class="avmsg">The 3D guide could not load here (${esc(e.message)}). Follow the written steps.</div>`; }
+    return stage;
+  }
+  const cleanup = () => { stopped = true; clearInterval(timer); stopCamera(stream); rec?.stop?.(); speechSynthesis?.cancel?.(); stage?.dispose(); stage = null; };
 
   async function submit(passed, detail = '') {
     clearInterval(timer);
@@ -28,7 +44,7 @@ export async function render(el, { params, state, go }) {
     const p = v.protocol, cur = v.current;
     const dots = p.steps.map((s, i) => `<span class="${i < (cur ? cur.n - 1 : p.steps.length) ? 'done' : i === (cur?.n ?? 0) - 1 ? 'now' : ''}"></span>`).join('');
     if (v.done) {
-      stopCamera(stream);
+      stopCamera(stream); stage?.dispose(); stage = null;
       const sc = v.score;
       el.innerHTML = `<div class="card" style="align-items:center;text-align:center;padding:36px">
         <svg width="110" height="110" viewBox="0 0 120 120" class="pop" aria-hidden="true"><circle cx="60" cy="60" r="52" fill="none" stroke="#2DD4BF" stroke-width="8"/><path d="m40 62 14 14 28-30" fill="none" stroke="#2DD4BF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -45,6 +61,7 @@ export async function render(el, { params, state, go }) {
       <div class="row" style="gap:12px;align-items:center"><strong class="muted">Step ${cur.n} of ${cur.of}</strong><div class="dots">${dots}</div></div></div>
     <div class="row">
       <div class="col" style="flex:1.3;min-width:320px">
+        ${av.HAS(pid) ? `<div class="card" style="padding:0;gap:0"><div class="tile"><div class="ptitle"><span>Show me how · step ${cur.n} of ${cur.of}</span><button class="btn ghost sm" id="avtoggle">${showAv ? 'Hide 3D guide' : 'Show 3D guide'}</button></div></div>${showAv ? '<div id="avslot"></div><div class="avcap"><span id="avlabel"></span><span class="dim">The 3D guide is a demonstration: follow the written step</span></div>' : ''}</div>` : ''}
         ${isCam ? `<div class="cam" id="cam"><video id="vid" playsinline></video><canvas class="overlay" id="ov"></canvas>
           <div class="idle" id="idle">${icon('camera', 'var(--t2)', 40)}<span>${isEcg ? 'Mount the tablet facing the patient\'s chest so the shoulders and hips are in view.' : 'Point the camera at the patient.'}</span><button class="btn" id="camon">${icon('camera', '#fff', 18)}Turn on camera</button></div>
           <div class="msg" id="msg" hidden></div></div>` : ''}
@@ -62,6 +79,16 @@ export async function render(el, { params, state, go }) {
           ${speechAvailable() ? `<label class="row" style="gap:8px;align-items:center"><span class="switch"><input type="checkbox" id="voice" ${voiceOn ? 'checked' : ''}><span></span></span>Voice: “next”, “repeat”, “help”</label>` : ''}</div>
       </div>
     </div>`;
+    const slot = el.querySelector('#avslot');
+    if (slot) {
+      slot.appendChild(avBox);
+      ensureStage().then((st) => { if (st && !stopped) { const lab = st.setStep(pid, cur.n - 1); const l = el.querySelector('#avlabel'); if (l && lab) l.textContent = reduce ? `${lab} · still` : lab; } });
+    }
+    el.querySelector('#avtoggle')?.addEventListener('click', () => {
+      showAv = !showAv; try { localStorage.setItem('trix-avatar', showAv ? 'on' : 'off'); } catch (e) { /* storage off */ }
+      if (!showAv) { stage?.dispose(); stage = null; avBox.innerHTML = '<div class="avmsg">Loading the 3D guide…</div>'; }
+      draw();
+    });
     if (talk) speak(cur.say);
     el.querySelector('#talk').onchange = (e) => { talk = e.target.checked; if (!talk) speechSynthesis?.cancel?.(); };
     el.querySelector('#repeat').onclick = () => speak(cur.say);
