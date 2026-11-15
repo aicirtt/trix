@@ -22,14 +22,15 @@ export async function render(el, { state, refreshMission }) {
     <div class="seg" role="group" aria-label="Mission location">${Object.entries(m.locations).map(([k, l]) => `<button type="button" data-loc="${k}" class="${k === loc ? 'on' : ''}" aria-pressed="${k === loc}">${esc(l.label)}</button>`).join('')}</div></div>
   <div class="row">
     <div class="col grow">
-      <div class="card" style="padding-bottom:8px">${LINK_SVG(m.link.live)}</div>
+      <div class="card" style="padding-bottom:8px;${m.link_cut ? 'opacity:.35' : ''}">${LINK_SVG(m.link.live)}</div>
       <div class="card"><div class="row" style="gap:28px;align-items:center"><div><span class="lbl">One-way delay</span><div class="mono" style="font-size:36px;font-weight:600">${esc(m.link.delay)}</div></div>
         <div><span class="lbl">Ask and get an answer</span><div class="mono" style="font-size:36px;font-weight:600;color:var(--ambt)">${esc(m.link.round)}</div></div>
-        <div style="flex:1;min-width:220px;color:var(--t2);line-height:1.5">${m.link.live ? 'Flight surgeons can join live. TRIX still logs and summarises everything.' : 'Too slow for emergencies. TRIX acts on board and sends reports in the next link window.'}</div></div></div>
+        <div style="flex:1;min-width:220px;color:var(--t2);line-height:1.5">${m.link_cut ? '<strong style="color:var(--redt)">No contact with Earth.</strong> TRIX and the crew decide on board. Reports are held until the link returns.' : m.link.live ? 'Flight surgeons can join live. TRIX still logs and summarises everything.' : 'Too slow for emergencies. TRIX acts on board and sends reports in the next link window.'}</div>
+        <div class="col" style="gap:8px"><button class="btn ${m.link_cut ? '' : 'red'} sm" id="cut">${m.link_cut ? 'Restore the link' : 'Cut the link'}</button><a class="btn ghost sm" href="#/ground" target="_blank" rel="noopener">Flight surgeon view</a></div></div></div>
       <div class="card"><div class="head"><h2>Report queue</h2><span class="small muted">${rep.window_open ? 'Link window open' : `Next link window ${esc(rep.next_window)}`}</span></div>
         <table><thead><tr><th class="lbl">Report</th><th class="lbl">Who</th><th class="lbl" style="text-align:right">Size</th><th class="lbl" style="text-align:right">Priority</th><th class="lbl" style="text-align:right">Status</th></tr></thead>
         <tbody>${rep.reports.slice(0, 12).map((r) => `<tr><td><a href="#/office/${esc(r.case_id)}">${esc(r.case_id)}</a> <span class="small dim">${fmtTime(r.ts)}</span></td><td>${esc(r.who || 'crew')}</td><td class="mono" style="text-align:right">${(r.bytes / 1024).toFixed(1)} KB</td><td style="text-align:right">${chip(r.priority === 'urgent' ? 'red' : 'none', r.priority)}</td><td style="text-align:right">${chip(r.status === 'sent' ? 'green' : 'amber', r.status)}</td></tr>`).join('') || '<tr><td colspan="5" class="empty">Nothing queued.</td></tr>'}</tbody></table>
-        <div class="row" style="justify-content:space-between;align-items:center"><span class="small dim">Summaries only. Your privacy choices apply (Crew → My privacy).</span><button class="btn" id="send" ${queued.length ? '' : 'disabled'}>${icon('send', '#fff', 20)}Send ${queued.length} now</button></div></div>
+        <div class="row" style="justify-content:space-between;align-items:center"><span class="small dim">Summaries only. Your privacy choices apply (Crew → My privacy).</span><button class="btn" id="send" ${queued.length && !m.link_cut ? '' : 'disabled'}>${icon('send', '#fff', 20)}Send ${queued.length} now</button></div></div>
     </div>
     <div class="col" style="width:400px;flex:none;max-width:100%">
       <div class="card"><div class="head"><h2>Space weather</h2>${chip(swc, sw.status === 'green' ? 'Calm' : sw.status === 'amber' ? 'Watch' : 'Storm')}</div>
@@ -51,6 +52,7 @@ export async function render(el, { state, refreshMission }) {
     const r = await api.post('/api/reports/send');
     setTimeout(() => { toast(`${r.sent} reports sent. ${m.link.live ? 'Earth has them now.' : `They reach Earth in ${esc(m.link.delay)}.`}`); render(el, { state, refreshMission }); }, 2600);
   };
+  el.querySelector('#cut').onclick = async () => { await api.post('/api/mission', { link_cut: !m.link_cut }); await refreshMission(); render(el, { state, refreshMission }); };
   const ap = el.querySelector('#applysw');
   if (ap) ap.onclick = async () => { const r = await api.post('/api/feeds/space-weather/apply'); toast(`${esc(r.message)} Sent to ${r.cases?.length || 0} crew.`); };
   el.querySelector('#ble').onclick = async () => { try { await connectHeartRate(() => {}); toast('Device paired.'); render(el, { state, refreshMission }); } catch (e) { toast(`Not paired: ${esc(e.message)}`); } };

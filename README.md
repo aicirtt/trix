@@ -27,6 +27,8 @@ Without `setup_vendor.py` the face and body models load from the jsDelivr CDN wh
 | **Emergency** | Pick the patient and what is happening (or speak it) → the Emergency team answers on board, first step first, then start the guided procedure |
 | **Crew** | Streaks, badges, team goal, rotating **buddy check**, personal privacy switches that apply to every Earth report |
 | **Earth link** | ISS / Moon / Mars delay, report queue with priorities and send animation, **NASA DONKI space weather** (alert the crew), devices, onboard AI |
+| **Body mirror** | Scan yourself to put your own outline on the deck; re-scan to compare day 1 with today on your photo |
+| **Simulator** | What-if scenarios through the real agents, cut the link to Earth, mission replay over 240 days, and the flight surgeon's view of what reaches Earth |
 | **Agent tree** | Every case as a tree: who gave what work to whom, the hand-off between teams, tools used, and a step-by-step replay |
 
 Live feeds: set `NASA_API_KEY` (or use `DEMO_KEY`) for DONKI and `METEOMATICS_USER` / `METEOMATICS_PASSWORD` for landing weather. With no network TRIX uses the last saved reply, then a bundled sample, and the screen says which.
@@ -37,7 +39,7 @@ Live feeds: set `NASA_API_KEY` (or use `DEMO_KEY`) for DONKI and `METEOMATICS_US
 python demo.py                  # 3 events in parallel: hand-off to Emergency, morning check-in, pharmacy
 python agent_office.py --last   # agent office in the terminal
 python eval/run_all.py          # all evaluations -> eval/RESULTS.md
-python -m pytest -q tests       # 348 tests
+python -m pytest -q tests       # 359 tests
 ```
 Optional: run a local model with [Ollama](https://ollama.com) (`ollama pull llama3.2:3b`) and TRIX will use it for wording; otherwise a built-in extractive fallback answers from the cited sources.
 
@@ -156,7 +158,7 @@ time     team        agent                     triggered by              returne
 
 ## Testing: every flow, not just one
 
-`python -m pytest -q tests` runs **348 tests** (about 45 s), including `tests/test_api.py`, which drives every endpoint the web app uses. They cover:
+`python -m pytest -q tests` runs **359 tests** (about 45 s), including `tests/test_api.py`, which drives every endpoint the web app uses. They cover:
 
 | Area | What is checked |
 |---|---|
