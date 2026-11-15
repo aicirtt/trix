@@ -10,8 +10,21 @@ A tablet web app plus an onboard server, styled like mission software (NASA-styl
 pip install -r requirements.txt
 python trix/synth.py            # simulated crew history -> data/
 python scripts/setup_vendor.py  # once: copies MediaPipe, three.js and the 3D guide models into web/vendor (needs npm)
+cp .env.example .env            # then choose a language model (below)
 python app.py                   # open http://localhost:8000  (Chrome or Edge for camera, speech and Bluetooth)
 ```
+### Choosing the language model
+
+TRIX reads its settings from `.env` (copy `.env.example`). It picks a model in this order:
+
+| Option | When to use it | Setup |
+|---|---|---|
+| **Claude API** (default) | Any laptop. Best answers, fast. Needs internet and costs a little per answer | Put your key from console.anthropic.com in `ANTHROPIC_API_KEY` |
+| **Local model (Ollama)** | Computers with more compute (about 8 GB+ free RAM, a GPU helps a lot). Free and fully offline, as on a real spacecraft | Install [Ollama](https://ollama.com), run `ollama pull llama3.2:3b`, and leave the key empty or set `TRIX_LLM=ollama` |
+| **Built-in fallback** | Nothing else available | Nothing: answers are quoted from the cited sources |
+
+If the Claude API cannot be reached, TRIX falls back automatically, so the app keeps working offline. Check which one is in use at `http://localhost:8000/api/system`.
+
 Without `setup_vendor.py` the face and body models and the 3D guide load from public CDNs when online. The 3D guide uses the Ready Player Me avatar from the three.js examples; it is downloaded, not committed.
 
 | Screen | What it does |
@@ -41,7 +54,7 @@ python agent_office.py --last   # agent office in the terminal
 python eval/run_all.py          # all evaluations -> eval/RESULTS.md
 python -m pytest -q tests       # 392 tests
 ```
-Optional: run a local model with [Ollama](https://ollama.com) (`ollama pull llama3.2:3b`) and TRIX will use it for wording; otherwise a built-in extractive fallback answers from the cited sources.
+The language model is chosen as described in [Choosing the language model](#choosing-the-language-model). Tests do not read `.env`; run them with `TRIX_LLM=fallback` for reproducible results.
 
 ## How it answers the challenge's questions
 

@@ -22,7 +22,7 @@ def main():
     out = ROOT / "web" / "vendor" / "mediapipe"
     with tempfile.TemporaryDirectory() as tmp:
         for name, spec in PKGS.items():
-            subprocess.run(["npm", "pack", spec, "--silent"], cwd=tmp, check=True, capture_output=True)
+            subprocess.run([shutil.which("npm") or "npm", "pack", spec, "--silent"], cwd=tmp, check=True, capture_output=True)
             tgz = next(Path(tmp).glob(f"mediapipe-{name.replace('_', '_')}*.tgz"))
             dest = out / name
             shutil.rmtree(dest, ignore_errors=True)
@@ -50,7 +50,7 @@ def three():
     out = ROOT / "web" / "vendor" / "three"
     shutil.rmtree(out, ignore_errors=True)
     with tempfile.TemporaryDirectory() as tmp:
-        subprocess.run(["npm", "pack", THREE, "--silent"], cwd=tmp, check=True, capture_output=True)
+        subprocess.run([shutil.which("npm") or "npm", "pack", THREE, "--silent"], cwd=tmp, check=True, capture_output=True)
         with tarfile.open(next(Path(tmp).glob("three-*.tgz"))) as t:
             for src, dst in THREE_FILES.items():
                 data = t.extractfile(f"package/{src}").read().decode()

@@ -16,7 +16,7 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 
 /* ---------- shell ---------- */
-.app{display:flex;height:100vh;overflow:hidden}
+.app{display:flex;height:100vh;height:100dvh;overflow:hidden}
 .rail{width:104px;flex:none;padding:18px 10px;background:var(--p1);border-right:1px solid var(--bd);display:flex;flex-direction:column;align-items:center;gap:6px;z-index:2}
 .logo{font-weight:800;font-size:20px;letter-spacing:.14em;margin-bottom:14px}.logo span{color:var(--bluet)}
 .nav{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:84px;min-height:64px;border-radius:14px;text-decoration:none;color:var(--t2);font-size:12.5px;text-align:center;font-weight:500}
@@ -24,7 +24,7 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 .nav.on{background:rgba(59,130,246,.16);color:var(--t1);font-weight:700}.nav.on svg{stroke:var(--bluet)}
 .sos{margin-top:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:84px;min-height:76px;border-radius:16px;background:var(--red);color:#fff;text-decoration:none;font-size:13px;font-weight:700}
 .sos:hover{background:#B91C1C;color:#fff}
-.mainwrap{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
+.mainwrap{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;position:relative}
 .topbar{height:64px;flex:none;display:flex;align-items:center;gap:24px;padding:0 28px;border-bottom:1px solid var(--bd);background:rgba(15,22,38,.92);font-size:15px;position:relative;z-index:1;flex-wrap:wrap}
 .topbar .it{display:flex;align-items:center;gap:8px;color:var(--t2)}
 .topbar strong{color:var(--t1)}

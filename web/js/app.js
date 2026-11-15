@@ -211,7 +211,7 @@ function setupTalk() {
   panel.querySelector('#talkmic').onclick = () => {
     if (!speechAvailable()) { input.placeholder = 'Speech needs Chrome or Edge. Type instead.'; return; }
     input.placeholder = 'Listening…';
-    listenOnce({ lang: SPEECH[getLang()], onText: (t, fin) => { input.value = t; if (fin && t) send(t); }, onError: () => { input.placeholder = 'Could not hear you. Type instead.'; } });
+    listenOnce({ lang: SPEECH[getLang()], onText: (t, fin) => { input.value = t; if (fin && t) send(t); }, onError: (e) => { const why = { 'not-allowed': 'Microphone blocked: click the icon left of the address bar and allow it', 'audio-capture': 'No microphone found', network: 'Speech needs internet (Chrome sends audio to Google)', 'no-speech': 'Heard nothing. Try again' }[e?.error]; input.placeholder = why || `Could not hear you (${e?.error || e?.message || 'unknown'}). Type instead.`; } });
   };
   // Hands-free: keep listening; a sentence that starts with "TRIX" (in any language) is a request, everything else is ignored.
   const WAKE = /^(?:hey |ok |okay |эй |hé |oye )?(?:trix|трикс|トリックス|特里克斯|트릭스|ट्रिक्स)[\s,.!?、，。]*/i;

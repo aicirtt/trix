@@ -5,6 +5,8 @@ ruptures
 shap
 rank_bm25
 langgraph
+anthropic
+python-dotenv
 pyyaml
 fastapi
 uvicorn

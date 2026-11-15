@@ -285,7 +285,7 @@ def system_status() -> dict:
     except ImportError:
         whisper = False
     from .addons import echonet, medsiglip
-    return {"llm": m.name, "llm_offline": True, "skin_ai": "MedSigLIP" if medsiglip.available()[0] else "redness check (MedSigLIP add-on not installed)",
+    return {"llm": m.name, "llm_offline": not isinstance(m, llm.ClaudeLLM), "skin_ai": "MedSigLIP" if medsiglip.available()[0] else "redness check (MedSigLIP add-on not installed)",
             "ultrasound_ai": "EchoNet-Dynamic" if echonet.available()[0] else "view quality (EchoNet add-on not installed)", "speech": "faster-whisper (offline)" if whisper else "tablet speech recognition",
             "face": "MediaPipe Face Mesh (on tablet)", "pose": "MediaPipe Pose (on tablet)",
             "vision": "OpenCV checks (onboard)", "reminders": "Thompson-sampling bandit (learning)"}
@@ -328,7 +328,7 @@ def offline_check():
     checks = [
         ("Agents, safety checks and health record", True, "Python on this computer, SQLite file"),
         ("Knowledge base and cited answers", True, f"{len(list((kb.KB_DIR / 'docs').glob('*.md')))} notes + {len(kb.indicators())} indicators on disk"),
-        ("Language model", True, f"{m.name} (local)"),
+        ("Language model", not isinstance(m, llm.ClaudeLLM), f"{m.name} (cloud API, needs internet)" if isinstance(m, llm.ClaudeLLM) else f"{m.name} (local)"),
         ("Face and body tracking models", (vend / "pose" / "pose.js").exists() and (vend / "face_mesh" / "face_mesh.js").exists(),
          "served from this computer" if (vend / "pose" / "pose.js").exists() else "not copied yet: run python scripts/setup_vendor.py (otherwise loaded from the internet)"),
         ("Fonts and interface", (WEB / "fonts").exists(), "bundled"),

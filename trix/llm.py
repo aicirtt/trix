@@ -1,11 +1,15 @@
-"""LLM interface. Uses a local Ollama model when available (no internet), else a deterministic
-extractive fallback so the system always works (and tests are reproducible)."""
+"""LLM interface, picked in this order:
+1. Claude through the Anthropic API when ANTHROPIC_API_KEY is set (needs internet),
+2. a local Ollama model when one is running (no internet),
+3. a deterministic extractive fallback so the system always works (and tests are reproducible).
+Set TRIX_LLM=claude|ollama|fallback to force one."""
 import json
 import os
 import urllib.request
 
 OLLAMA = os.environ.get("TRIX_OLLAMA_URL", "http://localhost:11434")
 MODEL = os.environ.get("TRIX_MODEL", "llama3.2:3b")
+CLAUDE_MODEL = os.environ.get("TRIX_CLAUDE_MODEL", "claude-opus-5-5")
 
 SYSTEM = ("You are TRIX, an onboard health assistant for astronauts far from Earth. Answer in plain, short sentences. "
           "Use ONLY the provided sources and cite them as [n]. Never invent medical steps, doses or diagnoses. "
@@ -64,17 +68,63 @@ class OllamaLLM:
             return json.loads(r.read())["message"]["content"]
 
 
-def get_llm():
+class ClaudeLLM:
+    """Claude through the Anthropic API. Any API failure falls back to the extractive answer, so the app keeps
+    working when the internet drops."""
+    name = f"claude:{CLAUDE_MODEL}"
+    _client = None
+
+    @classmethod
+    def client(cls):
+        if cls._client is None:
+            import anthropic
+            cls._client = anthropic.Anthropic(timeout=60.0, max_retries=1)
+        return cls._client
+
+    def chat(self, system: str, messages: list[dict], max_tokens: int = 16000) -> str | None:
+        """One reply as plain text; None on any API error or refusal."""
+        try:
+            r = self.client().beta.messages.create(
+                model=CLAUDE_MODEL, max_tokens=max_tokens, system=system, messages=messages,
+                output_config={"effort": "low"},  # short spoken answers: keep it fast
+                betas=["server-side-fallback-2026-07-01"], fallbacks="default")
+        except Exception:
+            return None
+        if r.stop_reason == "refusal":
+            return None
+        return "".join(b.text for b in r.content if b.type == "text").strip() or None
+
+    def answer(self, question: str, hits: list[dict]) -> str:
+        ctx = "\n".join(f"[{n}] {h['title']}: {h['text']}" for n, h in enumerate(hits, 1))
+        out = self.chat(SYSTEM, [{"role": "user", "content": f"Sources:\n{ctx}\n\nQuestion: {question}"}])
+        return out or FallbackLLM().answer(question, hits)
+
+
+def _ollama_up() -> bool:
     try:
         urllib.request.urlopen(f"{OLLAMA}/api/tags", timeout=1)
-        return OllamaLLM()
+        return True
     except Exception:
+        return False
+
+
+def get_llm():
+    force = os.environ.get("TRIX_LLM", "").lower()
+    if force == "fallback":
         return FallbackLLM()
+    if force == "claude" or (not force and os.environ.get("ANTHROPIC_API_KEY")):
+        return ClaudeLLM()
+    if force in ("", "ollama") and _ollama_up():
+        return OllamaLLM()
+    return FallbackLLM()
 
 
 def translate(text: str, language: str) -> str | None:
-    """Translate with the local Ollama model; None when only the extractive fallback is available."""
+    """Translate with Claude or the local Ollama model; None when only the extractive fallback is available."""
     m = get_llm()
+    if text and isinstance(m, ClaudeLLM):
+        return m.chat(f"Translate the user's message into {language}. Reply with the translation only, keep numbers and the word TRIX unchanged.",
+                      [{"role": "user", "content": text}], max_tokens=4000)
     if not text or not isinstance(m, OllamaLLM):
         return None
     body = json.dumps({"model": MODEL, "stream": False, "options": {"temperature": 0},
@@ -89,8 +139,16 @@ def translate(text: str, language: str) -> str | None:
 
 
 def chat_json(messages: list[dict]) -> str | None:
-    """One JSON-only reply from the local Ollama model; None when only the fallback is available or it fails."""
-    if not isinstance(get_llm(), OllamaLLM):
+    """One JSON-only reply from Claude or the local Ollama model; None when only the fallback is available or it fails."""
+    m = get_llm()
+    if isinstance(m, ClaudeLLM):
+        system = "\n".join(x["content"] for x in messages if x["role"] == "system")
+        rest = [x for x in messages if x["role"] != "system"]
+        out = m.chat(system + "\nReply with one JSON object only, no other text.", rest, max_tokens=4000)
+        if not out or "{" not in out:
+            return None
+        return out[out.index("{"): out.rindex("}") + 1]
+    if not isinstance(m, OllamaLLM):
         return None
     body = json.dumps({"model": MODEL, "stream": False, "format": "json", "options": {"temperature": 0}, "messages": messages}).encode()
     try:
