@@ -12,6 +12,9 @@ export async function render(el, { params } = {}) {
     <form id="sf" class="row" style="gap:8px;align-items:center"><label class="sr" for="sq">Search NASA studies</label><input class="input" id="sq" placeholder="Search NASA studies: bone loss, radiation, immune…" style="flex:1;min-width:220px"><button class="btn sm">Search</button><span id="ssrc" class="small dim mono"></span></form>
     <div class="list" id="sres"></div>
     <div class="small"><a href="${esc(s.open_science.paper.url)}" target="_blank" rel="noopener">${esc(s.open_science.paper.title)}</a></div></div>
+  <div class="card"><div class="head"><div><h2>Measured on the ISS · ${s.iss.human_research} human research experiments</h2><div class="small muted">From ${esc(s.iss.source.title)}: ${s.iss.total_experiments} experiments in all, ${Object.entries(s.iss.agencies).map(([a, n]) => `${esc(a)} ${n}`).join(' · ')}. ${esc(s.iss.note)}</div></div>
+      <a class="btn ghost sm" href="${esc(s.iss.source.explorer)}" target="_blank" rel="noopener">Open the Research Explorer</a></div>
+    <div class="issbars">${Object.entries(s.iss.by_indicator).sort((a, b) => b[1] - a[1]).map(([k, n]) => `<div><span>${esc(s.iss.names[k] || k)}</span><i style="width:${n / Math.max(...Object.values(s.iss.by_indicator)) * 100}%"></i><b class="mono">${n}</b></div>`).join('')}</div></div>
   <div class="row">
     <div class="card grow"><h2>NASA and research references (${s.references.length})</h2><div class="list">${s.references.map(row).join('')}</div></div>
     <div class="col grow"><div class="card"><h2>Live data</h2><div class="list">${s.live_data.map(row).join('')}</div></div>

@@ -338,3 +338,6 @@ main{padding-bottom:96px}
 .envnote{display:flex;flex-direction:column;gap:2px;margin-top:10px;padding:10px 12px;border-left:3px solid var(--bluet);background:rgba(11,61,145,.22);line-height:1.45}
 .envnote strong{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--bluet)}
 .envnote.skip{border-left-color:var(--watch)}.envnote.skip strong{color:var(--watch)}
+.issbars{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:6px 24px}
+.issbars div{display:grid;grid-template-columns:150px 1fr 34px;align-items:center;gap:8px;font-size:13px}
+.issbars i{display:block;height:8px;background:var(--bluet);min-width:2px}.issbars b{text-align:right}

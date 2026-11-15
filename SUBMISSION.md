@@ -61,6 +61,10 @@ Full tables: `eval/RESULTS.md`.
 
 ## 7. NASA data and resources used
 
+- **ISS Research Explorer (NASA):** all 374 human research experiments on the ISS (NASA, ESA, Roscosmos, CSA, JAXA), linked to each TRIX measurement to show it can be done in space. Built from NASA's All Experiments Report by `scripts/build_iss_experiments.py`.
+- **NASA Open Science Data Repository:** 10 real Inspiration4 astronaut studies (blood, immune cells, skin, urine and more) linked to the measurements, plus a live study search with an offline fallback.
+- **Canadian Space Agency:** radiation monitoring and science-in-space resources from the challenge page.
+
 Open the **Sources and data** screen in the app (Earth link → Sources and data) for the full linked list. Main ones:
 
 - NASA Human Research Program: the five hazards of human spaceflight and the HRP risk list
