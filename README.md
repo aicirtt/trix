@@ -9,10 +9,10 @@ A tablet web app plus an onboard server, styled like mission software (NASA-styl
 ```
 pip install -r requirements.txt
 python trix/synth.py            # simulated crew history -> data/
-python scripts/setup_vendor.py  # once: copies the MediaPipe face/body models into web/vendor (needs npm)
+python scripts/setup_vendor.py  # once: copies MediaPipe, three.js and the 3D guide models into web/vendor (needs npm)
 python app.py                   # open http://localhost:8000  (Chrome or Edge for camera, speech and Bluetooth)
 ```
-Without `setup_vendor.py` the face and body models load from the jsDelivr CDN when online.
+Without `setup_vendor.py` the face and body models and the 3D guide load from public CDNs when online. The 3D guide uses the Soldier and Michelle models from the three.js examples (characters from Adobe Mixamo); they are downloaded, not committed.
 
 | Screen | What it does |
 |---|---|

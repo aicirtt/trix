@@ -59,7 +59,8 @@
 | 53 | Sources and data screen | ✅ | Every NASA, CSA and research source, the open science studies, ISS experiment counts, what is simulated and an offline self-check |
 | 54 | Coming home | 🟡 | Landing-day readiness score from the readings TRIX already has (stand test, bone forecast to landing day, exercise and mass, reaction time, vision, mission radiation total, back pain, sleep and mood); risk areas on the body; stand test rehearsal; recovery plan before, on and after landing (Mars version: no ground crew). Planning aid, weights and score not clinically validated |
 | 55 | Messages from home | ✅ | Family and friends record messages before launch (or send them from Earth with the real delay); each unlocks after check-in days or the weekly routine, never for good numbers. A mood of 2 or lower, or "I need a message from home", unlocks one at once. Recordings stay on board, never in reports |
+| 56 | 3D "show me how" guide | 🟡 | three.js avatar acts out every step of all 8 procedures: a suited astronaut helper and a crewmate patient. CPR in microgravity uses the handstand brace with compressions at 110/min; ECG stickers appear one by one at the camera-check positions; floats when weightless. Poses are built in code (no motion capture), so hands and fingers are simplified; text stays the instruction |
 
-**Totals:** 50 ✅ · 5 🟡 · 0 ⬜ (of 55)
+**Totals:** 50 ✅ · 6 🟡 · 0 ⬜ (of 56)
 
 Tested by `tests/` (391 tests, including every API endpoint the app uses) and in a headless browser on every screen. Camera checks were tested on synthetic images, not real patients.

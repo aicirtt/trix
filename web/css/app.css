@@ -360,3 +360,9 @@ main{padding-bottom:96px}
 .hmtext{font-size:19px;line-height:1.55;padding:14px;background:rgba(11,61,145,.25);border-left:3px solid var(--bluet)}
 .hmnew{position:fixed;right:20px;bottom:96px;z-index:55;display:flex;align-items:center;gap:12px;width:min(460px,calc(100% - 40px));padding:14px 16px;background:var(--p1);border:1px solid var(--bd);border-left:3px solid var(--redt);box-shadow:0 10px 30px rgba(0,0,0,.45)}
 .hmnext{font-size:17px;font-weight:600;padding:8px 12px;border-left:3px solid var(--watch);background:rgba(251,191,36,.08)}
+
+/* 3D procedure guide */
+.avbox{position:relative;width:100%;height:clamp(260px,42vh,420px);background:#071330;border-top:1px solid var(--bd)}
+.avbox canvas{display:block;width:100%!important;height:100%!important;cursor:grab}
+.avmsg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;text-align:center;color:var(--t2)}
+.avcap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:8px 14px;font-size:13px;border-top:1px solid var(--bd)}.avcap #avlabel{font-weight:600;color:var(--watch)}

@@ -1,8 +1,12 @@
-"""Download the on-device MediaPipe models into web/vendor so the face and body checks work with no internet.
+"""Download the on-device MediaPipe models, three.js and the 3D avatar models into web/vendor so the app works with no internet.
 
 Needs npm (comes with Node.js). Run once:  python scripts/setup_vendor.py
-Without this step the app loads the same files from the jsDelivr CDN when online.
+Without this step the app loads the same files from public CDNs when online.
+
+Avatar models: Soldier.glb and Michelle.glb from the three.js examples (MIT-licensed repository; the characters
+come from Adobe Mixamo, free to use in projects). They are downloaded, not committed.
 """
+import urllib.request
 import shutil
 import subprocess
 import tarfile
@@ -33,5 +37,37 @@ def main():
             print(f"{name}: {sum(p.stat().st_size for p in dest.iterdir()) / 1e6:.1f} MB -> {dest}")
 
 
+THREE = "three@0.170.0"
+THREE_FILES = {"build/three.module.min.js": "three.module.min.js", "examples/jsm/loaders/GLTFLoader.js": "addons/GLTFLoader.js",
+               "examples/jsm/utils/BufferGeometryUtils.js": "utils/BufferGeometryUtils.js", "examples/jsm/utils/SkeletonUtils.js": "addons/SkeletonUtils.js",
+               "examples/jsm/controls/OrbitControls.js": "addons/OrbitControls.js"}
+MODELS = ["Soldier", "Michelle"]
+MODEL_URL = "https://raw.githubusercontent.com/mrdoob/three.js/r170/examples/models/gltf/{}.glb"
+
+
+def three():
+    """three.js + the loaders the avatar uses; bare 'three' imports are rewritten to a relative path (no import map needed)."""
+    out = ROOT / "web" / "vendor" / "three"
+    shutil.rmtree(out, ignore_errors=True)
+    with tempfile.TemporaryDirectory() as tmp:
+        subprocess.run(["npm", "pack", THREE, "--silent"], cwd=tmp, check=True, capture_output=True)
+        with tarfile.open(next(Path(tmp).glob("three-*.tgz"))) as t:
+            for src, dst in THREE_FILES.items():
+                data = t.extractfile(f"package/{src}").read().decode()
+                if dst != "three.module.min.js":
+                    data = data.replace("from 'three'", "from '../three.module.min.js'")
+                    data = data.replace("from '../utils/BufferGeometryUtils.js'", "from '../utils/BufferGeometryUtils.js'")
+                f = out / dst
+                f.parent.mkdir(parents=True, exist_ok=True)
+                f.write_text(data)
+    print(f"three: {sum(p.stat().st_size for p in out.rglob('*') if p.is_file()) / 1e6:.1f} MB -> {out}")
+    av = ROOT / "web" / "vendor" / "avatar"
+    av.mkdir(parents=True, exist_ok=True)
+    for m in MODELS:
+        urllib.request.urlretrieve(MODEL_URL.format(m), av / f"{m}.glb")
+    print(f"avatar models: {', '.join(MODELS)} -> {av}")
+
+
 if __name__ == "__main__":
     main()
+    three()
