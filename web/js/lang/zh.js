@@ -6,6 +6,7 @@ export default {
   "Procedures": "处置流程",
   "Body mirror": "身体镜像",
   "Simulator": "模拟器",
+  "Coming home": "返回家园",
   "Crew": "乘组",
   "Earth link": "地面链路",
   "Agent tree": "智能体树",

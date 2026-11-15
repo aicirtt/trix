@@ -80,7 +80,7 @@ export async function render(el, { state }) {
     <div class="col" style="gap:12px">
       <div class="holo"><div class="kicker" style="position:absolute;left:0;top:0;font-size:12.5px">Astronaut ${esc(who)} · flight day ${t.day} · day ring ${rt.ring.done} of ${rt.ring.of} · readiness ${rt.readiness}%</div>
         <div class="kicker" style="position:absolute;right:0;top:0;font-size:12.5px;color:${COL[t.strain.status]}">strain ${t.strain.strain == null ? '—' : Math.round(t.strain.strain)} · alertness ${t.strain.alertness == null ? '—' : Math.round(t.strain.alertness)}</div>
-        ${hologram(t.body_map, notes, rt.ring, outline)}${outline ? '' : '<a class="small" href="#/mirror" style="position:absolute;left:0;bottom:0">Scan yourself to make this your own body →</a>'}</div>
+        ${hologram(t.body_map, notes, rt.ring, outline)}${outline ? '' : '<a class="small" href="#/mirror" style="position:absolute;left:0;bottom:0">Scan yourself to make this your own body →</a>'}<a class="small" href="#/landing" style="position:absolute;right:0;bottom:0">Coming home: landing readiness →</a></div>
       <div class="card act ${act.due ? 'due' : ''}"><div style="flex:1"><div class="kicker" style="color:${act.due ? 'var(--redt)' : 'var(--watch)'};font-weight:700">3 · ${esc(tr('Act'))} · ${esc(act.k)}</div><div style="font-size:21px;font-weight:700;margin-top:2px">${esc(act.t)}</div><div class="small muted" style="margin-top:2px">${esc(act.w)}</div></div>
         <a class="btn ${act.due ? 'due' : ''}" href="${act.go}">${esc(act.b)}</a></div>
     </div>

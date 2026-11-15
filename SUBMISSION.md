@@ -43,6 +43,7 @@ On the way to Mars a question to a doctor takes 40 minutes to come back. TRIX is
 - **Safe by design**: answers only from cited sources; procedures cannot be skipped or invented; doses and diagnoses are blocked.
 - **Guides the crewmate**, not only the patient.
 - **Respects the astronaut**: two minutes a day, something back every time, privacy switches, their own language.
+- **Thinks about coming home**: a landing-day readiness score, risk areas on the body and a recovery plan for before, on and after landing (on Earth or on Mars, where there is no ground crew).
 
 ## 6. Results (on our simulated data)
 
@@ -79,9 +80,9 @@ Open the **Sources and data** screen in the app (Earth link → Sources and data
 
 - The 240-day crew history, most onboard devices, the medicine stock and the menu are simulated.
 - Camera and voice checks (face fatigue, ECG sticker placement, CPR rate, balance, skin, ultrasound view, voice, body scan) were tested on generated images and audio, not on real people. **[YOU]** update this line after your real-device run.
-- Readiness and strain are simple scores for trends, not validated measures.
+- Readiness, strain and the landing-day readiness score are simple scores for trends and planning, not validated measures.
 - Medical limits come from the cited sources but have not been reviewed by a clinician. TRIX is a concept, not a medical device.
-- Translations (Russian, Japanese, Chinese) cover the routine screens and have not been checked by native speakers.
+- Translations (nine languages besides English) cover the main screens and have not been checked by native speakers.
 
 ## 9. Use of artificial intelligence
 

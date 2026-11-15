@@ -33,6 +33,7 @@ const P = {
   bt: '<path d="m7 7 10 10-5 5V2l5 5L7 17"/>',
   upload: '<path d="M12 16V4"/><path d="m6 10 6-6 6 6"/><path d="M4 20h16"/>',
   play: '<path d="M7 4v16l13-8z"/>',
+  land: '<path d="M12 3a8 8 0 0 0-8 8h16a8 8 0 0 0-8-8z"/><path d="M4 11l6 7M20 11l-6 7M12 11v7"/><rect x="9.5" y="18" width="5" height="3.5" rx="1"/>',
   sat: '<path d="M13 7 9 3 5 7l4 4"/><path d="m17 11 4 4-4 4-4-4"/><path d="m8 12 4 4"/><path d="M16 8l-4 4"/><path d="M3 21c0-3 2-5 5-5"/>',
   star: '<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',
   food: '<path d="M7 3v8a3 3 0 0 0 3 3v7"/><path d="M10 3v6"/><path d="M4 3v6a3 3 0 0 0 3 3"/><path d="M17 3c-2 0-3 3-3 6s1 4 3 4v8"/>',
@@ -163,7 +164,7 @@ export function hologram(bodyMap, notes = {}, ring = null, outline = null) {
     return `<g class="mk" data-part="${id}" tabindex="0" role="button" aria-label="${esc(title)}: ${STATUS_WORD[st]}"><path d="${line}" fill="none" stroke="${c}" stroke-width="1.2" stroke-opacity=".8"/>
       <circle cx="${x}" cy="${y}" r="14" fill="transparent"/><circle cx="${x}" cy="${y}" r="7" fill="#050B18" stroke="${c}" stroke-width="2.5"/><circle cx="${x}" cy="${y}" r="2.5" fill="${c}"/>${pulse}
       <text x="${tx}" y="${ly - 3}" font-size="12.5" font-weight="700" fill="#CFE0FF" text-anchor="${an}" font-family="'IBM Plex Sans Condensed',sans-serif" letter-spacing=".08em">${esc(title)}</text>
-      <text x="${tx}" y="${ly + 14}" font-size="12" fill="${c}" text-anchor="${an}" font-family="'IBM Plex Mono',monospace">${esc(STATUS_WORD[st])}${notes[id] ? ' · ' + esc(notes[id]) : ''}</text></g>`;
+      <text x="${tx}" y="${ly + 14}" font-size="12" fill="${c}" text-anchor="${an}" font-family="'IBM Plex Mono',monospace">${esc((bodyMap[id] || {}).word || STATUS_WORD[st])}${notes[id] ? ' · ' + esc(notes[id]) : ''}</text></g>`;
   }).join('');
   let arc = '';
   if (ring && ring.of) {
