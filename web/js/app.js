@@ -16,6 +16,7 @@ import * as mirror from './views/mirror.js';
 import * as sim from './views/sim.js';
 import * as replay from './views/replay.js';
 import * as ground from './views/ground.js';
+import * as sources from './views/sources.js';
 import { speak } from './ui.js';
 import { t, setLang, translateDom, LANGS, SPEECH, getLang } from './i18n.js';
 import { speechAvailable, listenOnce } from './sensors.js';
@@ -24,7 +25,7 @@ const NAV = [
   ['today', 'Mission deck', 'today'], ['checkin', 'Check-in', 'checkin'], ['body', 'Trends', 'body'], ['care', 'Procedures', 'care'],
   ['mirror', 'Body mirror', 'body'], ['crew', 'Crew', 'crew'], ['earth', 'Earth link', 'earth'], ['office', 'Agent tree', 'office'], ['sim', 'Simulator', 'play'],
 ];
-const ROUTES = { today, checkin, body, care, procedure, ultrasound, emergency, crew, earth, office, capture, mirror, sim, replay, ground };
+const ROUTES = { today, checkin, body, care, procedure, ultrasound, emergency, crew, earth, office, capture, mirror, sim, replay, ground, sources };
 const CALM = new Set(['emergency', 'procedure']);
 
 // Language is chosen per astronaut and kept on this tablet.
@@ -88,7 +89,7 @@ export function go(hash) { location.hash = hash; }
 async function route() {
   const parts = (location.hash.replace(/^#\/?/, '') || 'today').split('/');
   const name = ROUTES[parts[0]] ? parts[0] : 'today';
-  renderNav(name === 'procedure' || name === 'ultrasound' ? 'care' : name === 'emergency' ? '' : name === 'capture' ? 'checkin' : name === 'replay' || name === 'ground' ? 'sim' : name);
+  renderNav(name === 'procedure' || name === 'ultrasound' ? 'care' : name === 'emergency' ? '' : name === 'capture' ? 'checkin' : name === 'replay' || name === 'ground' ? 'sim' : name === 'sources' ? 'earth' : name);
   document.getElementById('app').classList.toggle('calm', CALM.has(name));
   if (cleanup) { try { cleanup(); } catch (e) { console.warn(e); } cleanup = null; }
   const view = document.getElementById('view');

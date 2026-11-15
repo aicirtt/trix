@@ -1,4 +1,5 @@
 """Run every evaluation and write eval/RESULTS.md (numbers for the pitch)."""
+import json
 import sys
 from pathlib import Path
 
@@ -6,9 +7,12 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "eval"))
 import eval_detection  # noqa: E402
 import eval_rag  # noqa: E402
+import eval_rag_heldout  # noqa: E402
 import eval_safety  # noqa: E402
 
 d, r, s = eval_detection.main(), eval_rag.main(), eval_safety.main()
+h = eval_rag_heldout.main()
+h0 = json.loads((ROOT / 'eval' / 'results' / 'rag_heldout_first_run.json').read_text())
 sys.path.insert(0, str(ROOT))
 from trix import reminders  # noqa: E402
 _, rb30 = reminders.simulate(30)
@@ -39,6 +43,20 @@ All data is **synthetic** (see `trix/synth.py`), grounded in published spaceflig
 | Correct source ranked first (hit@1) | {r['hit@1']:.0%} |
 | Correct source in top 3 (hit@3) | {r['hit@3']:.0%} |
 | Answers citing only correct sources | {r['citation_accuracy']:.0%} |
+
+### Honest check on 30 new questions
+
+We wrote 30 new questions in everyday words after the system was finished (`eval/eval_rag_heldout.py`).
+
+| Metric | First run (truly unseen) | After adding everyday-word matching |
+|---|---|---|
+| Correct source ranked first | {h0['hit@1']:.0%} | {h['hit@1']:.0%} |
+| Correct source in top 3 | {h0['hit@3']:.0%} | {h['hit@3']:.0%} |
+| Answers citing only correct sources | {h0['citation_accuracy']:.0%} | {h['citation_accuracy']:.0%} |
+
+The first-run column is the fair estimate for questions TRIX has never seen: retrieval is word-based, so unusual wording
+hurts it. The second column was measured after we fixed the misses, so those questions are no longer unseen. The same
+run also found that "fainted and won't wake up" and "stopped breathing" were not treated as emergencies; that is fixed and tested.
 
 ## Safety agent red-team
 

@@ -1,0 +1,18 @@
+{
+ "about": "Real spaceflight biology studies in NASA's Open Science Data Repository (OSDR) that TRIX links from each health indicator. Titles are the sample types NASA lists for the SpaceX Inspiration4 mission (four civilian astronauts, 2021). TRIX uses them as evidence for why an indicator matters; it does not take alert limits from them.",
+ "home": "https://osdr.nasa.gov/bio/repo/",
+ "api": "https://www.nasa.gov/?p=696974",
+ "paper": {"title": "Inspiration4 data access through the NASA Open Science Data Repository (npj Microgravity, 2024)", "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11094041"},
+ "studies": [
+  {"id": "OSD-569", "title": "Inspiration4: whole blood", "what": "Blood taken before, during and after the flight. The Inspiration4 blood studies include clinical blood counts and metabolic panels.", "indicators": ["glucose", "temp", "hr", "bp"], "terms": ["blood", "immune", "glucose", "metabolic"]},
+  {"id": "OSD-570", "title": "Inspiration4: immune cells from blood (PBMC)", "what": "Immune cells measured across the mission, used to study how spaceflight changes the immune system.", "indicators": ["temp", "skin"], "terms": ["immune", "infection", "virus"]},
+  {"id": "OSD-571", "title": "Inspiration4: blood plasma", "what": "Proteins and small molecules in plasma before and after flight.", "indicators": ["glucose", "fluid", "calcium"], "terms": ["blood", "nutrition", "metabolic"]},
+  {"id": "OSD-575", "title": "Inspiration4: blood serum", "what": "Serum samples across the mission, part of the multi-measure blood data.", "indicators": ["glucose", "bone", "calcium"], "terms": ["blood", "bone", "metabolic"]},
+  {"id": "OSD-687", "title": "Inspiration4: T-cells", "what": "T-cells, the immune cells that keep dormant viruses in check.", "indicators": ["temp", "skin"], "terms": ["immune", "virus"]},
+  {"id": "OSD-572", "title": "Inspiration4: skin, mouth and nose swabs", "what": "Microbes on the crew's skin, mouth and nose before, during and after flight.", "indicators": ["skin"], "terms": ["skin", "microbiome", "rash"]},
+  {"id": "OSD-574", "title": "Inspiration4: skin biopsies", "what": "Small skin samples before and after flight, used to map changes in astronaut skin.", "indicators": ["skin", "rad_daily", "rad_career"], "terms": ["skin", "radiation"]},
+  {"id": "OSD-573", "title": "Inspiration4: capsule environment swabs", "what": "Microbes on surfaces inside the Dragon capsule: the closed environment the crew lived in.", "indicators": ["co2", "spo2"], "terms": ["environment", "cabin", "microbiome"]},
+  {"id": "OSD-656", "title": "Inspiration4: urine", "what": "Urine samples across the mission.", "indicators": ["fluid", "calcium", "bone", "mass"], "terms": ["hydration", "kidney", "bone", "nutrition"]},
+  {"id": "OSD-630", "title": "Inspiration4: stool", "what": "Gut microbes before and after flight.", "indicators": ["fluid", "mass"], "terms": ["gut", "nutrition", "microbiome"]}
+ ]
+}

@@ -21,7 +21,7 @@ from fastapi import Body, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
-from . import assistant_lang, assistant_plan, detect, escalation, feeds, game, insights, routine, scan, voicebio, kb, llm, office, orchestrator, protocols, rag, safety, store, teams, vision, voice
+from . import assistant_lang, assistant_plan, detect, escalation, feeds, game, insights, iss, routine, scan, science, voicebio, kb, llm, office, orchestrator, protocols, rag, safety, store, teams, vision, voice
 
 ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web"
@@ -30,6 +30,7 @@ app = FastAPI(title="TRIX onboard API", version="1.0")
 LOCATIONS = {
     "iss": {"label": "ISS", "one_way_s": 0.5, "delay": "< 1 s", "round": "< 2 s", "live": True},
     "moon": {"label": "Moon", "one_way_s": 1.3, "delay": "1.3 s", "round": "2.6 s", "live": True},
+    "rover": {"label": "Rover", "one_way_s": 1.3, "delay": "1.3 s", "round": "2.6 s", "live": True},
     "mars": {"label": "Mars", "one_way_s": 1188, "delay": "19m 48s", "round": "~40 min", "live": False},
 }
 
@@ -63,6 +64,32 @@ def run(event: dict, save: bool = True) -> dict:
     return _clean(store._slim(out) | {"team": out.get("team")})
 
 
+# ------------------------------------------------------------------ open science
+@app.get("/api/science")
+def science_list(indicator: str = ""):
+    """Real spaceflight biology studies (NASA OSDR) linked to the indicators."""
+    if indicator:
+        if indicator not in kb.indicators():
+            raise HTTPException(404, "no indicator with that name")
+        return science.for_indicator(indicator)
+    return {"about": science.KB["about"], "home": science.KB["home"], "paper": science.KB["paper"], "studies": science.bundled()}
+
+
+@app.get("/api/iss")
+def iss_experiments(indicator: str = ""):
+    """Real ISS human research experiments (NASA Space Station Research Explorer) linked to the indicators."""
+    if indicator:
+        if indicator not in kb.indicators():
+            raise HTTPException(404, "no indicator with that name")
+        return iss.for_indicator(indicator, n=50)
+    return iss.summary()
+
+
+@app.get("/api/science/search")
+def science_search(q: str = "astronaut"):
+    return _clean(science.search(q))
+
+
 # ------------------------------------------------------------------ mission
 @app.get("/api/state")
 def state():
@@ -73,7 +100,7 @@ def state():
     if cut:
         link |= {"live": False, "delay": "no contact", "round": "unknown", "cut": True}
     return _clean({"location": loc, "link": link, "link_cut": cut, "langs": {w: store.get(f"lang:{w}", "en") for w in game.CREW},
-                   "locations": LOCATIONS, "day": store.today(),
+                   "locations": LOCATIONS, "env": routine.env(loc), "day": store.today(),
                    "crew": game.CREW, "space_weather": {k: sw[k] for k in ("status", "message", "source")},
                    "ai": system_status()})
 
@@ -82,7 +109,7 @@ def state():
 def set_mission(body: dict = Body(...)):
     if "location" in body:
         if body["location"] not in LOCATIONS:
-            raise HTTPException(400, "location must be iss, moon or mars")
+            raise HTTPException(400, "location must be iss, moon, rover or mars")
         store.put("location", body["location"])
     if "day" in body:
         store.put("mission_day", int(body["day"]))
@@ -103,6 +130,54 @@ def system_status() -> dict:
             "ultrasound_ai": "EchoNet-Dynamic" if echonet.available()[0] else "view quality (EchoNet add-on not installed)", "speech": "faster-whisper (offline)" if whisper else "tablet speech recognition",
             "face": "MediaPipe Face Mesh (on tablet)", "pose": "MediaPipe Pose (on tablet)",
             "vision": "OpenCV checks (onboard)", "reminders": "Thompson-sampling bandit (learning)"}
+
+
+@app.get("/api/sources")
+def sources():
+    """Every NASA and other source TRIX relies on, and what uses it (for the submission and for judges)."""
+    used: dict = {}
+    for i in kb.indicators().values():
+        for s in i.get("sources", []):
+            used.setdefault(s, []).append(i["name"].split(" (")[0])
+    refs = [{"id": k, "title": v["title"], "url": v["url"], "used_by": used.get(k, [])} for k, v in kb.sources().items()]
+    docs = []
+    for f in sorted((kb.KB_DIR / "docs").glob("*.md")):
+        head = f.read_text().split("---")[1]
+        meta = dict(line.split(":", 1) for line in head.strip().splitlines() if ":" in line)
+        docs.append({"id": meta.get("id", "").strip(), "title": meta.get("title", "").strip(), "url": meta.get("url", "").strip()})
+    data = [{"title": "NASA DONKI space weather (solar flares, particle events)", "url": "https://api.nasa.gov/", "used_by": ["Radiation alerts", "Solar-storm shelter procedure"]},
+            {"title": "Meteomatics weather API (Space Apps partner)", "url": "https://www.meteomatics.com/en/meteomatics-and-nasa-space-apps-challenge/", "used_by": ["Landing readiness"]},
+            {"title": "NASA Open Science Data Repository search API (real spaceflight biology studies)", "url": science.KB["api"], "used_by": ["Open science evidence on every measurement", "Study search"]},
+            {"title": iss.D["source"]["title"], "url": iss.D["source"]["explorer"], "used_by": ["ISS experiments on every measurement"]},
+            {"title": insights.SOURCE["title"], "url": insights.SOURCE["url"], "used_by": ["Cabin air and headaches"]}]
+    models = [{"title": "MediaPipe Face Mesh and Pose (Google, Apache 2.0)", "used_by": ["Face fatigue", "ECG placement", "CPR rate", "Balance", "Body mirror"]},
+              {"title": "LangGraph (agent orchestration)", "used_by": ["Mission, Daily care, Emergency and Operations orchestrators"]},
+              {"title": "scikit-learn Isolation Forest, rank-bm25, TF-IDF", "used_by": ["Anomaly detection", "Cited answers"]},
+              {"title": "Ollama + Llama 3.2 (optional, local)", "used_by": ["Answer wording"]},
+              {"title": "IBM Plex fonts (SIL Open Font License)", "used_by": ["Interface"]}]
+    return {"references": refs, "knowledge_notes": docs, "live_data": data, "models_and_tools": models,
+            "iss": iss.summary() | {"names": {k: v["name"].split(" (")[0] for k, v in kb.indicators().items()}},
+            "open_science": {"about": science.KB["about"], "home": science.KB["home"], "paper": science.KB["paper"], "studies": science.bundled()},
+            "simulated": ["Crew history (240 days, 3 astronauts)", "Onboard devices except Bluetooth heart-rate straps", "Medicine stock and menu", "Day-1 body scan in the demo"]}
+
+
+@app.get("/api/offline-check")
+def offline_check():
+    """What runs on the onboard computer with no internet."""
+    vend = WEB / "vendor" / "mediapipe"
+    m = llm.get_llm()
+    checks = [
+        ("Agents, safety checks and health record", True, "Python on this computer, SQLite file"),
+        ("Knowledge base and cited answers", True, f"{len(list((kb.KB_DIR / 'docs').glob('*.md')))} notes + {len(kb.indicators())} indicators on disk"),
+        ("Language model", True, f"{m.name} (local)"),
+        ("Face and body tracking models", (vend / "pose" / "pose.js").exists() and (vend / "face_mesh" / "face_mesh.js").exists(),
+         "served from this computer" if (vend / "pose" / "pose.js").exists() else "not copied yet: run python scripts/setup_vendor.py (otherwise loaded from the internet)"),
+        ("Fonts and interface", (WEB / "fonts").exists(), "bundled"),
+        ("Camera checks (ECG, skin, food label, ultrasound, body scan)", True, "OpenCV on this computer"),
+        ("Space weather and landing weather", True, "optional: last saved data is used with no internet"),
+        ("Speech-to-text", False if "faster" not in system_status()["speech"] else True, system_status()["speech"] + (" (Chrome sends audio to Google; install faster-whisper for offline)" if "faster" not in system_status()["speech"] else "")),
+    ]
+    return {"checks": [{"name": n, "offline": bool(ok), "detail": d} for n, ok, d in checks], "all_core_offline": all(ok for n, ok, _ in checks[:4])}
 
 
 @app.get("/api/system")
@@ -228,6 +303,7 @@ def _six(who: str, view: dict, latest: dict) -> list[dict]:
         spark = [p["value"] for p in store.series(who, col)][-7:]
         out.append({"id": ind, "name": name, "icon": icon, "unit": k["unit"], "value": value, "status": status,
                     "why": why, "spark": spark, "measured_today": (col in logged or ind in logged),
+                    "simulated": bool(lv) and lv.get("source") in ("simulated device", "what-if scenario", "history"),
                     "last_day": None if lv is None else lv["day"]})
     return out
 
@@ -348,7 +424,9 @@ def capture_info(who: str, ind: str):
     return _clean({"id": ind, "name": k["name"].split(" (")[0], "unit": k["unit"], "howto": routine.HOWTO[ind], "label": routine.ITEMS[ind][0],
                    "minutes": routine.ITEMS[ind][1], "why": f"{k['space_effect']} {k['why_measure']}", "source": src[0] if src else None,
                    "limits": k.get("absolute", {}), "last": last, "devices": k["devices"], "in_six": ind in routine.SIX,
-                   "sim_device": routine.DEVICE.get(ind),
+                   "sim_device": routine.DEVICE.get(ind), "when": routine.when(ind), "risk": k.get("risk"), "hazard": k.get("hazard"),
+                   "env": routine.env(location()) | {"note": routine.ENV_NOTE[location()].get(ind), "skip": location() == "rover" and ind in routine.ROVER_SKIP},
+                   "science": science.for_indicator(ind), "iss": iss.for_indicator(ind),
                    "ring": routine.routine(who, _merged_view(who), teams._BANDIT.best(who)["slot"])["ring"]})
 
 

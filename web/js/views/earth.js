@@ -20,6 +20,8 @@ export async function render(el, { state, refreshMission }) {
   el.innerHTML = `
   <div class="head"><div><h1>Earth link</h1><div class="sub">What reaches Earth, when, and what runs on board without it</div></div>
     <div class="seg" role="group" aria-label="Mission location">${Object.entries(m.locations).map(([k, l]) => `<button type="button" data-loc="${k}" class="${k === loc ? 'on' : ''}" aria-pressed="${k === loc}">${esc(l.label)}</button>`).join('')}</div></div>
+  <div class="card"><div class="head"><h2>${esc(m.env.place)}</h2><span class="mono small dim">${esc(m.env.gravity)}</span></div><div class="muted">${esc(m.env.help)} The measuring steps on every guided measurement change with this setting.</div>
+    <ul style="margin:0;padding-left:20px;line-height:1.7">${m.env.watch.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>
   <div class="row">
     <div class="col grow">
       <div class="card" style="padding-bottom:8px;${m.link_cut ? 'opacity:.35' : ''}">${LINK_SVG(m.link.live)}</div>
@@ -40,7 +42,7 @@ export async function render(el, { state, refreshMission }) {
         ${sw.status !== 'green' ? '<button class="btn ghost" id="applysw">Alert the crew</button>' : ''}</div>
       <div class="card"><h2>Medical devices</h2>${dev.ops.devices.map((d) => `<div class="li"><span style="flex:1">${esc(d.name)}</span>${chip(['offline'].includes(d.status) ? 'red' : 'green', d.status)}</div>`).join('')}
         <button class="btn ghost sm" id="ble">${icon('bt')}Pair a Bluetooth heart-rate device</button><span class="small dim">${bluetoothAvailable() ? '' : 'Bluetooth needs Chrome or Edge.'}</span></div>
-      <div class="card"><div class="head"><h2>On-board AI</h2>${chip('green', 'No internet needed')}</div>${Object.entries(m.ai).map(([k, v]) => `<div class="li small"><span style="flex:1;text-transform:capitalize">${esc(k.replace('_', ' '))}</span><span class="muted">${esc(String(v))}</span></div>`).join('')}</div>
+      <div class="card"><div class="head"><h2>On-board AI</h2>${chip('green', 'No internet needed')}</div><div class="row" style="gap:8px"><button class="btn ghost sm" id="offchk">Offline self-check</button><a class="btn ghost sm" href="#/sources">Sources and data</a></div><div id="offout" class="col" style="gap:4px"></div>${Object.entries(m.ai).map(([k, v]) => `<div class="li small"><span style="flex:1;text-transform:capitalize">${esc(k.replace('_', ' '))}</span><span class="muted">${esc(String(v))}</span></div>`).join('')}</div>
     </div>
   </div>`;
   el.querySelectorAll('[data-loc]').forEach((b) => b.onclick = async () => { await api.post('/api/mission', { location: b.dataset.loc }); await refreshMission(); render(el, { state, refreshMission }); });
@@ -52,6 +54,7 @@ export async function render(el, { state, refreshMission }) {
     const r = await api.post('/api/reports/send');
     setTimeout(() => { toast(`${r.sent} reports sent. ${m.link.live ? 'Earth has them now.' : `They reach Earth in ${esc(m.link.delay)}.`}`); render(el, { state, refreshMission }); }, 2600);
   };
+  el.querySelector('#offchk').onclick = async () => { const r = await api.get('/api/offline-check'); el.querySelector('#offout').innerHTML = r.checks.map((c) => `<div class="li small" style="padding:6px 0"><span style="flex:1"><strong>${esc(c.name)}</strong><br><span class="muted">${esc(c.detail)}</span></span>${chip(c.offline ? 'green' : 'amber', c.offline ? 'OFFLINE OK' : 'NEEDS SETUP')}</div>`).join(''); };
   el.querySelector('#cut').onclick = async () => { await api.post('/api/mission', { link_cut: !m.link_cut }); await refreshMission(); render(el, { state, refreshMission }); };
   const ap = el.querySelector('#applysw');
   if (ap) ap.onclick = async () => { const r = await api.post('/api/feeds/space-weather/apply'); toast(`${esc(r.message)} Sent to ${r.cases?.length || 0} crew.`); };

@@ -61,6 +61,7 @@ export async function render(el, { state }) {
   const alerts = t.alerts.map((a) => `<a class="banner red rise" href="#/emergency/${a.case_id}">${icon('alert', '#fff', 28)}<span style="flex:1"><strong class="cond" style="font-size:17px;letter-spacing:.06em;text-transform:uppercase">Crew alert · Astronaut ${esc(a.who)}</strong><br><span style="opacity:.92">${esc(a.summary)}</span></span><span class="cond" style="font-weight:700">OPEN →</span></a>`).join('');
 
   el.innerHTML = `${alerts}
+  <a class="envbar" href="#/earth" title="Change the mission environment"><strong>${esc(m.env.place)}</strong><span>${esc(m.env.gravity)}</span><span>${esc(m.env.help)}</span><span class="w">Watch here: ${esc(m.env.watch[0])}</span></a>
   <div class="ribbon">${[stage(1, 'Sense', `${measured} of 6 measured${measured < 6 ? ` · ${6 - measured} due` : ''}`, 'var(--bluet)', '#/checkin', false),
     stage(2, 'Understand', agents.length ? `${agents.length} agents on your last check` : 'waiting for a reading', 'var(--ok)', '#/office', agents.length > 0 && mine && Date.now() / 1000 - mine.ts < 90),
     stage(3, 'Act', p ? '1 prompt due now' : watch ? `${watch} to watch` : 'nothing due', 'var(--watch)', act.go, !!p),
@@ -69,7 +70,7 @@ export async function render(el, { state }) {
     <div class="card" style="padding:0;gap:0"><div class="tile"><div class="ptitle"><span>1 · ${esc(tr('Sense'))}</span><span class="mono small dim">${measured}/6 today</span></div></div>
       ${t.six.map((s, i) => `<a class="srow rise" style="animation-delay:${i * 60}ms" href="#/capture/${s.id}" aria-label="${esc(s.name)}: ${STATUS_WORD[s.status]}${s.measured_today ? '' : ', not measured today'}">${icon(s.icon, COL[s.status], 18)}
         <span><span style="display:block;font-weight:600;font-size:14.5px">${esc(tr(s.name))}</span><span class="mono">${s.value == null ? '—' : esc(typeof s.value === 'number' ? +s.value.toFixed(1) : s.value)} <span class="small dim">${esc(s.unit)}</span></span></span>
-        ${spark(s.spark, COL[s.status])}${s.measured_today ? chip(s.status, STATUS_WORD[s.status]) : chip('blue', 'DUE')}</a>`).join('')}
+        ${spark(s.spark, COL[s.status])}<span class="col" style="gap:3px;align-items:flex-end">${s.measured_today ? chip(s.status, STATUS_WORD[s.status]) : chip('blue', 'DUE')}${s.simulated ? '<span class="mono dim" style="font-size:10px" title="This value comes from simulated data">SIMULATED</span>' : ''}</span></a>`).join('')}
       <div style="padding:12px 14px;border-top:1px solid var(--bd)"><div class="kicker" style="font-size:12px;margin-bottom:8px">${esc(tr('Capture · any way you like'))}</div>
         <button class="btn sm" id="sync" style="width:100%;margin-bottom:8px">${icon('chip', '#fff', 18)}${esc(tr('Sync devices'))} <span style="opacity:.75;text-transform:none;letter-spacing:0">(simulated)</span></button>
         <div class="capgrid"><button class="btn ghost" data-talk>${icon('mic', 'var(--bluet)', 18)}${esc(tr('Speak'))}</button><a class="btn ghost" href="#/checkin/2">${icon('camera', 'var(--bluet)', 18)}${esc(tr('Face · voice'))}</a>

@@ -56,4 +56,4 @@
 
 **Totals:** 45 ✅ · 4 🟡 · 0 ⬜ (of 49)
 
-Tested by `tests/` (359 tests, including every API endpoint the app uses) and in a headless browser on every screen. Camera checks were tested on synthetic images, not real patients.
+Tested by `tests/` (365 tests, including every API endpoint the app uses) and in a headless browser on every screen. Camera checks were tested on synthetic images, not real patients.
