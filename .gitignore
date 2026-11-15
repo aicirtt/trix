@@ -10,3 +10,6 @@ data/cache/
 web/vendor/
 data/scans/
 data/companion/
+
+# secrets
+.env
