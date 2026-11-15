@@ -503,8 +503,9 @@ def test_capture_says_when_and_who_to_tell():
     assert any("3 days" in x and "crew medical officer" in x for x in bp) and any("flight surgeon" in x for x in bp)
 
 
-def test_open_science_list_and_offline_search(monkeypatch):
+def test_open_science_list_and_offline_search(monkeypatch, tmp_path):
     from trix import feeds, science
+    monkeypatch.setattr(feeds, "CACHE", tmp_path)
     d = c.get("/api/science").json()
     assert len(d["studies"]) == 10 and all(x["id"].startswith("OSD-") and x["url"].endswith(x["id"]) for x in d["studies"])
     assert {x["id"] for x in c.get("/api/science?indicator=skin").json()["studies"]} >= {"OSD-572", "OSD-574"}
@@ -528,3 +529,17 @@ def test_sources_list_open_science_and_csa():
     assert len(s["open_science"]["studies"]) == 10
     assert sum("asc-csa.gc.ca" in (r["url"] or "") for r in s["references"]) == 2
     assert any(d["id"] == "csa_radiation" for d in s["knowledge_notes"])
+
+
+def test_iss_experiments_linked_to_measurements():
+    s = c.get("/api/iss").json()
+    assert s["total_experiments"] > 3000 and s["human_research"] == 374
+    assert set(s["agencies"]) == {"NASA", "ESA", "ROSCOSMOS", "CSA", "JAXA"}
+    for ind in ("bp", "hr", "glucose", "temp", "sleep", "mood"):          # the six the challenge names
+        assert s["by_indicator"][ind] > 0, ind
+    bone = c.get("/api/iss?indicator=bone").json()
+    assert any(x["name"] == "Bone Health" for x in bone["examples"])
+    cap = c.get("/api/capture/A/bp").json()["iss"]
+    assert cap["count"] >= 20 and len(cap["examples"]) == 4 and cap["examples"][0]["url"].startswith("https://www.nasa.gov/")
+    assert c.get("/api/iss?indicator=nope").status_code == 404
+    assert c.get("/api/sources").json()["iss"]["human_research"] == 374
