@@ -27,8 +27,8 @@ class FallbackLLM:
     def answer(self, question: str, hits: list[dict]) -> str:
         if not hits or hits[0].get("raw", MIN_RELEVANCE) < MIN_RELEVANCE:
             return NO_MATCH
-        from .rag import tok  # same stop-word list as retrieval
-        q = set(tok(question)) - GENERIC_Q
+        from .rag import expand, tok  # same stop-word list and everyday-word expansion as retrieval
+        q = set(tok(expand(question))) - GENERIC_Q
         top = hits[0]["score"]
         cands = []
         for n, h in enumerate(hits[:3], 1):

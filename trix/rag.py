@@ -60,6 +60,37 @@ def corpus() -> list[Chunk]:
     return chunks
 
 
+# Everyday words crew members use -> the terms the NASA sources use. Retrieval is word-based, so this bridges the gap.
+LAY = [
+    (r"thin(ner)? (legs|arms)|skinny legs|bird legs|muscles? (shrink|smaller|weak)", "muscle bone loss exercise resistance"),
+    (r"stuffy|stale air|air (feels|is|seems)|hard to breathe in here", "carbon dioxide CO2 cabin air headache"),
+    (r"head (hurts|aches|is pounding)|migraine", "headache"),
+    (r"(los(e|ing)|lost|drop(ping)?) weight|getting lighter|weigh less", "body mass nutrition food intake"),
+    (r"stickers?|pads|heart tracing|leads", "ECG electrodes placement"),
+    (r"collapsed|no pulse|not breathing|stopped breathing|won't wake|unconscious", "unresponsive CPR compressions defibrillator"),
+    (r"itch|patch|spots|blister|bumps", "rash skin"),
+    (r"virus(es)? (come|came|coming) back|old viruses|dormant", "viral reactivation herpes immune"),
+    (r"oximeter|sats|o2 (level|reading)", "oxygen saturation SpO2"),
+    (r"pain ?killer|for pain|medical kit|first.aid kit|pills|tablets", "medicines formulary onboard"),
+    (r"doctors? on (the )?(ground|earth)|mission control|ground team|sent (down|to earth)", "flight surgeon escalation"),
+    (r"looks? after medical|in charge of medical|our medic|crew doctor", "crew medical officer"),
+    (r"dizzy|light.?headed|faint", "orthostatic dizzy standing"),
+    (r"throw(ing)? up|vomit|queasy|sick to my stomach", "nausea space motion sickness"),
+    (r"can't (fall )?(a)?sleep|awake at night|insomnia|toss(ing)? and turn", "sleep loss circadian"),
+    (r"blurr?y|can't focus|eyesight", "vision SANS eyes"),
+    (r"feeling (low|down|sad|blue)|avoiding (the )?(others|crew)|homesick", "mood isolation behavioral"),
+    (r"racing|pounding|thumping|skipping", "heart rate irregular rhythm"),
+    (r"sugar test|finger.?prick", "blood glucose meter"),
+    (r"eva\b|space ?walk", "spacewalk decompression"),
+]
+
+
+def expand(query: str) -> str:
+    low = query.lower()
+    extra = [terms for pat, terms in LAY if re.search(pat, low)]
+    return query + " " + " ".join(extra) if extra else query
+
+
 class Retriever:
     def __init__(self, embedder=None):
         self.chunks = corpus()
@@ -72,6 +103,7 @@ class Retriever:
 
     def search(self, query: str, k: int = 4) -> list[dict]:
         """Hybrid score = mean of min-max-normalised BM25, TF-IDF cosine (and dense, if available)."""
+        query = expand(query)
         def norm(x):
             x = np.asarray(x, dtype=float)
             rng_ = x.max() - x.min()

@@ -147,8 +147,8 @@ time     team        agent                     triggered by              returne
 
 | Agentic RAG | Result |
 |---|---|
-| Correct source ranked first / in top 3 | 97% / 100% |
-| Answers citing only correct sources | 97% |
+| Correct source ranked first / in top 3 | 93% / 100% (63% / 77% on 30 new everyday-word questions at first run) |
+| Answers citing only correct sources | 93% (67% on 30 new everyday-word questions at first run; see eval/RESULTS.md) |
 | Unsafe messages blocked | 100% (20/20) |
 | Safe messages wrongly blocked | 0% |
 | Protocol tampering tests | 4/4 |

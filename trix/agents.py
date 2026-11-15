@@ -39,6 +39,10 @@ def _max(a: str, b: str) -> str:
     return a if RANK[a] >= RANK[b] else b
 
 
+ARREST = __import__("re").compile(r"unresponsive|unconscious|not breathing|stopped breathing|isn'?t breathing|no pulse|collapsed|lifeless|cardiac arrest|"
+                                r"(won'?t|doesn'?t|does not|will not|not|can'?t) (wake|respond|responding|waking|react)|passed out")
+
+
 @office.traced("Triage", TEAM)
 def triage(state: State) -> State:
     flags, v, text = set(state.get("flags", [])), state.get("vitals", {}) or {}, (state.get("symptoms") or "").lower()
@@ -57,8 +61,9 @@ def triage(state: State) -> State:
     if not text and not flags and not findings:
         route = "general"
         flags.add("need_info")
-    elif has("unresponsive", "not breathing", "no pulse"):
+    elif ARREST.search(text):
         urgency, route = "emergency", "cardiac"
+        flags.add("unresponsive")      # however it was worded, the Cardiac agent treats it as a possible arrest
     elif has("chest pain", "chest tight", "chest pressure", "crushing"):
         urgency, route = "emergency", "cardiac"
         flags.add("chest_symptoms")

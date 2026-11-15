@@ -202,7 +202,7 @@ def overview(who: str, days: int = 30) -> dict:
 
 
 # ------------------------------------------------------------------ talk to TRIX
-EMERGENCY = re.compile(r"unresponsive|not breathing|no pulse|chest\b.{0,20}(pain|tight|pressure|hurt|crush)|(pain|tight|pressure).{0,12}chest|can'?t breathe|short of breath|collapsed|passed out|"
+EMERGENCY = re.compile(r"unresponsive|unconscious|not breathing|stopped breathing|isn'?t breathing|no pulse|lifeless|(won'?t|doesn'?t|not|can'?t) (wake|respond|responding|waking)|chest\b.{0,20}(pain|tight|pressure|hurt|crush)|(pain|tight|pressure).{0,12}chest|can'?t breathe|short of breath|collapsed|passed out|"
                        r"bleeding|solar storm|heart (is )?(racing|flutter|skipping)|irregular|emergency|help me", re.I)
 NAV = [(r"(?=.*\b(start|do|begin|open)\b)(?=.*\b(check[- ]?in|morning check|evening check))", "#/checkin", "Opening your check-in."),   # verb before or after the noun (Korean, Hindi)
        (r"reaction test|alertness test", "#/capture/reaction", "Opening the reaction test."),

@@ -1,0 +1,362 @@
+[
+  {
+    "q": "My legs look thinner than before launch, is that normal?",
+    "top3": [
+      "cardio",
+      "escalation",
+      "ind:co2"
+    ],
+    "hit1": false,
+    "hit3": false,
+    "answered": true,
+    "citations_correct": false
+  },
+  {
+    "q": "How long should I exercise each day up here?",
+    "top3": [
+      "ind:exercise",
+      "ind:bone",
+      "nutrition"
+    ],
+    "hit1": true,
+    "hit3": true,
+    "answered": true,
+    "citations_correct": true
+  },
+  {
+    "q": "The air feels stuffy and my head hurts",
+    "top3": [
+      "ind:co2",
+      "co2",
+      "proto:O2-01"
+    ],
+    "hit1": true,
+    "hit3": true,
+    "answered": true,
+    "citations_correct": false
+  },
+  {
+    "q": "Is 3.4 mmHg of carbon dioxide okay?",
+    "top3": [
+      "co2",
+      "ind:co2",
+      "proto:CARD-ECG-01"
+    ],
+    "hit1": true,
+    "hit3": true,
+    "answered": true,
+    "citations_correct": true
+  },
+  {
+    "q": "I can't fall asleep at night on the station",
+    "top3": [
+      "sleep",
+      "ind:sleep",
+      "ind:mass"
+    ],
+    "hit1": true,
+    "hit3": true,
+    "answered": true,
+    "citations_correct": true
+  },
+  {
+    "q": "Why am I so slow on the reaction test this morning?",
+    "top3": [
+      "ind:reaction",
+      "proto:GLU-01",
+      "ind:orthostatic"
+    ],
+    "hit1": true,
+    "hit3": true,
+    "answered": true,
+    "citations_correct": true
+  },
+  {
+    "q": "My vision is getting blurry when I read",
+    "top3": [
+      "sans",
+      "ind:vision",
+      "ind:bp"
+    ],
+    "hit1": true,
+    "hit3": true,
+    "answered": true,
+    "citations_correct": true
+  },
+  {
+    "q": "What happens to the eyes in long spaceflight?",
+    "top3": [
+      "sans",
+      "ind:orthostatic",
+      "proto:LAND-01"
+    ],
+    "hit1": true,
+    "hit3": true,
+    "answered": true,
+    "citations_correct": true
+  },
+  {
+    "q": "How much radiation is too much over a career?",
+    "top3": [
+      "radiation",
+      "ind:rad_career",
+      "ind:rad_daily"
+    ],
+    "hit1": true,
+    "hit3": true,
+    "answered": true,
+    "citations_correct": true
+  },
+  {
+    "q": "Where do we go during a solar particle event?",
+    "top3": [
+      "radiation",
+      "ind:rad_career",
+      "proto:RAD-SHELTER-01"
+    ],
+    "hit1": true,
+    "hit3": true,
+    "answered": true,
+    "citations_correct": true
+  },
+  {
+    "q": "Why do old viruses come back during missions?",
+    "top3": [
+      "immune",
+      "ind:skin",
+      "ind:temp"
+    ],
+    "hit1": true,
+    "hit3": true,
+    "answered": true,
+    "citations_correct": true
+  },
+  {
+    "q": "There is a red itchy patch on my arm",
+    "top3": [
+      "immune",
+      "escalation",
+      "ind:skin"
+    ],
+    "hit1": true,
+    "hit3": true,
+    "answered": true,
+    "citations_correct": true
+  },
+  {
+    "q": "Am I drinking enough fluid?",
+    "top3": [
+      "nutrition",
+      "ind:fluid",
+      "ind:orthostatic"
+    ],
+    "hit1": true,
+    "hit3": true,
+    "answered": true,
+    "citations_correct": true
+  },
+  {
+    "q": "I keep losing weight, should I worry?",
+    "top3": [
+      "ind:mass",
+      "ind:calcium",
+      "ind:fluid"
+    ],
+    "hit1": true,
+    "hit3": true,
+    "answered": true,
+    "citations_correct": true
+  },
+  {
+    "q": "Do I need to take vitamin D every day?",
+    "top3": [
+      "nutrition",
+      "bone",
+      "cardio"
+    ],
+    "hit1": true,
+    "hit3": true,
+    "answered": true,
+    "citations_correct": true
+  },
+  {
+    "q": "I feel dizzy when I stand after we land",
+    "top3": [
+      "cardio",
+      "ind:orthostatic",
+      "proto:LAND-01"
+    ],
+    "hit1": true,
+    "hit3": true,
+    "answered": true,
+    "citations_correct": true
+  },
+  {
+    "q": "My pulse is racing while I'm resting",
+    "top3": [
+      "ind:hr",
+      "cardio",
+      "ind:hrv"
+    ],
+    "hit1": true,
+    "hit3": true,
+    "answered": true,
+    "citations_correct": true
+  },
+  {
+    "q": "Where do the chest stickers go for a heart tracing?",
+    "top3": [
+      "cardio",
+      "ind:hr",
+      "proto:CARD-ECG-01"
+    ],
+    "hit1": false,
+    "hit3": true,
+    "answered": true,
+    "citations_correct": false
+  },
+  {
+    "q": "My crewmate has collapsed and has no pulse",
+    "top3": [
+      "proto:CPR-MG-01",
+      "iss_medical",
+      "behavioral"
+    ],
+    "hit1": true,
+    "hit3": true,
+    "answered": true,
+    "citations_correct": true
+  },
+  {
+    "q": "How should I hold the probe to see the four chambers?",
+    "top3": [
+      "proto:US-A4C-01",
+      "proto:LAND-01",
+      "behavioral"
+    ],
+    "hit1": true,
+    "hit3": true,
+    "answered": true,
+    "citations_correct": true
+  },
+  {
+    "q": "How do I do a finger-prick sugar test?",
+    "top3": [
+      "proto:GLU-01",
+      "ind:glucose",
+      "proto:O2-01"
+    ],
+    "hit1": true,
+    "hit3": true,
+    "answered": true,
+    "citations_correct": true
+  },
+  {
+    "q": "My joints ache after the EVA",
+    "top3": [
+      "eva",
+      "proto:EVA-POST-01",
+      "behavioral"
+    ],
+    "hit1": true,
+    "hit3": true,
+    "answered": true,
+    "citations_correct": true
+  },
+  {
+    "q": "The oximeter shows 89",
+    "top3": [
+      "proto:O2-01",
+      "ind:spo2",
+      "cardio"
+    ],
+    "hit1": true,
+    "hit3": true,
+    "answered": true,
+    "citations_correct": true
+  },
+  {
+    "q": "Is there anything for pain in the medical kit?",
+    "top3": [
+      "formulary",
+      "proto:EVA-POST-01",
+      "ind:back_pain"
+    ],
+    "hit1": true,
+    "hit3": true,
+    "answered": true,
+    "citations_correct": true
+  },
+  {
+    "q": "Who looks after medical problems on the crew?",
+    "top3": [
+      "iss_medical",
+      "formulary",
+      "ind:back_pain"
+    ],
+    "hit1": true,
+    "hit3": true,
+    "answered": true,
+    "citations_correct": true
+  },
+  {
+    "q": "What makes space dangerous for the human body?",
+    "top3": [
+      "hazards",
+      "ind:mass",
+      "ind:temp"
+    ],
+    "hit1": true,
+    "hit3": true,
+    "answered": true,
+    "citations_correct": true
+  },
+  {
+    "q": "When does a problem get sent to doctors on the ground?",
+    "top3": [
+      "escalation",
+      "iss_medical",
+      "nutrition"
+    ],
+    "hit1": true,
+    "hit3": true,
+    "answered": true,
+    "citations_correct": true
+  },
+  {
+    "q": "My back hurts since we reached orbit",
+    "top3": [
+      "ind:back_pain",
+      "behavioral",
+      "bone"
+    ],
+    "hit1": true,
+    "hit3": true,
+    "answered": true,
+    "citations_correct": true
+  },
+  {
+    "q": "I've been feeling low and avoiding the others",
+    "top3": [
+      "behavioral",
+      "ind:mood",
+      "ind:hrv"
+    ],
+    "hit1": true,
+    "hit3": true,
+    "answered": true,
+    "citations_correct": true
+  },
+  {
+    "q": "What blood pressure is too high?",
+    "top3": [
+      "ind:bp",
+      "cardio",
+      "proto:LAND-01"
+    ],
+    "hit1": true,
+    "hit3": true,
+    "answered": true,
+    "citations_correct": true
+  }
+]
