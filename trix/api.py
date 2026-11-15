@@ -21,7 +21,7 @@ from fastapi import Body, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
-from . import assistant_lang, assistant_plan, detect, escalation, feeds, game, insights, iss, routine, scan, science, voicebio, kb, llm, office, orchestrator, protocols, rag, safety, store, teams, vision, voice
+from . import assistant_lang, assistant_plan, detect, escalation, feeds, game, homecoming, insights, iss, routine, scan, science, voicebio, kb, llm, office, orchestrator, protocols, rag, safety, store, teams, vision, voice
 
 ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web"
@@ -73,6 +73,36 @@ def science_list(indicator: str = ""):
             raise HTTPException(404, "no indicator with that name")
         return science.for_indicator(indicator)
     return {"about": science.KB["about"], "home": science.KB["home"], "paper": science.KB["paper"], "studies": science.bundled()}
+
+
+# ------------------------------------------------------------------ coming home
+@app.get("/api/homecoming/{who}")
+def homecoming_get(who: str):
+    """Landing-day readiness, risk areas and recovery plan for one astronaut."""
+    if who not in game.CREW:
+        raise HTTPException(404, "no astronaut with that name")
+    return _clean(homecoming.readiness(who, location()))
+
+
+@app.post("/api/homecoming/{who}/stand-test")
+def homecoming_stand(who: str, body: dict = Body(...)):
+    if who not in game.CREW:
+        raise HTTPException(404, "no astronaut with that name")
+    try:
+        r = homecoming.save_stand_test(who, *(float(body.get(k)) if body.get(k) not in (None, "") else None
+                                             for k in ("lying_hr", "standing_hr", "lying_sys", "standing_sys")))
+    except (TypeError, ValueError) as e:
+        raise HTTPException(400, str(e) if "check" in str(e) else "enter all four numbers")
+    return _clean({"saved": r} | homecoming.readiness(who, location()))
+
+
+@app.post("/api/homecoming/landing")
+def homecoming_landing(body: dict = Body(...)):
+    try:
+        day = homecoming.set_landing(int(body.get("in_days")))
+    except (TypeError, ValueError) as e:
+        raise HTTPException(400, str(e) if "between" in str(e) else "enter the number of days to landing")
+    return {"landing_day": day, "days_to_landing": day - store.today()}
 
 
 @app.get("/api/iss")

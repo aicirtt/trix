@@ -53,7 +53,12 @@
 | 47 | Mission replay | ✅ | Slider over the 240 simulated days: body map per day and when TRIX vs fixed limits first flagged each planted problem |
 | 48 | Flight surgeon view | ✅ | The Earth end of the link: reports arrive after the delay (demo clock for Mars) with privacy applied; Earth can message the crew |
 | 49 | Astronaut's language | 🟡 | Ten languages per astronaut from the top bar (English, Russian, Japanese, Chinese, French, German, Spanish, Italian, Hindi, Korean), kept on the tablet. Navigation, screen labels, buttons, measurement names, how-to steps and read-aloud follow the choice; NASA explanations, agent advice and anything the onboard record generates stay in English. Talk to TRIX listens and understands commands in the chosen language (key words mapped to English on board; full translation of the request and the reply when a local Ollama model is present) and has a hands-free mode: say “TRIX” and the request. With a local Ollama model (TRIX_MODEL) the model plans any sentence, with the last turns as memory, into one app action (open a screen or record, log readings, start a procedure, emergency, answer), validated against what exists before it runs. Translations not yet checked by native speakers |
+| 50 | Mission environments | ✅ | Space station, Moon base, Moon rover and Mars spacecraft: each changes the measuring tips (e.g. no scale while weightless), what to watch and who can help |
+| 51 | When to measure, when to tell someone | ✅ | Card on every guided measurement: how often, which routine check, and when a result goes to the crew medical officer or a flight surgeon, with the NASA hazard and risk |
+| 52 | Real spaceflight data | ✅ | 10 Inspiration4 astronaut studies from NASA's Open Science Data Repository (live search, offline fallback) and 374 ISS human research experiments (NASA, ESA, Roscosmos, CSA, JAXA) linked to every measurement |
+| 53 | Sources and data screen | ✅ | Every NASA, CSA and research source, the open science studies, ISS experiment counts, what is simulated and an offline self-check |
+| 54 | Coming home | 🟡 | Landing-day readiness score from the readings TRIX already has (stand test, bone forecast to landing day, exercise and mass, reaction time, vision, mission radiation total, back pain, sleep and mood); risk areas on the body; stand test rehearsal; recovery plan before, on and after landing (Mars version: no ground crew). Planning aid, weights and score not clinically validated |
 
-**Totals:** 45 ✅ · 4 🟡 · 0 ⬜ (of 49)
+**Totals:** 49 ✅ · 5 🟡 · 0 ⬜ (of 54)
 
-Tested by `tests/` (365 tests, including every API endpoint the app uses) and in a headless browser on every screen. Camera checks were tested on synthetic images, not real patients.
+Tested by `tests/` (388 tests, including every API endpoint the app uses) and in a headless browser on every screen. Camera checks were tested on synthetic images, not real patients.

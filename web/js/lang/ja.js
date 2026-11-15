@@ -6,6 +6,7 @@ export default {
   "Procedures": "手順",
   "Body mirror": "ボディミラー",
   "Simulator": "シミュレーター",
+  "Coming home": "帰還",
   "Crew": "クルー",
   "Earth link": "地球リンク",
   "Agent tree": "エージェントツリー",

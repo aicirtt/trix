@@ -543,3 +543,40 @@ def test_iss_experiments_linked_to_measurements():
     assert cap["count"] >= 20 and len(cap["examples"]) == 4 and cap["examples"][0]["url"].startswith("https://www.nasa.gov/")
     assert c.get("/api/iss?indicator=nope").status_code == 404
     assert c.get("/api/sources").json()["iss"]["human_research"] == 374
+
+
+# ---------------------------------------------------------------- coming home
+def test_coming_home_readiness_and_plan():
+    for loc, dest in (("iss", "Earth"), ("moon", "Earth"), ("mars", "the surface of Mars")):
+        c.post("/api/mission", json={"location": loc})
+        r = c.get("/api/homecoming/C").json()
+        assert r["destination"] == dest and 0 <= r["score"] <= 100 and r["level"] in ("green", "amber", "red")
+        assert {a["id"] for a in r["areas"]} == {"standing", "bones", "muscle", "balance", "eyes", "radiation", "spine", "sleep"}
+        assert [p["phase"] for p in r["plan"]] == ["Before landing", "Landing day", "First week", "Weeks to months"]
+        assert all(a["source"] and a["source"]["title"] for a in r["areas"])
+    assert any("no ground crew" in s for s in r["plan"][1]["steps"])             # Mars: crewmates help each other
+    bones = next(a for a in r["areas"] if a["id"] == "bones")
+    assert bones["status"] == "amber" and "89" in bones["why"]                    # simulated C is below the watch level
+    rad = next(a for a in r["areas"] if a["id"] == "radiation")
+    assert "mSv" in rad["value"] and "600" in rad["value"]
+    assert c.get("/api/homecoming/Z").status_code == 404
+    c.post("/api/mission", json={"location": "mars"})
+
+
+def test_coming_home_stand_test_and_landing_day():
+    before = c.get("/api/homecoming/B").json()
+    st = next(a for a in before["areas"] if a["id"] == "standing")["status"]
+    r = c.post("/api/homecoming/B/stand-test", json={"lying_hr": 60, "standing_hr": 66, "lying_sys": 120, "standing_sys": 118}).json()
+    assert r["saved"] == {"hr_rise": 6, "sys_drop": 2}
+    assert next(a for a in r["areas"] if a["id"] == "standing")["status"] == "green"
+    r = c.post("/api/homecoming/B/stand-test", json={"lying_hr": 60, "standing_hr": 98, "lying_sys": 120, "standing_sys": 96}).json()
+    a = next(a for a in r["areas"] if a["id"] == "standing")
+    assert a["status"] == "red" and "fainting plan" in r["plan"][0]["steps"][0]
+    assert r["score"] < 100 and r["level"] == "red"
+    assert c.post("/api/homecoming/B/stand-test", json={"lying_hr": 60}).status_code == 400
+    assert c.post("/api/homecoming/B/stand-test", json={"lying_hr": 5, "standing_hr": 66, "lying_sys": 120, "standing_sys": 118}).status_code == 400
+    assert c.post("/api/homecoming/landing", json={"in_days": 3}).json()["days_to_landing"] == 3
+    assert c.get("/api/homecoming/B").json()["days_to_landing"] == 3
+    assert c.post("/api/homecoming/landing", json={"in_days": -1}).status_code == 400
+    assert c.post("/api/homecoming/landing", json={"in_days": "soon"}).status_code == 400
+    assert st in ("due", "green", "amber", "red")

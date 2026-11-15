@@ -6,6 +6,7 @@ export default {
   "Procedures": "Prozeduren",
   "Body mirror": "Körperspiegel",
   "Simulator": "Simulator",
+  "Coming home": "Heimkehr",
   "Crew": "Crew",
   "Earth link": "Erdverbindung",
   "Agent tree": "Agentenbaum",
