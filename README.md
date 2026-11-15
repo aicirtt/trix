@@ -1,50 +1,138 @@
 # TRIX: health monitoring app for astronauts
 
-**TRIX** (Triage, Response & Intelligence eXpert): NASA Space Apps 2026, *Create Health Monitoring Software for Astronauts on Space Missions*. Built by Tricia and Xavier.
+**TRIX** (Triage, Response & Intelligence eXpert) is our entry for NASA Space Apps 2026, *Create Health Monitoring Software for Astronauts on Space Missions*. Built by Tricia and Xavier.
 
-A tablet web app plus an onboard server, styled like mission software (NASA-style blue and red, mission clock, GO / WATCH / NO-GO). Everything runs on the spacecraft computer (a laptop for the demo) with **no internet**. Feature status for all 36 features: [FEATURES.md](FEATURES.md).
+On long missions, an answer from Earth can take up to 40 minutes, so astronauts have to notice health changes in themselves. TRIX is an AI medical crew member that runs on the spacecraft's own computer. It gives each astronaut a two-minute daily check and compares the result with **their own normal**. If something goes wrong, a 3D guide shows what to do, and TRIX keeps working when the link to Earth is cut.
 
-## Run the app
+- **57 features:** 51 working fully and 6 in a simpler form. See [FEATURES.md](FEATURES.md).
+- **Submission write-up:** [SUBMISSION.md](SUBMISSION.md), with the challenge mapping, NASA data, results and the AI tools we used.
+- **Styled like mission software:** NASA blue and red, a mission clock, GO / WATCH / NO-GO status, and a live Earth-delay counter.
 
-```
+## What the astronaut sees, from launch to landing
+
+| Stage | What happens |
+|---|---|
+| **Setup (first run)** | 8 steps: name, language (10 languages), mission (space station, Moon base, Moon rover or Mars spacecraft), routine and morning time, first body scan, messages from home, and privacy. |
+| **Every day** | TRIX asks at the time each astronaut actually responds; a reinforcement-learning bandit learns this time. A guided capture shows how to measure, why the reading matters in space and what the number means. The AI agents check it, and the astronaut gets GO / WATCH / NO-GO, one next step, a day ring, a streak, and sometimes an unlocked message from home. |
+| **When something is wrong** | A red reading is handed to the Emergency team. A realistic 3D guide acts out all 8 procedures, such as CPR in zero gravity at 110 a minute, with 360° turn, zoom and slow motion. The rest of the crew gets a full-screen alert. |
+| **Every week** | Body scan with the camera: TRIX outlines the body and measures change since day 1 (for example face +6%, calf −4%). It also runs the vision grid, body mass and back-pain checks. |
+| **Before landing** | Coming home: a landing-readiness score across 8 risk areas, a stand test, and a phased recovery plan. For Mars there is no ground crew waiting. |
+| **Earth** | Privacy-filtered reports wait in a queue and are sent with the real delay, or held while the link is cut. The flight surgeon's view shows every agent decision. |
+
+## Start the app
+
+You need **Python 3.11+**, **Chrome or Edge** (for the camera, speech and Bluetooth), and optionally **Node/npm** to bundle the 3D and vision models for offline use.
+
+```bash
+git clone https://github.com/aicirtt/trix.git
+cd trix
+python -m venv .venv
+source .venv/bin/activate                # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-python trix/synth.py            # simulated crew history -> data/
-python scripts/setup_vendor.py  # once: copies MediaPipe, three.js and the 3D guide models into web/vendor (needs npm)
-cp .env.example .env            # then choose a language model (below)
-python app.py                   # open http://localhost:8000  (Chrome or Edge for camera, speech and Bluetooth)
+
+python trix/synth.py                     # create the simulated crew history in data/
+python scripts/setup_vendor.py           # optional, once: copies MediaPipe, three.js and the 3D model into web/vendor
+cp .env.example .env                     # Windows: copy .env.example .env, then add your API key (next section)
+
+python app.py                            # open http://localhost:8000
 ```
-### Choosing the language model
 
-TRIX reads its settings from `.env` (copy `.env.example`). It picks a model in this order:
+On the first visit, TRIX opens the setup wizard. To try the app quickly:
+1. Pick an astronaut in the top bar.
+2. Run a check-in.
+3. Open **Simulator** to play scenarios such as a cardiac emergency, a solar storm or a cut link.
 
-| Option | When to use it | Setup |
+Without `setup_vendor.py`, the face and body models and the 3D guide load from public CDNs while online. The 3D person is the Ready Player Me avatar from the three.js examples; it is downloaded, not committed.
+
+## AI model: bring your own Anthropic API key
+
+TRIX uses **Claude through the Anthropic API** for its language features:
+- plain-words answers with citations
+- Talk to TRIX
+- the command planner
+- translations
+
+**Each person who runs TRIX adds their own key.** Keys are never committed: `.env` is in `.gitignore`.
+
+1. Create a key at [console.anthropic.com](https://console.anthropic.com) → **API Keys**. API calls are billed to that account.
+2. Put it in `.env`:
+   ```
+   ANTHROPIC_API_KEY=sk-ant-...
+   # optional: choose the Claude model (default claude-opus-5-5)
+   # TRIX_CLAUDE_MODEL=claude-opus-5-5
+   ```
+3. Restart `python app.py`. Open `http://localhost:8000/api/system` to see which model is in use.
+
+TRIX picks a model in this order and falls back automatically. If the key is missing or the internet drops, the app keeps working:
+
+| Order | Option | When to use it |
 |---|---|---|
-| **Claude API** (default) | Any laptop. Best answers, fast. Needs internet and costs a little per answer | Put your key from console.anthropic.com in `ANTHROPIC_API_KEY` |
-| **Local model (Ollama)** | Computers with more compute (about 8 GB+ free RAM, a GPU helps a lot). Free and fully offline, as on a real spacecraft | Install [Ollama](https://ollama.com), run `ollama pull llama3.2:3b`, and leave the key empty or set `TRIX_LLM=ollama` |
-| **Built-in fallback** | Nothing else available | Nothing: answers are quoted from the cited sources |
+| 1 | **Claude (Anthropic API)** | Default when `ANTHROPIC_API_KEY` is set. Best answers, fast on any laptop, needs internet. |
+| 2 | **Local model (Ollama)** | No key, or `TRIX_LLM=ollama`. Free and fully offline, as on a real spacecraft. |
+| 3 | **Built-in fallback** | Nothing else available. Answers are quoted from the cited NASA sources. |
 
-If the Claude API cannot be reached, TRIX falls back automatically, so the app keeps working offline. Check which one is in use at `http://localhost:8000/api/system`.
+To force one option, set `TRIX_LLM=claude`, `ollama` or `fallback`.
 
-Without `setup_vendor.py` the face and body models and the 3D guide load from public CDNs when online. The 3D guide uses the Ready Player Me avatar from the three.js examples; it is downloaded, not committed.
+### Running a local model instead
+
+Claude models run only through the Anthropic API; they cannot be downloaded. For a fully offline setup, TRIX uses an open model through [Ollama](https://ollama.com). It gets the same prompts, the same rule to answer only from the cited sources, and the same Safety agent checks every answer. Pick a model to suit the computer:
+
+| Model (`TRIX_MODEL`) | Download | Computer | Notes |
+|---|---|---|---|
+| `llama3.2:3b` (default) | ~2 GB | 8 GB RAM, no GPU needed | The one we tested. Fast enough for spoken answers. |
+| `qwen2.5:7b` | ~4.7 GB | 16 GB RAM, GPU recommended | Better at following the JSON format the command planner needs, and at languages other than English. |
+| `llama3.1:8b` | ~4.9 GB | 16 GB RAM, GPU recommended | Better plain-English answers than the 3B model. |
+
+```bash
+ollama pull llama3.2:3b          # or one of the others
+# in .env: leave ANTHROPIC_API_KEY empty, or set
+TRIX_LLM=ollama
+TRIX_MODEL=llama3.2:3b
+```
+
+Any Ollama chat model works. Larger models give better answers but run slower without a GPU.
+
+### Other settings (optional)
+
+- `NASA_API_KEY` (or `DEMO_KEY`): live NASA DONKI solar-storm alerts.
+- `METEOMATICS_USER` / `METEOMATICS_PASSWORD`: landing-site weather.
+- `TRIX_PORT`: the server port (default 8000).
+
+With no network, TRIX uses the last saved reply, then a bundled sample, and the screen says which.
+
+## Technology
+
+| Part | Built with | What it does in TRIX |
+|---|---|---|
+| **Multi-agent orchestration** | LangGraph `StateGraph` | Two levels. A mission orchestrator routes each event to 3 team orchestrators (Daily care, Emergency, Operations), which run 13 agents. One Safety agent gates every answer, and a Report agent applies privacy. |
+| **Agentic RAG** | `rank_bm25` + scikit-learn TF-IDF | Hybrid search over NASA HRP, NASA-STD-3001 and protocol notes, with everyday-word query expansion. Every answer is cited; when nothing matches, it says "no match" instead of guessing. |
+| **Language model** | Claude (Anthropic API), or Llama 3.2 via Ollama | Plain-words explanations, Talk to TRIX intent planning and translation. It can only use the retrieved sources. |
+| **Reinforcement learning** | Thompson-sampling bandit (`trix/reminders.py`) | Learns each astronaut's best reminder time from when they actually respond: 72% response vs 54% for a fixed 07:00 reminder. |
+| **Anomaly detection** | scikit-learn Isolation Forest + SHAP, CUSUM, robust median/MAD baselines | Personal normal, slow-drift alarms, explained multi-signal outliers and a bone-loss forecast. |
+| **Computer vision** | MediaPipe Face Mesh and Pose (in the browser), OpenCV | Face fatigue (PERCLOS), body scan, ECG sticker placement, CPR rate, balance sway, skin photo, food-pouch QR and ultrasound view quality. |
+| **Speech** | Web Speech API or `faster-whisper` (offline) | Hands-free logging, voice biomarkers (pace, pauses, pitch) and spoken guidance in 10 languages. |
+| **3D guide** | three.js, Ready Player Me avatar | A realistic human acts out the 8 procedures, with touch points, 360° view and zoom. |
+| **Server and storage** | FastAPI, SQLite, vanilla-JS web app | Offline-first onboard server; one health record per astronaut. |
+| **Live data** | NASA DONKI, Meteomatics, NASA OSDR | Solar storms, landing weather, and spaceflight biology studies. |
+
+## Screens
 
 | Screen | What it does |
 |---|---|
-| **Mission deck** | One screen for the whole loop, Sense → Understand → Act → Report: the 6 measurements the NASA brief names with GO / WATCH / NO-GO colours, a hologram body with status labels and a day ring, the agents' latest decisions, one next step, the Earth link, and the day's timeline as the menu |
-| **Guided capture** | TRIX prompts at the learned morning time and at 21:00. Each measurement shows how to measure, what the number means and why it matters in space; then one personal insight, ring, readiness, streak and the next item. Includes a reaction (alertness) test |
-| **Talk to TRIX** | On every screen: say or type a reading, a question, a symptom or a command; it is routed to the right agents |
-| **Check-in** | 4 steps: vitals (type, **speak**, **Bluetooth heart-rate strap**, or **CSV import**) → **face fatigue** (MediaPipe Face Mesh, PERCLOS) and **voice check** (pace, pauses, pitch vs your normal) → **vision grid** + **skin photo** → symptoms + **food pouch QR scan** and water/calcium rings. The agents check it and show what they found |
-| **Body** | Trend chart per indicator with your personal normal band, limits, logged points and the bone-loss forecast; learn cards with NASA sources; Ask TRIX |
-| **Care** | Every procedure, live or **practice with a score**; cited Q&A; **landing readiness** (Meteomatics go / no-go windows); medicine stock |
-| **Procedure** | Step-locked guidance read aloud, voice commands, camera checks: **ECG sticker placement** (MediaPipe Pose + OpenCV, tells you how many cm to move), **CPR compression rate**, **balance sway**; device readings feed the agents |
-| **Ultrasound** | View-quality check for the 4-chamber view (coverage, gain, sharpness, chambers) with tips |
-| **Emergency** | Pick the patient and what is happening (or speak it) → the Emergency team answers on board, first step first, then start the guided procedure |
-| **Crew** | Streaks, badges, team goal, rotating **buddy check**, personal privacy switches that apply to every Earth report |
-| **Earth link** | ISS / Moon / Mars delay, report queue with priorities and send animation, **NASA DONKI space weather** (alert the crew), devices, onboard AI |
-| **Body mirror** | Scan yourself to put your own outline on the deck; re-scan to compare day 1 with today on your photo |
-| **Simulator** | What-if scenarios through the real agents, cut the link to Earth, mission replay over 240 days, and the flight surgeon's view of what reaches Earth |
-| **Agent tree** | Every case as a tree: who gave what work to whom, the hand-off between teams, tools used, and a step-by-step replay |
-
-Live feeds: set `NASA_API_KEY` (or use `DEMO_KEY`) for DONKI and `METEOMATICS_USER` / `METEOMATICS_PASSWORD` for landing weather. With no network TRIX uses the last saved reply, then a bundled sample, and the screen says which.
+| **Setup** | First-run wizard, 8 steps; can be run again from Crew. |
+| **Mission deck** | One screen for the whole loop, Sense → Understand → Act → Report. It shows the 6 measurements the NASA brief names with GO / WATCH / NO-GO colours, a hologram body with status labels and a day ring, the agents' latest decisions, one next step, the Earth link, and the day's timeline as the menu. |
+| **Guided capture** | Prompts at the learned morning time and at 21:00. Each measurement shows how to measure, what the number means, why it matters in space, and when to tell someone. Afterwards come a personal insight, the ring, readiness, streak and the next item. |
+| **Talk to TRIX** | On every screen: say or type a reading, a question, a symptom or a command, in 10 languages. |
+| **Check-in** | Vitals by typing, voice, Bluetooth heart-rate strap or CSV, then face fatigue and voice check, then vision grid and skin photo, then symptoms, food-pouch QR, and water and calcium. |
+| **Body** | Trend chart per indicator with your personal normal band, limits and the bone-loss forecast; learn cards with NASA sources and the related ISS experiments. |
+| **Procedures** | Step-locked guidance read aloud, with the **3D show-me-how guide**, voice commands and camera checks (ECG placement, CPR rate, balance). Practice mode scores rehearsals. |
+| **Emergency** | Pick the patient and what is happening (or speak it). The Emergency team answers on board, first step first, and the crew gets a full-screen alert. |
+| **Body mirror** | Camera body scan: your outline on the deck, plus measured change since day 1. |
+| **Coming home** | Landing readiness across 8 risk areas, a stand test and a phased recovery plan. |
+| **Crew** | Streaks, badges, team goal, buddy check, **messages from home** (unlocked by doing checks, never by good numbers; a hard day unlocks one at once), and privacy switches. |
+| **Earth link** | Space station / Moon / Mars delay, report queue, NASA DONKI space weather, devices, onboard AI. |
+| **Simulator** | What-if scenarios through the real agents, cut the link, a 240-day mission replay, and the flight surgeon's view. |
+| **Agent tree** | Every case as a tree: who gave what work to whom, the tools used, and a step-by-step replay. |
 
 ## Engine only
 
@@ -54,7 +142,7 @@ python agent_office.py --last   # agent office in the terminal
 python eval/run_all.py          # all evaluations -> eval/RESULTS.md
 python -m pytest -q tests       # 392 tests
 ```
-The language model is chosen as described in [Choosing the language model](#choosing-the-language-model). Tests do not read `.env`; run them with `TRIX_LLM=fallback` for reproducible results.
+The language model is chosen as described in [AI model](#ai-model-bring-your-own-anthropic-api-key). Tests do not read `.env`; run them with `TRIX_LLM=fallback` for reproducible results.
 
 ## How it answers the challenge's questions
 
@@ -189,6 +277,11 @@ time     team        agent                     triggered by              returne
 The coach is honest about what it checked: "No readings yet" for an empty check-in, and "still learning your personal normal" for a new crew member with no history.
 
 ## Data and grounding
+
+**NASA data used:**
+- **NASA Open Science Data Repository (OSDR):** 10 Inspiration4 astronaut studies (`trix/kb/osdr.json`), linked to each indicator. Live search works when online.
+- **ISS Research Explorer:** 374 human research experiments out of 3,029 in total (NASA 174, ESA 82, Roscosmos 74, CSA 23, JAXA 21), built into `trix/kb/iss_experiments.json` by `scripts/build_iss_experiments.py`. Each measurement shows the ISS experiments behind it.
+- **NASA Human Research Program** (5 hazards, HRP risks), **NASA-STD-3001** (limits), **NASA DONKI** (solar storms) and the **CSA** (radiation).
 
 All crew data is **simulated** (`trix/synth.py`). The simulation follows published numbers:
 - sleep about 6.1 ± 0.67 h (Barger et al. 2014),
