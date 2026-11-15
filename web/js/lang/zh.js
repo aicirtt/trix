@@ -4,6 +4,8 @@ export default {
   "Check-in": "健康打卡",
   "Trends": "趋势",
   "Procedures": "处置流程",
+  "Body mirror": "身体镜像",
+  "Simulator": "模拟器",
   "Crew": "乘组",
   "Earth link": "地面链路",
   "Agent tree": "智能体树",

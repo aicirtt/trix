@@ -12,15 +12,19 @@ import * as crew from './views/crew.js';
 import * as earth from './views/earth.js';
 import * as office from './views/office.js';
 import * as capture from './views/capture.js';
+import * as mirror from './views/mirror.js';
+import * as sim from './views/sim.js';
+import * as replay from './views/replay.js';
+import * as ground from './views/ground.js';
 import { speak } from './ui.js';
 import { t, setLang, translateDom, LANGS, SPEECH, getLang } from './i18n.js';
 import { speechAvailable, listenOnce } from './sensors.js';
 
 const NAV = [
   ['today', 'Mission deck', 'today'], ['checkin', 'Check-in', 'checkin'], ['body', 'Trends', 'body'], ['care', 'Procedures', 'care'],
-  ['crew', 'Crew', 'crew'], ['earth', 'Earth link', 'earth'], ['office', 'Agent tree', 'office'],
+  ['mirror', 'Body mirror', 'body'], ['crew', 'Crew', 'crew'], ['earth', 'Earth link', 'earth'], ['office', 'Agent tree', 'office'], ['sim', 'Simulator', 'play'],
 ];
-const ROUTES = { today, checkin, body, care, procedure, ultrasound, emergency, crew, earth, office, capture };
+const ROUTES = { today, checkin, body, care, procedure, ultrasound, emergency, crew, earth, office, capture, mirror, sim, replay, ground };
 const CALM = new Set(['emergency', 'procedure']);
 
 // Language is chosen per astronaut and kept on this tablet.
@@ -56,10 +60,10 @@ function renderTop() {
   const swc = { green: 'var(--ok)', amber: 'var(--watch)', red: 'var(--redt)' }[sw.status];
   const roles = { A: 'FE', B: 'CDR', C: 'PLT' };
   document.getElementById('topbar').innerHTML = `
-    <span class="brand">TRI<span>X</span></span><span class="sub">Crew health system · ${esc(link.label === 'Mars' ? 'Mars transit' : link.label)} · offline</span>
+    <span class="brand">TRI<span>X</span></span><span class="sub">${esc(link.label === 'Mars' ? 'Mars transit' : link.label)} · offline</span>
     <span class="tm push"><b>MET</b><span id="met">--</span></span>
     <span class="tm"><b>GMT</b><span id="gmt">--</span></span>
-    <span class="tm"><span class="${link.live ? '' : 'blink'}" style="width:9px;height:9px;border-radius:99px;background:${link.live ? 'var(--ok)' : 'var(--watch)'}"></span>${link.live ? 'AOS' : 'LOS'} · Earth delay ${esc(link.delay)}</span>
+    <span class="tm" ${link.cut ? 'style="color:var(--redt);font-weight:600"' : ''}><span class="${link.live ? '' : 'blink'}" style="width:9px;height:9px;border-radius:99px;background:${link.cut ? 'var(--nred)' : link.live ? 'var(--ok)' : 'var(--watch)'}"></span>${link.cut ? 'NO LINK · no contact with Earth' : `${link.live ? 'AOS' : 'LOS'} · Earth delay ${esc(link.delay)}`}</span>
     <a class="tm" href="#/earth" style="text-decoration:none;color:${swc}">${icon('rad', swc, 16)}${sw.status === 'green' ? 'SWX calm' : sw.status === 'amber' ? 'SWX watch' : 'SWX storm'}</a>
     <span class="who"><label class="sr" for="whosel">I am</label>
       <select id="whosel">${Object.entries(m.crew).map(([k, c]) => `<option value="${k}" ${k === state.who ? 'selected' : ''}>${roles[k] || ''} · Astronaut ${k}</option>`).join('')}</select>
@@ -75,8 +79,8 @@ function renderTop() {
 
 function renderNav(active) {
   document.getElementById('nav').innerHTML = NAV.map(([k, label, ic]) =>
-    `<a class="${k === active ? 'on' : ''}" href="#/${k}" ${k === active ? 'aria-current="page"' : ''}>${icon(ic, 'currentColor', 18)}${label}</a>`).join('') +
-    `<a class="sos" href="#/emergency">${icon('alert', '#fff', 18, 2.2)}Medical emergency</a>`;
+    `<a class="${k === active ? 'on' : ''}" href="#/${k}" ${k === active ? 'aria-current="page"' : ''}>${icon(ic, 'currentColor', 18)}${esc(t(label))}</a>`).join('') +
+    `<a class="sos" href="#/emergency">${icon('alert', '#fff', 18, 2.2)}${esc(t('Medical emergency'))}</a>`;
 }
 
 export function go(hash) { location.hash = hash; }
@@ -84,7 +88,7 @@ export function go(hash) { location.hash = hash; }
 async function route() {
   const parts = (location.hash.replace(/^#\/?/, '') || 'today').split('/');
   const name = ROUTES[parts[0]] ? parts[0] : 'today';
-  renderNav(name === 'procedure' || name === 'ultrasound' ? 'care' : name === 'emergency' ? '' : name === 'capture' ? 'checkin' : name);
+  renderNav(name === 'procedure' || name === 'ultrasound' ? 'care' : name === 'emergency' ? '' : name === 'capture' ? 'checkin' : name === 'replay' || name === 'ground' ? 'sim' : name);
   document.getElementById('app').classList.toggle('calm', CALM.has(name));
   if (cleanup) { try { cleanup(); } catch (e) { console.warn(e); } cleanup = null; }
   const view = document.getElementById('view');
@@ -99,17 +103,39 @@ async function route() {
   document.getElementById('main').scrollTop = 0;
 }
 
-// Watch for crew emergencies raised on another tablet.
-let seen = new Set();
+// Watch for crew emergencies raised on another tablet, and for messages from Earth.
+let seen = new Set(), firstPoll = true;
+function alarm() {
+  try { const a = new (window.AudioContext || window.webkitAudioContext)(); [0, 0.35, 0.7].forEach((d) => { const o = a.createOscillator(), g = a.createGain(); o.frequency.value = 880; g.gain.value = 0.15; o.connect(g); g.connect(a.destination); o.start(a.currentTime + d); o.stop(a.currentTime + d + 0.2); }); } catch (e) { /* no audio */ }
+}
+function takeover(c) {
+  document.getElementById('takeover')?.remove();
+  const d = document.createElement('div');
+  d.id = 'takeover'; d.setAttribute('role', 'alertdialog'); d.setAttribute('aria-label', `Astronaut ${c.who} needs help`);
+  d.style.cssText = 'position:fixed;inset:0;z-index:80;background:rgba(120,14,0,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;text-align:center';
+  d.innerHTML = `${icon('alert', '#fff', 84, 2)}<div class="cond" style="font-size:20px;letter-spacing:.12em;text-transform:uppercase;color:#FFD9D2">Crew alert · you are needed</div>
+    <div style="font-size:46px;font-weight:700;line-height:1.1">Astronaut ${esc(c.who)} needs help now</div><div style="font-size:20px;color:#FFD9D2">${esc(c.summary)}</div>
+    <div class="row" style="gap:14px;justify-content:center"><a class="btn big" id="tkgo" href="#/emergency/${c.case_id}" style="background:#fff;color:#7A1206">Open the guided response</a><button class="btn big ghost" id="tkno" style="border-color:#fff">Someone else is responding</button></div>`;
+  document.body.appendChild(d);
+  d.querySelector('#tkgo').onclick = () => d.remove();
+  d.querySelector('#tkno').onclick = () => d.remove();
+  d.querySelector('#tkgo').focus();
+  alarm();
+}
 async function pollAlerts() {
   try {
     const { cases } = await api.get('/api/office');
     for (const c of cases.slice(0, 10)) {
-      if (c.urgency === 'emergency' && !seen.has(c.case_id) && Date.now() / 1000 - c.ts < 120) {
-        if (seen.size) toast(`<strong style="color:var(--redt)">Crew alert:</strong> Astronaut ${esc(c.who)} · ${esc(c.summary)} · <a href="#/emergency/${c.case_id}">Open</a>`, 9000);
-      }
+      const fresh = c.urgency === 'emergency' && !seen.has(c.case_id) && Date.now() / 1000 - c.ts < 90;
+      if (fresh && !firstPoll && c.who !== state.who && !location.hash.includes(c.case_id) && !/^#\/(sim|ground|replay)/.test(location.hash)) takeover(c);
+      else if (fresh && !firstPoll && c.who === state.who && !location.hash.includes(c.case_id)) toast(`<strong style="color:var(--redt)">Emergency team started for you.</strong> <a href="#/emergency/${c.case_id}">Open</a>`, 9000);
       seen.add(c.case_id);
     }
+    firstPoll = false;
+    const box = await api.get(`/api/inbox/${state.who}`);
+    const got = new Set(JSON.parse(sessionStorage.getItem('trix-inbox') || '[]'));
+    box.messages.forEach((m) => { if (!got.has(m.id)) { got.add(m.id); toast(`<strong style="color:#CFE0FF">Message from Earth · flight surgeon</strong><br>${esc(m.text)}`, 15000); } });
+    sessionStorage.setItem('trix-inbox', JSON.stringify([...got]));
   } catch (e) { /* server restarting */ }
 }
 
@@ -130,8 +156,8 @@ async function checkReminder() {
       new Notification('TRIX · routine prompt', { body: `Astronaut ${state.who}: ${p.title} (${p.minutes} min).` });
     }
     if (!show) return;
-    box.innerHTML = `${icon('clock', 'var(--nred)', 22)}<span><strong class="cond" style="letter-spacing:.07em;text-transform:uppercase">Routine prompt · ${esc(p.title)}</strong><br><span class="small muted">${esc(p.why)}</span></span>
-      <a class="btn sm due" href="${p.item.go}">Start</a><button class="btn sm ghost" id="remsnooze">Snooze 15 min</button>`;
+    box.innerHTML = `${icon('clock', 'var(--nred)', 22)}<span><strong class="cond" style="letter-spacing:.07em;text-transform:uppercase">${esc(t('Routine prompt'))} · ${esc(t(p.title.split(': ')[0]))}: ${esc(t(p.item.label))}</strong><br><span class="small muted">${esc(p.why)}</span></span>
+      <a class="btn sm due" href="${p.item.go}">${esc(t('Start'))}</a><button class="btn sm ghost" id="remsnooze">${esc(t('Snooze 15 min'))}</button>`;
     document.getElementById('remsnooze').onclick = () => { sessionStorage.setItem(`trix-snooze-${key}`, Date.now() + 15 * 60e3); box.hidden = true; };
   } catch (e) { /* server restarting */ }
 }
@@ -142,7 +168,7 @@ window.addEventListener('hashchange', () => setTimeout(checkReminder, 300));
 function setupTalk() {
   const btn = document.createElement('button');
   btn.id = 'talkbtn'; btn.className = 'talkbtn'; btn.type = 'button'; btn.setAttribute('aria-expanded', 'false');
-  btn.innerHTML = `${icon('mic', '#fff', 20)}Talk to TRIX`;
+  btn.innerHTML = `${icon('mic', '#fff', 20)}<span>Talk to TRIX</span>`;
   const panel = document.createElement('div');
   panel.className = 'talk'; panel.hidden = true; panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-label', 'Talk to TRIX');
   panel.innerHTML = `<div class="row" style="justify-content:space-between;align-items:center;gap:8px"><strong class="cond" style="letter-spacing:.08em;text-transform:uppercase;color:#CFE0FF">Talk to TRIX</strong>
@@ -209,4 +235,4 @@ setLang(langOf(state.who)).then(refreshMission).then(() => { route(); checkRemin
   document.getElementById('view').innerHTML = `<div class="card"><h2>TRIX server not reachable</h2><p class="muted">Start it with <span class="mono">python app.py</span>. ${esc(e.message)}</p></div>`;
 });
 pollAlerts();
-setInterval(pollAlerts, 5000);
+setInterval(pollAlerts, 3000);

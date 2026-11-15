@@ -324,3 +324,10 @@ main{padding-bottom:96px}
 .calm .talkbtn{opacity:.85}
 
 .talkbtn.live{box-shadow:0 0 0 4px rgba(45,212,191,.35);animation:blink 1.6s ease-in-out infinite}
+.mbar .who #langsel{font-family:'IBM Plex Sans',sans-serif;text-transform:none;letter-spacing:0;font-weight:500}
+#takeover .btn.ghost{color:#fff}
+
+.mbar{gap:16px;flex-wrap:nowrap}.mbar .sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}.mbar .tm{white-space:nowrap}
+.mbar .who select{min-height:34px;padding:4px 8px;font-size:13px}
+.tabs{padding:0 12px}.tabs a{padding:0 10px;font-size:13px;gap:6px;letter-spacing:.06em}.tabs a.sos{padding:0 12px}
+@media (max-width:1250px){.mbar{flex-wrap:wrap}.mbar .sub{display:none}}

@@ -4,6 +4,8 @@ export default {
   "Check-in": "Chequeo",
   "Trends": "Tendencias",
   "Procedures": "Procedimientos",
+  "Body mirror": "Espejo corporal",
+  "Simulator": "Simulador",
   "Crew": "Tripulación",
   "Earth link": "Enlace con la Tierra",
   "Agent tree": "Árbol de agentes",
