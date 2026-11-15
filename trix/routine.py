@@ -39,6 +39,59 @@ RANGE = {"sleep": (0, 14), "hr": (25, 220), "sys": (60, 250), "dia": (30, 150), 
          "reaction": (120, 2000), "mood": (1, 5), "exercise": (0, 300), "mass": (30, 200), "back_pain": (0, 10)}
 COL = {"bp": "sys", "mood": "mood_raw"}
 
+# Where the crew is changes how to measure, what to watch and who can help.
+ENV = {
+    "iss": {"label": "Space station", "place": "Space station in low Earth orbit", "gravity": "Weightless", "help": "Flight surgeons answer in seconds. Return to Earth takes hours.",
+            "watch": ["Weightlessness moves fluid to the head and unloads bones and muscles", "Closed cabin: carbon dioxide can build up",
+                      "Radiation is partly blocked by Earth's magnetic field"]},
+    "moon": {"label": "Moon base", "place": "Base on the surface of the Moon", "gravity": "One-sixth gravity", "help": "Flight surgeons answer in about 3 seconds. Return to Earth takes days.",
+             "watch": ["One-sixth gravity still unloads bones and muscles", "Lunar dust can irritate eyes, skin and lungs after surface walks",
+                       "No magnetic shield: a solar storm means go to the shelter"]},
+    "rover": {"label": "Moon rover", "place": "Pressurised rover away from the base", "gravity": "One-sixth gravity", "help": "Small medical kit only. A serious problem means driving back to base.",
+              "watch": ["Small closed cabin: carbon dioxide builds up fast", "Far from the base medical kit and the shelter",
+                        "Lunar dust comes in after every surface walk", "Long hours seated in a suit: watch fluids and back pain"]},
+    "mars": {"label": "Mars spacecraft", "place": "Spacecraft in deep space on the way to Mars", "gravity": "Weightless", "help": "Earth's answer takes up to 40 minutes. No quick return: TRIX and the crew decide on board.",
+             "watch": ["Months of weightlessness: bone, muscle and vision changes add up", "Deep-space radiation with no magnetic shield",
+                       "Isolation and distance: sleep and mood need daily attention"]},
+}
+_FLOAT = {"hr": "Strap in or hook your feet so you are not drifting.", "bp": "Strap in first. Floating effort changes the reading.",
+          "mass": "A normal scale does not work while weightless. Use the body mass device that measures you with a spring.",
+          "spo2": "Hold your hand against your body so it stays still.", "reaction": "Clip the tablet to a surface or brace yourself so it does not drift.",
+          "back_pain": "Back pain is common while weightless because the spine lengthens.", "exercise": "Exercise is the main protection for bones and muscles while weightless."}
+_SIXTH = {"hr": "Sit down for the minute, as you would on Earth.", "bp": "Sit with your feet on the floor. Stand-up dizziness is still possible in low gravity.",
+          "mass": "A scale reads about one sixth of your Earth weight here. Enter your mass in kilograms from the base mass device, not the scale reading.",
+          "exercise": "Walking in one-sixth gravity is not enough load for bones. Count only your exercise blocks.",
+          "spo2": "After a surface walk, wait 10 minutes and wipe off dust before clipping the sensor on."}
+ENV_NOTE = {"iss": _FLOAT, "mars": _FLOAT, "moon": _SIXTH,
+            "rover": _SIXTH | {"mass": "The rover has no mass device. Skip this until you are back at base.",
+                               "back_pain": "Long drives seated in a suit strain the back. Check it at every stop.",
+                               "exercise": "No exercise machines in the rover. Log surface-walk time and catch up at base.",
+                               "temp": "After a surface walk, wait 15 minutes out of the suit before measuring."}}
+ROVER_SKIP = {"mass"}
+LEVEL_WORDS = {"self_care": "you handle it with TRIX's advice", "crew_medical_officer": "the crew medical officer", "flight_surgeon": "a flight surgeon on Earth",
+               "flight_surgeon_private": "a flight surgeon, privately", "emergency": "the emergency team, at once"}
+
+
+def env(loc: str) -> dict:
+    return {"id": loc} | ENV[loc]
+
+
+def when(ind: str) -> dict:
+    """When to measure, and when a result should go to someone else."""
+    k = kb.indicators()[ind]
+    esc = k.get("escalation", {})
+    tell = []
+    if "amber" in esc:
+        tell.append(f"WATCH (amber): {LEVEL_WORDS[esc['amber']]}.")
+    for key, lvl in esc.items():
+        m = re.match(r"(amber|red)_persistent_(\d+)d", key)
+        if m:
+            tell.append(f"{'WATCH' if m[1] == 'amber' else 'NO-GO'} for {m[2]} days in a row: {LEVEL_WORDS[lvl]}.")
+    if "red" in esc:
+        tell.append(f"NO-GO (red): {LEVEL_WORDS[esc['red']]}.")
+    session = "morning check" if ind in MORNING else "evening check" if ind in EVENING else "weekly check" if ind in WEEKLY else ""
+    return {"how_often": k["frequency"], "session": session, "also": "Also measure any time you feel unwell.", "tell": tell}
+
 
 def _done_today(who: str) -> set[str]:
     done = {r["indicator"] for r in store.live_readings(who, since_day=store.today())}

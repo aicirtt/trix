@@ -417,3 +417,65 @@ def test_everyday_words_reach_the_right_source():
     from trix import teams
     hits = teams.retriever().search("the air feels stuffy and my head hurts", k=3)
     assert hits[0]["doc_id"] in ("co2", "ind:co2")
+
+
+# ---------------------------------------------------------------- environments, when-to-tell, open science
+def test_four_environments_change_guidance():
+    s = c.get("/api/state").json()
+    assert set(s["locations"]) == {"iss", "moon", "rover", "mars"}
+    seen = {}
+    for loc in ("iss", "moon", "rover", "mars"):
+        assert c.post("/api/mission", json={"location": loc}).status_code == 200
+        st = c.get("/api/state").json()
+        assert st["env"]["id"] == loc and len(st["env"]["watch"]) >= 3 and st["env"]["help"]
+        seen[loc] = c.get("/api/capture/A/mass").json()["env"]
+    assert "spring" in seen["iss"]["note"] and "one sixth" in seen["moon"]["note"]
+    assert seen["rover"]["skip"] and not seen["moon"]["skip"]
+    assert c.post("/api/mission", json={"location": "venus"}).status_code == 400
+    c.post("/api/mission", json={"location": "mars"})
+
+
+def test_rover_checkin_runs_and_routes_live():
+    from trix import escalation
+    assert escalation.assess("bp", {"sys": 170, "dia": 105}, location="rover").route == "live consult now"
+    c.post("/api/mission", json={"location": "rover"})
+    r = c.post("/api/checkin", json={"who": "A", "readings": {"hr": 62, "sys": 118, "dia": 76}})
+    assert r.status_code == 200
+    c.post("/api/mission", json={"location": "mars"})
+
+
+def test_capture_says_when_and_who_to_tell():
+    from trix import routine
+    for ind in routine.HOWTO:
+        i = c.get(f"/api/capture/A/{ind}").json()
+        assert i["when"]["how_often"] and i["when"]["tell"], ind
+        assert i["hazard"] and i["science"]["term"], ind
+    bp = c.get("/api/capture/A/bp").json()["when"]["tell"]
+    assert any("3 days" in x and "crew medical officer" in x for x in bp) and any("flight surgeon" in x for x in bp)
+
+
+def test_open_science_list_and_offline_search(monkeypatch):
+    from trix import feeds, science
+    d = c.get("/api/science").json()
+    assert len(d["studies"]) == 10 and all(x["id"].startswith("OSD-") and x["url"].endswith(x["id"]) for x in d["studies"])
+    assert {x["id"] for x in c.get("/api/science?indicator=skin").json()["studies"]} >= {"OSD-572", "OSD-574"}
+    assert c.get("/api/science?indicator=nope").status_code == 404
+
+    def down(url, headers=None):
+        raise OSError("no link")
+    monkeypatch.setattr(feeds, "_get", down)
+    r = c.get("/api/science/search?q=zz-skin-offline").json()
+    assert "offline" in r["source"] and r["studies"]
+    live = {"hits": {"hits": [{"_source": {"Accession": "OSD-137", "Study Title": "A study", "Study Description": "d", "organism": "Mus musculus"}},
+                              {"_source": {"Accession": "GSE1", "Study Title": "not OSDR"}}]}}
+    monkeypatch.setattr(feeds, "_get", lambda url, headers=None: live)
+    r = c.get("/api/science/search?q=zz-live-test").json()
+    assert r["source"] == "live" and [x["id"] for x in r["studies"]] == ["OSD-137"]
+    assert set(science.TERM) >= set(__import__("trix.routine", fromlist=["x"]).HOWTO)
+
+
+def test_sources_list_open_science_and_csa():
+    s = c.get("/api/sources").json()
+    assert len(s["open_science"]["studies"]) == 10
+    assert sum("asc-csa.gc.ca" in (r["url"] or "") for r in s["references"]) == 2
+    assert any(d["id"] == "csa_radiation" for d in s["knowledge_notes"])

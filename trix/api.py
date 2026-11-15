@@ -21,7 +21,7 @@ from fastapi import Body, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
-from . import detect, escalation, feeds, game, insights, routine, scan, voicebio, kb, llm, office, orchestrator, protocols, rag, safety, store, teams, vision, voice
+from . import detect, escalation, feeds, game, insights, routine, scan, science, voicebio, kb, llm, office, orchestrator, protocols, rag, safety, store, teams, vision, voice
 
 ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web"
@@ -30,6 +30,7 @@ app = FastAPI(title="TRIX onboard API", version="1.0")
 LOCATIONS = {
     "iss": {"label": "ISS", "one_way_s": 0.5, "delay": "< 1 s", "round": "< 2 s", "live": True},
     "moon": {"label": "Moon", "one_way_s": 1.3, "delay": "1.3 s", "round": "2.6 s", "live": True},
+    "rover": {"label": "Rover", "one_way_s": 1.3, "delay": "1.3 s", "round": "2.6 s", "live": True},
     "mars": {"label": "Mars", "one_way_s": 1188, "delay": "19m 48s", "round": "~40 min", "live": False},
 }
 
@@ -63,6 +64,22 @@ def run(event: dict, save: bool = True) -> dict:
     return _clean(store._slim(out) | {"team": out.get("team")})
 
 
+# ------------------------------------------------------------------ open science
+@app.get("/api/science")
+def science_list(indicator: str = ""):
+    """Real spaceflight biology studies (NASA OSDR) linked to the indicators."""
+    if indicator:
+        if indicator not in kb.indicators():
+            raise HTTPException(404, "no indicator with that name")
+        return science.for_indicator(indicator)
+    return {"about": science.KB["about"], "home": science.KB["home"], "paper": science.KB["paper"], "studies": science.bundled()}
+
+
+@app.get("/api/science/search")
+def science_search(q: str = "astronaut"):
+    return _clean(science.search(q))
+
+
 # ------------------------------------------------------------------ mission
 @app.get("/api/state")
 def state():
@@ -73,7 +90,7 @@ def state():
     if cut:
         link |= {"live": False, "delay": "no contact", "round": "unknown", "cut": True}
     return _clean({"location": loc, "link": link, "link_cut": cut, "langs": {w: store.get(f"lang:{w}", "en") for w in game.CREW},
-                   "locations": LOCATIONS, "day": store.today(),
+                   "locations": LOCATIONS, "env": routine.env(loc), "day": store.today(),
                    "crew": game.CREW, "space_weather": {k: sw[k] for k in ("status", "message", "source")},
                    "ai": system_status()})
 
@@ -82,7 +99,7 @@ def state():
 def set_mission(body: dict = Body(...)):
     if "location" in body:
         if body["location"] not in LOCATIONS:
-            raise HTTPException(400, "location must be iss, moon or mars")
+            raise HTTPException(400, "location must be iss, moon, rover or mars")
         store.put("location", body["location"])
     if "day" in body:
         store.put("mission_day", int(body["day"]))
@@ -120,6 +137,7 @@ def sources():
         docs.append({"id": meta.get("id", "").strip(), "title": meta.get("title", "").strip(), "url": meta.get("url", "").strip()})
     data = [{"title": "NASA DONKI space weather (solar flares, particle events)", "url": "https://api.nasa.gov/", "used_by": ["Radiation alerts", "Solar-storm shelter procedure"]},
             {"title": "Meteomatics weather API (Space Apps partner)", "url": "https://www.meteomatics.com/en/meteomatics-and-nasa-space-apps-challenge/", "used_by": ["Landing readiness"]},
+            {"title": "NASA Open Science Data Repository search API (real spaceflight biology studies)", "url": science.KB["api"], "used_by": ["Open science evidence on every measurement", "Study search"]},
             {"title": insights.SOURCE["title"], "url": insights.SOURCE["url"], "used_by": ["Cabin air and headaches"]}]
     models = [{"title": "MediaPipe Face Mesh and Pose (Google, Apache 2.0)", "used_by": ["Face fatigue", "ECG placement", "CPR rate", "Balance", "Body mirror"]},
               {"title": "LangGraph (agent orchestration)", "used_by": ["Mission, Daily care, Emergency and Operations orchestrators"]},
@@ -127,6 +145,7 @@ def sources():
               {"title": "Ollama + Llama 3.2 (optional, local)", "used_by": ["Answer wording"]},
               {"title": "IBM Plex fonts (SIL Open Font License)", "used_by": ["Interface"]}]
     return {"references": refs, "knowledge_notes": docs, "live_data": data, "models_and_tools": models,
+            "open_science": {"about": science.KB["about"], "home": science.KB["home"], "paper": science.KB["paper"], "studies": science.bundled()},
             "simulated": ["Crew history (240 days, 3 astronauts)", "Onboard devices except Bluetooth heart-rate straps", "Medicine stock and menu", "Day-1 body scan in the demo"]}
 
 
@@ -393,7 +412,9 @@ def capture_info(who: str, ind: str):
     return _clean({"id": ind, "name": k["name"].split(" (")[0], "unit": k["unit"], "howto": routine.HOWTO[ind], "label": routine.ITEMS[ind][0],
                    "minutes": routine.ITEMS[ind][1], "why": f"{k['space_effect']} {k['why_measure']}", "source": src[0] if src else None,
                    "limits": k.get("absolute", {}), "last": last, "devices": k["devices"], "in_six": ind in routine.SIX,
-                   "sim_device": routine.DEVICE.get(ind),
+                   "sim_device": routine.DEVICE.get(ind), "when": routine.when(ind), "risk": k.get("risk"), "hazard": k.get("hazard"),
+                   "env": routine.env(location()) | {"note": routine.ENV_NOTE[location()].get(ind), "skip": location() == "rover" and ind in routine.ROVER_SKIP},
+                   "science": science.for_indicator(ind),
                    "ring": routine.routine(who, _merged_view(who), teams._BANDIT.best(who)["slot"])["ring"]})
 
 
